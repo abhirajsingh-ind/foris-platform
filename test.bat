@@ -1,0 +1,3 @@
+@echo off
+echo Running FORIS Automated Test Suite...
+call run_cmd.bat npx tsx tests/api.test.ts

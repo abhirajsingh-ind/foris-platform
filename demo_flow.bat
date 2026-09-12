@@ -1,0 +1,3 @@
+@echo off
+echo Running FORIS 17-Step Presentation Demo Verification...
+call run_cmd.bat npx tsx test_sih_flow.ts

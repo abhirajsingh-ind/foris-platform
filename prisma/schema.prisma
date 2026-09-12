@@ -1,0 +1,191 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String           @id @default(cuid())
+  badgeId         String           @unique
+  name            String
+  email           String           @unique
+  passwordHash    String
+  role            String           // FORENSIC_OFFICER, POLICE_OFFICER, JUDGE, ADMINISTRATOR
+  designation     String
+  department      String
+  status          String           @default("ACTIVE")
+  failedAttempts  Int              @default(0)
+  lockedUntil     DateTime?
+  lastLogin       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  assignedCases   Case[]           @relation("AssignedCases")
+  createdCases    Case[]           @relation("CreatedCases")
+  reports         Report[]         @relation("AuthoredReports")
+  reportVersions  ReportVersion[]  @relation("VersionAuthor")
+  transfers       EvidenceTransfer[]
+}
+
+model Case {
+  id                String           @id // e.g. MP-FOR-2026-00125
+  firNumber         String           @unique
+  title             String
+  description       String
+  category          String
+  policeUnit        String
+  forensicUnit      String
+  status            String           @default("UNDER_EXAMINATION") // OPEN, UNDER_EXAMINATION, REPORT_FILED, COURT_SUBMITTED, CLOSED
+  priority          String           @default("HIGH") // LOW, MEDIUM, HIGH, CRITICAL
+  assignedOfficerId String
+  assignedOfficer   User             @relation("AssignedCases", fields: [assignedOfficerId], references: [id])
+  createdById       String
+  createdBy         User             @relation("CreatedCases", fields: [createdById], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  evidence          Evidence[]
+  reports           Report[]
+  documents         Document[]
+}
+
+model Evidence {
+  id                String           @id // e.g. EV-2026-001
+  caseId            String
+  case              Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceType      String
+  description       String
+  collectionDate    DateTime
+  collectorName     String
+  initialCondition  String
+  currentCustodian  String
+  currentStatus     String           @default("IN_EXAMINATION") // COLLECTED, TRANSFERRED_TO_LAB, IN_EXAMINATION, SECURE_VAULT, PRESENTED_IN_COURT
+  storageLocation   String
+  sha256Hash        String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  transfers         EvidenceTransfer[]
+  documents         Document[]
+}
+
+model EvidenceTransfer {
+  id                   String        @id @default(cuid())
+  evidenceId           String
+  evidence             Evidence      @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  fromParty            String
+  toParty              String
+  transferredAt        DateTime      @default(now())
+  purpose              String
+  action               String
+  status               String        @default("ACKNOWLEDGED")
+  notes                String?
+  responsibleOfficerId String
+  responsibleOfficer   User          @relation(fields: [responsibleOfficerId], references: [id])
+}
+
+model Report {
+  id              String             @id // e.g. REP-2026-0089
+  caseId          String
+  case            Case               @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  currentVersion  Int                @default(1)
+  status          String             @default("DRAFT") // DRAFT, SUBMITTED, REVIEWED, FINALIZED, AMENDMENT_REQUESTED
+  title           String
+  authorId        String
+  author          User               @relation("AuthoredReports", fields: [authorId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  versions        ReportVersion[]
+}
+
+model ReportVersion {
+  id                   String        @id @default(cuid())
+  reportId             String
+  report               Report        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  versionNumber        Int
+  evidenceExamined     String
+  examinationMethod    String
+  observations         String
+  findings             String
+  conclusion           String
+  sha256Hash           String
+  authorId             String
+  author               User          @relation("VersionAuthor", fields: [authorId], references: [id])
+  amendmentReason      String?       // Typographical correction, Additional evidence, Re-examination, Laboratory correction, Court instruction, Administrative correction, Other
+  amendmentDetails     String?
+  isFinalized          Boolean       @default(false)
+  finalizedAt          DateTime?
+  signedByName         String?
+  signedById           String?
+  signedByDesignation  String?
+  signatureTimestamp   DateTime?
+  signatureHash        String?
+  createdAt            DateTime      @default(now())
+}
+
+model ReportChange {
+  id             String              @id @default(cuid())
+  reportId       String
+  fromVersion    Int
+  toVersion      Int
+  fieldName      String
+  oldValue       String
+  newValue       String
+  changedById    String
+  changedAt      DateTime            @default(now())
+  reason         String
+}
+
+model AuditEvent {
+  id                 String          @id @default(cuid())
+  sequenceIndex      Int             @unique
+  timestamp          DateTime        @default(now())
+  userId             String
+  userBadge          String
+  userName           String
+  role               String
+  action             String
+  caseId             String?
+  resourceType       String
+  resourceId         String?
+  reason             String?
+  result             String          @default("SUCCESS") // SUCCESS, DENIED, FAILURE, WARNING
+  severity           String          @default("INFO") // INFO, LOW, MEDIUM, HIGH, CRITICAL
+  metadata           String?         // JSON
+  ipAddress          String?
+  previousAuditHash  String
+  currentAuditHash   String
+}
+
+model SecurityEvent {
+  id                 String          @id @default(cuid())
+  timestamp          DateTime        @default(now())
+  eventType          String
+  severity           String          // LOW, MEDIUM, HIGH, CRITICAL
+  title              String
+  description        String
+  userBadge          String?
+  ipAddress          String?
+  status             String          @default("UNRESOLVED") // UNRESOLVED, INVESTIGATING, RESOLVED, FALSE_POSITIVE
+  resolvedBy         String?
+  resolutionNotes    String?
+}
+
+model Document {
+  id                 String          @id @default(cuid())
+  caseId             String?
+  case               Case?           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceId         String?
+  evidence           Evidence?       @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  originalFilename   String
+  storedFilename     String
+  mimeType           String
+  fileSize           Int
+  sha256Hash         String
+  uploadedById       String
+  uploadedAt         DateTime        @default(now())
+}

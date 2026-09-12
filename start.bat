@@ -1,0 +1,3 @@
+@echo off
+echo Starting FORIS Platform...
+call run_cmd.bat npx tsx server/index.ts
