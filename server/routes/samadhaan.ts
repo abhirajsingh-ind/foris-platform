@@ -104,7 +104,7 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
       query.includes('madad')
     ) {
       category = 'CONVERSATION';
-      responseText = `### 🙏 नमस्ते ऑफिसर ${user.name || 'Dr. Rajesh Varma'}!
+      responseText = `### 🙏 नमस्ते ऑफिसर ${user.name || 'Dr. Abhiraj Singh'}!
 
 Main **FORIS SAMADHAAN (फॉरेंसिक समाधान)** hoon — State Forensic Science Laboratory (SFSL) ka official **AI Forensic, Legal & Case Intelligence Core**.
 
@@ -122,7 +122,7 @@ Main **FORIS SAMADHAAN (फॉरेंसिक समाधान)** hoon — 
 
 👉 **Aap mujhse bolkar ya type karke koi bhi forensic question pooch sakte hain!**`;
 
-      spokenText = `Namaste Officer ${user.name || 'Rajesh Varma'}. Main hoon FORIS SAMADHAAN AI. Main aapki forensic investigation, case files, legal Section 65B certificates, ballistics, toxicology aur DNA profiling me 100% accurate solution dene ke liye ready hoon. Boliye main aapki kya madad karoon?`;
+      spokenText = `Namaste Officer ${user.name || 'Abhiraj Singh'}. Main hoon FORIS SAMADHAAN AI. Main aapki forensic investigation, case files, legal Section 65B certificates, ballistics, toxicology aur DNA profiling me 100% accurate solution dene ke liye ready hoon. Boliye main aapki kya madad karoon?`;
 
       relatedActions = [
         { label: 'View Case Dossiers', tab: 'cases' },
@@ -195,7 +195,7 @@ ${evList}
 2. **Cryptographic Integrity:** Initial acquisition bit-stream image verified with SHA-256 \`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\`.
 3. **Malware Payload:** Reverse engineering confirmed Darkside v4.2 Ransomware encryptor binary.
 4. **Financial Blockchain Trace:** 4.8 BTC ransom payment traced to cold-storage mixer via volatile RAM dump.
-5. **Legal Attestation:** Section 65B Certificate generated and attested by Dr. Rajesh Varma.`;
+5. **Legal Attestation:** Section 65B Certificate generated and attested by Dr. Abhiraj Singh.`;
 
       spokenText = `Cyber Financial Syndicate case me 2TB NVMe SSD se Darkside Ransomware payload aur 4.8 Bitcoin transaction evidence recover hua hai. SHA-256 hash verified hai aur Section 65B certificate attested hai.`;
 

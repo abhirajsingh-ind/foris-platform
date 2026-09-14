@@ -17,6 +17,7 @@ import {
   Palette,
   Sparkles,
   Check,
+  Cpu,
 } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -288,20 +289,121 @@ export const Login: React.FC = () => {
                 </div>
               </div>
 
+              {/* Quick Persona Selector for Demo Testing */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                    Select Officer Persona (1-Click Fill)
+                  </span>
+                  <span className="text-[9px] font-mono text-cyan-400 flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5" /> Demo Mode
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBadgeId('FORIS-CFO-001');
+                      setPassword('Forensic#Secure2026');
+                      setError(null);
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                      badgeId === 'FORIS-CFO-001'
+                        ? 'bg-cyan-500/20 border-cyan-500/80 shadow-sm shadow-cyan-500/30'
+                        : isLight
+                        ? 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-[11px] text-white flex items-center gap-1 truncate">
+                      <Shield className="w-3 h-3 text-cyan-400 shrink-0" />
+                      Dr. Abhiraj Singh
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-mono">Chief Forensic Officer</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBadgeId('FORIS-CYBER-002');
+                      setPassword('Cyber#Forensic2026');
+                      setError(null);
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                      badgeId === 'FORIS-CYBER-002'
+                        ? 'bg-purple-500/20 border-purple-500/80 shadow-sm shadow-purple-500/30'
+                        : isLight
+                        ? 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-[11px] text-white flex items-center gap-1 truncate">
+                      <Cpu className="w-3 h-3 text-purple-400 shrink-0" />
+                      Pooja Sharma
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-mono">Senior Cyber Expert</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBadgeId('POLICE-INV-101');
+                      setPassword('Police#Shield2026');
+                      setError(null);
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                      badgeId === 'POLICE-INV-101'
+                        ? 'bg-blue-500/20 border-blue-500/80 shadow-sm shadow-blue-500/30'
+                        : isLight
+                        ? 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-[11px] text-white flex items-center gap-1 truncate">
+                      <User className="w-3 h-3 text-blue-400 shrink-0" />
+                      Insp. Amit Singh
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-mono">Lead Investigator</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBadgeId('JUDGE-SESS-901');
+                      setPassword('Justice#Docket2026');
+                      setError(null);
+                    }}
+                    className={`p-2 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                      badgeId === 'JUDGE-SESS-901'
+                        ? 'bg-amber-500/20 border-amber-500/80 shadow-sm shadow-amber-500/30'
+                        : isLight
+                        ? 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-[11px] text-white flex items-center gap-1 truncate">
+                      <ShieldCheck className="w-3 h-3 text-amber-400 shrink-0" />
+                      Justice Deshmukh
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-mono">Sessions Judge</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 px-4 bg-gradient-to-r ${getAccentButtonGradient()} disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]`}
+                className={`w-full py-3.5 px-4 bg-gradient-to-r ${getAccentButtonGradient()} disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl shadow-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] hover:shadow-cyan-500/25`}
               >
                 {loading ? (
                   <span className="flex items-center gap-2 font-mono text-xs">
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    VERIFYING CREDENTIALS...
+                    AUTHENTICATING DIGITAL CREDENTIALS...
                   </span>
                 ) : (
                   <>
-                    <span>Authenticate</span>
+                    <span>Authenticate & Proceed</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -320,11 +422,11 @@ export const Login: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Fingerprint className="w-3.5 h-3.5 text-emerald-500/80" />
-                <span>Step 2: Biometric Face Attestation required before access</span>
+                <span>Step 2: Biometric Face Verification (70% matching threshold)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Binary className="w-3.5 h-3.5 text-emerald-500/80" />
-                <span>All authentication attempts recorded in tamper-evident ledger</span>
+                <span>Cryptographic SHA-256 ledger integrity verification active</span>
               </div>
             </div>
           </div>

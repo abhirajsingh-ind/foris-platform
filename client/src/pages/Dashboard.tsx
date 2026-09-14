@@ -203,7 +203,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {!photoError ? (
                     <img
                       src={officerPhoto || '/rajesh_varma.jpg'}
-                      alt={user?.name || 'Dr. Rajesh Varma'}
+                      alt={user?.name || 'Dr. Abhiraj Singh'}
                       className="w-full h-full object-cover object-center transform hover:scale-110 transition-transform duration-500"
                       onError={() => setPhotoError(true)}
                     />
@@ -244,7 +244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">
                   Welcome back,{' '}
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-300">
-                    {user?.name || 'Dr. Rajesh Varma'}
+                    {user?.name || 'Dr. Abhiraj Singh'}
                   </span>
                 </h1>
 

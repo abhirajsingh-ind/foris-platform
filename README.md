@@ -88,7 +88,7 @@ All demonstration identities use the default password: **`ForisSecure2026!`**
 
 | Role | Officer Name | Badge ID | Purpose in Demo |
 | :--- | :--- | :---: | :--- |
-| **Forensic Officer** | Dr. Rajesh Varma | `FEX-1024` | Creates reports, signs V1, creates formal amendment V2 |
+| **Forensic Officer** | Dr. Abhiraj Singh | `FEX-1024` | Creates reports, signs V1, creates formal amendment V2 |
 | **Senior Police Officer** | ACP Vikram Rathore | `SPO-2048` | Manages cases, views custody history, downloads evidence |
 | **Special Judge** | Hon. Justice Manisha Sharma | `JDG-3012` | **STRICT READ-ONLY** court inspection, compares versions, triggers 403 test |
 | **Administrator** | Dr. Ananya Sen | `ADMIN-001` | System audit overview and security governance |

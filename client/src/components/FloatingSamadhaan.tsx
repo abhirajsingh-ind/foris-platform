@@ -125,7 +125,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
         {
           id: 'float-welcome',
           sender: 'ai',
-          text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Rajesh Varma'}! 🙏\n\nMain hoon **FORIS SAMADHAAN AI Voice Assistant**. Kisi bhi case, Section 65B, hash mismatch ya report ka turant solution poochiye!`,
+          text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nMain hoon **FORIS SAMADHAAN AI Voice Assistant**. Kisi bhi case, Section 65B, hash mismatch ya report ka turant solution poochiye!`,
           spokenAnswer: `Namaste Officer. Main hoon FORIS SAMADHAAN AI. Boliye main aapki kya madad kar sakta hoon?`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },

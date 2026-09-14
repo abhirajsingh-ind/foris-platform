@@ -23,7 +23,7 @@ import {
   Lock,
 } from 'lucide-react';
 
-// Default official photo for Dr. Rajesh Varma
+// Default official photo for Dr. Abhiraj Singh
 const RAJESH_VARMA_PORTRAIT = '/rajesh_varma.jpg';
 
 // Biometric Feature Vector Interface
@@ -40,7 +40,7 @@ export const FaceVerification: React.FC = () => {
 
   // Enrolled Reference Photo State
   const [referencePhoto, setReferencePhoto] = useState<string>(RAJESH_VARMA_PORTRAIT);
-  const [referenceOfficerName, setReferenceOfficerName] = useState<string>('Dr. Rajesh Varma');
+  const [referenceOfficerName, setReferenceOfficerName] = useState<string>('Dr. Abhiraj Singh');
 
   // Live Camera & Real-Time Detection State
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
@@ -312,7 +312,7 @@ export const FaceVerification: React.FC = () => {
 
       if (isMounted) {
         setReferencePhoto(photoToUse);
-        setReferenceOfficerName(savedPhoto ? `${currentUser.name} (Permanent Enrolled)` : 'Dr. Rajesh Varma');
+        setReferenceOfficerName(savedPhoto ? `${currentUser.name} (Permanent Enrolled)` : 'Dr. Abhiraj Singh');
 
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -735,12 +735,12 @@ export const FaceVerification: React.FC = () => {
     }
   };
 
-  // Reset to Rajesh Varma's real enrolled portrait
+  // Reset to Dr. Abhiraj Singh's real enrolled portrait
   const handleResetDefaultPhoto = async () => {
     if (!user) return;
     localStorage.removeItem(`foris_ref_photo_${user.badgeId}`);
     setReferencePhoto(RAJESH_VARMA_PORTRAIT);
-    setReferenceOfficerName('Dr. Rajesh Varma');
+    setReferenceOfficerName('Dr. Abhiraj Singh');
 
     if (token) {
       try {
@@ -764,7 +764,7 @@ export const FaceVerification: React.FC = () => {
     };
     img.src = `${RAJESH_VARMA_PORTRAIT}?t=${Date.now()}`;
 
-    setEnrollSuccessMsg('✓ Reset to official Officer Dr. Rajesh Varma baseline portrait.');
+    setEnrollSuccessMsg('✓ Reset to official Officer Dr. Abhiraj Singh baseline portrait.');
     setTimeout(() => setEnrollSuccessMsg(null), 5000);
   };
 
@@ -1037,7 +1037,7 @@ export const FaceVerification: React.FC = () => {
                   type="button"
                   onClick={handleResetDefaultPhoto}
                   className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-mono transition-all flex items-center gap-1"
-                  title="Reset to official Rajesh Varma photo"
+                  title="Reset to official Dr. Abhiraj Singh photo"
                 >
                   <RefreshCw className="w-3 h-3 text-slate-400" />
                   <span>Reset Baseline</span>
@@ -1080,7 +1080,7 @@ export const FaceVerification: React.FC = () => {
                     Biometric Identity Confirmed with {matchScore}% Confidence Score!
                   </div>
                   <div className="text-[10px] text-emerald-400/90 font-mono font-normal">
-                    Officer {referenceOfficerName} authenticated. Loading Forensic Dashboard...
+                    Officer {referenceOfficerName} authenticated. Proceeding to Stage 3: Mobile Phone SMS 2FA (+91 6203145059)...
                   </div>
                 </div>
               </div>

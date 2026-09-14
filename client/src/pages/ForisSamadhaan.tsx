@@ -284,7 +284,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 id: 'welcome-1',
                 sender: 'ai',
                 text: data.greeting,
-                spokenAnswer: `Namaste Officer ${user?.name || 'Rajesh Varma'}. Main hoon FORIS SAMADHAAN. Aap mujhse kisi bhi forensic case, Section 65B certificate, ballistics, toxicology ya evidence issue ka instant solution pooch sakte hain.`,
+                spokenAnswer: `Namaste Officer ${user?.name || 'Abhiraj Singh'}. Main hoon FORIS SAMADHAAN. Aap mujhse kisi bhi forensic case, Section 65B certificate, ballistics, toxicology ya evidence issue ka instant solution pooch sakte hain.`,
                 category: 'SYSTEM_GREETING',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               },
@@ -300,7 +300,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           {
             id: 'welcome-fallback',
             sender: 'ai',
-            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Rajesh Varma'}! 🙏\n\nWelcome to **FORIS SAMADHAAN (फॉरेंसिक समाधान)** — State Forensic Science Laboratory (SFSL) AI Legal & Technical Intelligence Core.\n\nMain aapki forensic investigation, digital evidence hashing (SHA-256), Section 65B/45 Indian Evidence Act compliance, Chain of Custody tracking, ya FORIS platform ke kisi bhi issue ka 100% accurate solution dene ke liye ready hoon. How can I assist you?`,
+            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nWelcome to **FORIS SAMADHAAN (फॉरेंसिक समाधान)** — State Forensic Science Laboratory (SFSL) AI Legal & Technical Intelligence Core.\n\nMain aapki forensic investigation, digital evidence hashing (SHA-256), Section 65B/45 Indian Evidence Act compliance, Chain of Custody tracking, ya FORIS platform ke kisi bhi issue ka 100% accurate solution dene ke liye ready hoon. How can I assist you?`,
             spokenAnswer: `Namaste Officer. Welcome to FORIS SAMADHAAN AI. Main aapki forensic investigation aur legal compliance me help ke liye ready hoon.`,
             category: 'SYSTEM_GREETING',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

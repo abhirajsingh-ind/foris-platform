@@ -854,7 +854,7 @@ export const EvidencePage: React.FC = () => {
                   type="text"
                   value={toParty}
                   onChange={(e) => setToParty(e.target.value)}
-                  placeholder="e.g. SFSL Forensic Examiner Dr. Varma / Special Sessions Court"
+                  placeholder="e.g. SFSL Forensic Examiner Dr. Singh / Special Sessions Court"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-500"
                   required
                 />

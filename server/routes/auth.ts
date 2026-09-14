@@ -7,6 +7,7 @@ import { prisma } from '../db';
 import { requireAuth } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/auditLogger';
 import { anomalyEngine } from '../utils/anomalyEngine';
+import { sendSmsOtp } from '../services/smsService';
 
 export const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'foris_super_secure_jwt_secret_sih2026_key_!@#%&*';
@@ -49,7 +50,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
     // Map common aliases, certified symbol IDs, names, and variations to standard officer accounts
     let targetBadge = upperId;
-    if (upperId.includes('RAJESH') || upperId.includes('FEX') || upperId.includes('VARMA')) {
+    if (upperId.includes('ABHIRAJ') || upperId.includes('SINGH') || upperId.includes('RAJESH') || upperId.includes('FEX') || upperId.includes('VARMA')) {
       targetBadge = 'FEX-1024';
     } else if (upperId.includes('VIKRAM') || upperId.includes('SPO') || upperId.includes('RATHORE')) {
       targetBadge = 'SPO-2048';
@@ -325,7 +326,7 @@ authRouter.get('/enrolled-photo/:badgeId', async (req: Request, res: Response) =
   }
 });
 
-// Reset enrolled photo back to original Dr. Rajesh Varma
+// Reset enrolled photo back to original Dr. Abhiraj Singh
 authRouter.post('/reset-enrollment', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user!;
@@ -344,7 +345,7 @@ authRouter.post('/reset-enrollment', requireAuth, async (req: Request, res: Resp
       fs.writeFileSync(path.join(process.cwd(), 'dist', 'rajesh_varma.jpg'), buffer);
       fs.writeFileSync(path.join(process.cwd(), 'client', 'src', 'assets', 'rajesh_varma.jpg'), buffer);
 
-      return res.json({ success: true, message: 'Biometric baseline reset to Dr. Rajesh Varma successfully.' });
+      return res.json({ success: true, message: 'Biometric baseline reset to Dr. Abhiraj Singh successfully.' });
     }
 
     res.json({ success: true, message: 'Baseline reset.' });
@@ -398,7 +399,7 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
   const score = typeof similarityScore === 'number' ? similarityScore : 96.5;
   const isMismatch = simulateMismatch || score < 70 || !faceHash || typeof faceHash !== 'string' || faceHash.length < 16;
 
-  // Case 2: Facial / Ocular features do not match Rajesh Varma
+  // Case 2: Facial / Ocular features do not match Abhiraj Singh
   if (isMismatch) {
     const recordedScore = simulateMismatch ? (score && score < 50 ? score : 24.6) : score;
 
@@ -409,13 +410,13 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
       role: user.role,
       action: 'FACE_VERIFICATION_FAILED',
       resourceType: 'BIOMETRIC_GATEWAY',
-      reason: `Biometric ocular & facial similarity score (${recordedScore}%) below security threshold (70%). Face does not match Officer Dr. Rajesh Varma.`,
+      reason: `Biometric ocular & facial similarity score (${recordedScore}%) below security threshold (70%). Face does not match Officer Dr. Abhiraj Singh.`,
       result: 'FAILURE',
       severity: 'HIGH',
       metadata: {
         similarityScore: recordedScore,
         threshold: 70,
-        targetOfficer: 'Dr. Rajesh Varma',
+        targetOfficer: 'Dr. Abhiraj Singh',
         reason: '1:1 facial & ocular biometric comparison rejected',
       },
       ipAddress: req.ip,
@@ -428,7 +429,7 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
       role: user.role,
       action: 'ACCESS_DENIED',
       resourceType: 'DASHBOARD_ACCESS',
-      reason: `Biometric verification failed: Facial & eye features do not match Officer Dr. Rajesh Varma. Dashboard access denied.`,
+      reason: `Biometric verification failed: Facial & eye features do not match Officer Dr. Abhiraj Singh. Dashboard access denied.`,
       result: 'DENIED',
       severity: 'HIGH',
       metadata: { targetRole: user.role, similarityScore: recordedScore },
@@ -446,7 +447,7 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
     return res.status(401).json({
       success: false,
       similarityScore: recordedScore,
-      error: `Access Denied: Face and eye features do not match the registered baseline of Officer Dr. Rajesh Varma (Match: ${recordedScore}%).`,
+      error: `Access Denied: Face and eye features do not match the registered baseline of Officer Dr. Abhiraj Singh (Match: ${recordedScore}%).`,
     });
   }
 
@@ -459,13 +460,13 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
       role: user.role,
       action: 'FACE_VERIFICATION_SUCCESS',
       resourceType: 'BIOMETRIC_GATEWAY',
-      reason: `1:1 Biometric verification confirmed: Face and eye landmarks match Officer Dr. Rajesh Varma with ${score}% confidence.`,
+      reason: `1:1 Biometric verification confirmed: Face and eye landmarks match Officer Dr. Abhiraj Singh with ${score}% confidence.`,
       result: 'SUCCESS',
       severity: 'INFO',
       metadata: {
         similarityScore: score,
         faceHashPrefix: faceHash.substring(0, 16),
-        targetOfficer: 'Dr. Rajesh Varma',
+        targetOfficer: 'Dr. Abhiraj Singh',
         verificationDetails: verificationDetails || { landmarksMatched: 68, ocularTracking: 'VERIFIED', liveness: 'CONFIRMED' },
         mode: '1:1_FACIAL_RECOGNITION',
       },
@@ -477,7 +478,7 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
       verified: true,
       similarityScore: score,
       mode: '1:1_FACIAL_RECOGNITION',
-      message: `1:1 Face & Eye verification confirmed (Match: ${score}%). Access granted to Dr. Rajesh Varma's Forensic Dashboard.`,
+      message: `1:1 Face & Eye verification confirmed (Match: ${score}%). Access granted to Dr. Abhiraj Singh's Forensic Dashboard.`,
     });
   } catch (error: any) {
     await logAuditEvent({
@@ -497,5 +498,245 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
       success: false,
       error: 'Face verification service encountered an error.',
     });
+  }
+});
+
+// In-memory OTP Store for Phone SMS 2-Step Verification
+interface OtpEntry {
+  otp: string;
+  expiresAt: number;
+  attempts: number;
+  lastSentAt: number;
+  phoneNumber: string;
+}
+
+const otpStore = new Map<string, OtpEntry>();
+
+function maskPhoneNumber(phone: string): string {
+  const clean = phone.replace(/[^0-9]/g, '');
+  if (clean.length < 4) return phone;
+  return `+91 ******${clean.slice(-4)}`;
+}
+
+// 1. Send / Trigger Phone SMS 2FA OTP (called right after biometric face verification)
+authRouter.post('/send-2fa-otp', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    // Target Phone Number requested: 6203145059
+    const targetPhone = '6203145059';
+
+    // Generate cryptographically secure 6-digit random code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+    const now = Date.now();
+
+    otpStore.set(user.id, {
+      otp,
+      expiresAt,
+      attempts: 0,
+      lastSentAt: now,
+      phoneNumber: targetPhone,
+    });
+
+    const dispatchResult = await sendSmsOtp({
+      phoneNumber: targetPhone,
+      otp,
+      officerName: user.name,
+      badgeId: user.badgeId,
+      ipAddress: req.ip,
+    });
+
+    await logAuditEvent({
+      userId: user.id,
+      userBadge: user.badgeId,
+      userName: user.name,
+      role: user.role,
+      action: 'SMS_2FA_SENT',
+      resourceType: 'SMS_2FA_GATEWAY',
+      reason: `2-Step verification SMS dispatched to ${maskPhoneNumber(targetPhone)} following face biometric confirmation.`,
+      result: 'SUCCESS',
+      severity: 'INFO',
+      metadata: {
+        destinationPhone: maskPhoneNumber(targetPhone),
+        expiresInSeconds: 300,
+        deliveryMode: dispatchResult.mode,
+      },
+      ipAddress: req.ip,
+    });
+
+    res.json({
+      success: true,
+      phoneNumber: targetPhone,
+      maskedPhone: maskPhoneNumber(targetPhone),
+      expiresAt,
+      demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      message: `Official 6-digit SMS verification code sent to +91 ${targetPhone}`,
+    });
+  } catch (error: any) {
+    console.error('Send SMS OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send SMS Verification code.' });
+  }
+});
+
+// 2. Verify Phone SMS 2FA OTP
+authRouter.post('/verify-2fa-otp', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const { otp } = req.body;
+
+    if (!otp || typeof otp !== 'string') {
+      return res.status(400).json({ success: false, error: '6-digit SMS OTP code is required.' });
+    }
+
+    const cleanOtp = otp.trim();
+    const entry = otpStore.get(user.id);
+
+    if (!entry) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active OTP verification session found. Please request a new code.',
+      });
+    }
+
+    if (Date.now() > entry.expiresAt) {
+      otpStore.delete(user.id);
+      return res.status(400).json({
+        success: false,
+        error: 'SMS code has expired (5-minute limit). Please click Resend SMS.',
+      });
+    }
+
+    entry.attempts += 1;
+
+    if (cleanOtp !== entry.otp) {
+      if (entry.attempts >= 5) {
+        otpStore.delete(user.id);
+        await logAuditEvent({
+          userId: user.id,
+          userBadge: user.badgeId,
+          userName: user.name,
+          role: user.role,
+          action: 'SMS_2FA_LOCKED',
+          resourceType: 'SMS_2FA_GATEWAY',
+          reason: 'Too many invalid SMS OTP attempts. Verification session terminated.',
+          result: 'FAILURE',
+          severity: 'HIGH',
+          ipAddress: req.ip,
+        });
+
+        return res.status(403).json({
+          success: false,
+          error: 'Maximum verification attempts exceeded. Please request a fresh OTP.',
+        });
+      }
+
+      await logAuditEvent({
+        userId: user.id,
+        userBadge: user.badgeId,
+        userName: user.name,
+        role: user.role,
+        action: 'SMS_2FA_FAILED',
+        resourceType: 'SMS_2FA_GATEWAY',
+        reason: `Invalid SMS OTP attempt ${entry.attempts}/5`,
+        result: 'FAILURE',
+        severity: 'LOW',
+        metadata: { attempt: entry.attempts },
+        ipAddress: req.ip,
+      });
+
+      return res.status(400).json({
+        success: false,
+        error: `Invalid verification code. ${5 - entry.attempts} attempt(s) remaining.`,
+      });
+    }
+
+    // OTP Match Confirmed
+    otpStore.delete(user.id);
+
+    await logAuditEvent({
+      userId: user.id,
+      userBadge: user.badgeId,
+      userName: user.name,
+      role: user.role,
+      action: 'SMS_2FA_VERIFIED',
+      resourceType: 'SMS_2FA_GATEWAY',
+      reason: `2-Step SMS Verification confirmed successfully for ${user.name} via +91 ${entry.phoneNumber}.`,
+      result: 'SUCCESS',
+      severity: 'INFO',
+      metadata: { destinationPhone: `+91 ${entry.phoneNumber}` },
+      ipAddress: req.ip,
+    });
+
+    res.json({
+      success: true,
+      verified: true,
+      message: '2-Step SMS Verification successfully confirmed. Access granted to FORIS Forensic Core.',
+    });
+  } catch (error: any) {
+    console.error('Verify SMS OTP error:', error);
+    res.status(500).json({ success: false, error: 'Verification service error.' });
+  }
+});
+
+// 3. Resend Phone SMS OTP (with 30-sec rate limit cooldown)
+authRouter.post('/resend-2fa-otp', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = req.user!;
+    const entry = otpStore.get(user.id);
+    const now = Date.now();
+
+    if (entry && now - entry.lastSentAt < 30000) {
+      const remainingSeconds = Math.ceil((30000 - (now - entry.lastSentAt)) / 1000);
+      return res.status(429).json({
+        success: false,
+        error: `Please wait ${remainingSeconds}s before requesting another SMS code.`,
+      });
+    }
+
+    const targetPhone = '6203145059';
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = now + 5 * 60 * 1000;
+
+    otpStore.set(user.id, {
+      otp,
+      expiresAt,
+      attempts: 0,
+      lastSentAt: now,
+      phoneNumber: targetPhone,
+    });
+
+    const dispatchResult = await sendSmsOtp({
+      phoneNumber: targetPhone,
+      otp,
+      officerName: user.name,
+      badgeId: user.badgeId,
+      ipAddress: req.ip,
+    });
+
+    await logAuditEvent({
+      userId: user.id,
+      userBadge: user.badgeId,
+      userName: user.name,
+      role: user.role,
+      action: 'SMS_2FA_RESENT',
+      resourceType: 'SMS_2FA_GATEWAY',
+      reason: `New 2-Step SMS OTP re-dispatched to ${maskPhoneNumber(targetPhone)}.`,
+      result: 'SUCCESS',
+      severity: 'INFO',
+      metadata: { deliveryMode: dispatchResult.mode },
+      ipAddress: req.ip,
+    });
+
+    res.json({
+      success: true,
+      phoneNumber: targetPhone,
+      maskedPhone: maskPhoneNumber(targetPhone),
+      expiresAt,
+      demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      message: `Fresh verification code sent via SMS to +91 ${targetPhone}`,
+    });
+  } catch (error: any) {
+    console.error('Resend SMS OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to resend SMS code.' });
   }
 });

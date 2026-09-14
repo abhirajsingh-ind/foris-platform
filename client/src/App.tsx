@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { FaceVerification } from './pages/FaceVerification';
+import { PhoneOtpVerification } from './pages/PhoneOtpVerification';
 import { Dashboard } from './pages/Dashboard';
 import { Cases } from './pages/Cases';
 import { EvidencePage } from './pages/Evidence';
@@ -15,7 +16,7 @@ import { AnalyticsPage } from './pages/Analytics';
 import { ForisSamadhaan } from './pages/ForisSamadhaan';
 
 const AppContent: React.FC = () => {
-  const { user, isLoading, faceVerified } = useAuth();
+  const { user, isLoading, faceVerified, phoneOtpVerified } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
@@ -38,6 +39,11 @@ const AppContent: React.FC = () => {
   // PAGE 2: Face Recognition (after successful credential login)
   if (!faceVerified) {
     return <FaceVerification />;
+  }
+
+  // PAGE 3: 2-Step Phone SMS Verification (OTP dispatched to +91 6203145059)
+  if (!phoneOtpVerified) {
+    return <PhoneOtpVerification />;
   }
 
   // PAGE 3+: Authenticated dashboard and feature pages

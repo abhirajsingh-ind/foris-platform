@@ -38,7 +38,7 @@ async function main() {
   const fexOfficer = await prisma.user.create({
     data: {
       badgeId: 'FEX-1024',
-      name: 'Dr. Rajesh Varma',
+      name: 'Dr. Abhiraj Singh',
       email: 'fex1024@foris.gov.in',
       passwordHash,
       role: 'FORENSIC_OFFICER',
@@ -116,7 +116,7 @@ async function main() {
       collectionDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       collectorName: 'Sub-Inspector K. Verma',
       initialCondition: 'Intact, enclosed in static-shielded tamper-evident forensic envelope #FE-90812',
-      currentCustodian: 'Dr. Rajesh Varma (FEX-1024)',
+      currentCustodian: 'Dr. Abhiraj Singh (FEX-1024)',
       currentStatus: 'IN_EXAMINATION',
       storageLocation: 'Forensic Isolation Lab Workstation 02',
       sha256Hash: ev1Hash,
@@ -185,7 +185,7 @@ async function main() {
       {
         evidenceId: ev1.id,
         fromParty: 'Forensic Science Laboratory Evidence Reception',
-        toParty: 'Forensic Examiner Dr. Rajesh Varma (FEX-1024)',
+        toParty: 'Forensic Examiner Dr. Abhiraj Singh (FEX-1024)',
         transferredAt: t1_4,
         purpose: 'Assigned for forensic bit-stream acquisition and partition analysis',
         action: 'EXAMINATION_HANDOVER',
@@ -202,7 +202,7 @@ async function main() {
 CASE REF: MP-FOR-2026-00125 | FIR-892/2026/CYBER
 TARGET HOST: DC-PRIMARY-04.TREASURY.LOCAL (IP: 10.45.18.2)
 EXTRACTION TIMESTAMP: 2026-09-02 03:14:22 UTC
-ACQUIRED BY: Dr. Rajesh Varma (FEX-1024)
+ACQUIRED BY: Dr. Abhiraj Singh (FEX-1024)
 
 [02:41:09] Kerberos TGT Ticket Request granted: User: srv_backup$
 [02:42:15] Suspicious LSASS process memory dump detected (Process ID: 644)
@@ -347,7 +347,7 @@ SHA-256 HASH VERIFICATION: MATCH CONFIRMED`
       {
         evidenceId: ev3.id,
         fromParty: 'Police Headquarters Malkhana',
-        toParty: 'Central FSL Ballistics Division (Dr. Rajesh Varma)',
+        toParty: 'Central FSL Ballistics Division (Dr. Abhiraj Singh)',
         transferredAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
         purpose: 'Comparison microscopy and firing pin breech face mark examination',
         action: 'LAB_RECEIPT_AND_LOG',
@@ -374,7 +374,7 @@ EXAMINATION PROTOCOL:
 CONCLUSION:
 It is the positive and definite opinion of this examiner that the spent cartridge casing Exhibit C-1 was fired from the firearm Exhibit F-1 (Glock 19 Gen5 S/N: G19-892144-IN) to the exclusion of all other firearms.
 
-Signed: Dr. Rajesh Varma, Senior Ballistics Specialist`
+Signed: Dr. Abhiraj Singh, Senior Ballistics Specialist`
   );
 
   await prisma.document.create({
@@ -471,7 +471,7 @@ Signed: Dr. Rajesh Varma, Senior Ballistics Specialist`
       collectionDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       collectorName: 'Dr. S. Kulkarni (Medical Examiner, JJ Hospital)',
       initialCondition: 'Sealed with official mortuary lead seal #ME-7712, refrigerated at 4°C',
-      currentCustodian: 'Dr. Rajesh Varma (FEX-1024)',
+      currentCustodian: 'Dr. Abhiraj Singh (FEX-1024)',
       currentStatus: 'IN_EXAMINATION',
       storageLocation: 'Cold Storage Specimen Freezer F-03',
       sha256Hash: ev5Hash,
@@ -513,7 +513,7 @@ Signed: Dr. Rajesh Varma, Senior Ballistics Specialist`
       {
         evidenceId: ev5.id,
         fromParty: 'RFSL Mumbai Receiving Desk',
-        toParty: 'Toxicology Section Examiner (Dr. Rajesh Varma)',
+        toParty: 'Toxicology Section Examiner (Dr. Abhiraj Singh)',
         transferredAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         purpose: 'Screening for organophosphorus, cyanide, and alkaloid toxins',
         action: 'LAB_RECEIPT_AND_LOG',
@@ -639,7 +639,7 @@ Fatal concentration of Cyanide salt (Potassium/Sodium Cyanide) identified in sto
       collectionDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       collectorName: 'Inspector C. Gowda (EOW CID)',
       initialCondition: 'Enclosed in acid-free archival polyester sleeve, no folding or staple damage',
-      currentCustodian: 'Dr. Rajesh Varma (FEX-1024)',
+      currentCustodian: 'Dr. Abhiraj Singh (FEX-1024)',
       currentStatus: 'IN_EXAMINATION',
       storageLocation: 'Questioned Documents Humidity Safe QD-01',
       sha256Hash: ev7Hash,
@@ -657,7 +657,7 @@ Fatal concentration of Cyanide salt (Potassium/Sodium Cyanide) identified in sto
       collectionDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
       collectorName: 'Inspector C. Gowda (EOW CID)',
       initialCondition: 'Authenticated by Chief Branch Manager with official bank seal',
-      currentCustodian: 'Dr. Rajesh Varma (FEX-1024)',
+      currentCustodian: 'Dr. Abhiraj Singh (FEX-1024)',
       currentStatus: 'IN_EXAMINATION',
       storageLocation: 'Questioned Documents Reference Vault',
       sha256Hash: ev8Hash,
@@ -681,7 +681,7 @@ Fatal concentration of Cyanide salt (Potassium/Sodium Cyanide) identified in sto
       {
         evidenceId: ev7.id,
         fromParty: 'SFSL Documents Division Reception',
-        toParty: 'Questioned Documents Expert (Dr. Rajesh Varma)',
+        toParty: 'Questioned Documents Expert (Dr. Abhiraj Singh)',
         transferredAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000),
         purpose: 'Video Spectral Comparator (VSC 8000) multi-spectral ink examination',
         action: 'LAB_RECEIPT_AND_LOG',
@@ -850,7 +850,7 @@ STANDARD SIGNATURES: S-1 through S-12 (Bank Specimen Ledger)
       {
         evidenceId: ev9.id,
         fromParty: 'CFSL Central Reception',
-        toParty: 'DNA Division Expert (Dr. Rajesh Varma)',
+        toParty: 'DNA Division Expert (Dr. Abhiraj Singh)',
         transferredAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
         purpose: 'Chelex DNA extraction and GlobalFiler PCR amplification',
         action: 'LAB_RECEIPT_AND_LOG',
@@ -987,7 +987,7 @@ Likelihood Ratio (LR): Exceeds 10 Billion in favor of source identity.`
       collectionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       collectorName: 'Inspector S. Murugan (AIU Cyber)',
       initialCondition: 'Device powered on in Airplane Mode, passcode locked (6-digit alphanumeric)',
-      currentCustodian: 'Dr. Rajesh Varma (FEX-1024)',
+      currentCustodian: 'Dr. Abhiraj Singh (FEX-1024)',
       currentStatus: 'IN_EXAMINATION',
       storageLocation: 'Mobile Extraction Lab Faraday Enclosure 01',
       sha256Hash: ev11Hash,
@@ -1029,7 +1029,7 @@ Likelihood Ratio (LR): Exceeds 10 Billion in favor of source identity.`
       {
         evidenceId: ev11.id,
         fromParty: 'SFSL Mobile Forensic Reception',
-        toParty: 'Digital Forensics Specialist (Dr. Rajesh Varma)',
+        toParty: 'Digital Forensics Specialist (Dr. Abhiraj Singh)',
         transferredAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
         purpose: 'Cellebrite UFED Premium Advanced Logical & Full File System extraction',
         action: 'LAB_RECEIPT_AND_LOG',
@@ -1148,7 +1148,7 @@ The digital data was extracted in a controlled cleanroom environment without any
       user: adminUser,
       resourceType: 'USER_CREDENTIAL',
       resourceId: fexOfficer.badgeId,
-      reason: 'Officer onboarding and cryptographic identity provisioning for Dr. Rajesh Varma',
+      reason: 'Officer onboarding and cryptographic identity provisioning for Dr. Abhiraj Singh',
       time: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000),
     },
     {

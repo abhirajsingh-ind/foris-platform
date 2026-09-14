@@ -465,7 +465,7 @@ export const Layout: React.FC<LayoutProps> = ({
                         </span>
                       </div>
                       <div className="text-[10px] text-slate-400 mt-0.5">
-                        Dr. Rajesh Varma • Draft, Amend, Sign V1 $\to$ V2
+                        Dr. Abhiraj Singh • Draft, Amend, Sign V1 $\to$ V2
                       </div>
                     </div>
                     {user?.badgeId === 'FEX-1024' ? (
