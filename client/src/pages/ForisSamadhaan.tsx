@@ -29,6 +29,12 @@ import {
   Zap,
   Globe,
   Flame,
+  Sliders,
+  Activity,
+  Cpu,
+  Compass,
+  Waves,
+  Eye,
 } from 'lucide-react';
 
 interface Message {
@@ -126,54 +132,155 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   const isTalkativeModeRef = useRef(isTalkativeMode);
   isTalkativeModeRef.current = isTalkativeMode;
 
-  const recognitionRef = useRef<any>(null);
+  // Voice Engine Tone & Tuning Customization
+  const [voiceSpeed, setVoiceSpeed] = useState<number>(1.04);
+  const [voicePitch, setVoicePitch] = useState<number>(1.0);
+  const [voiceTone, setVoiceTone] = useState<'jarvis' | 'soft' | 'tactical' | 'hindi'>('jarvis');
+  const [showVoiceSettings, setShowVoiceSettings] = useState<boolean>(false);
+  const [turnDelayMs, setTurnDelayMs] = useState<number>(650);
+  const [wakeWordEnabled, setWakeWordEnabled] = useState<boolean>(true);
 
-  // Web Audio API High-Tech Sound Synthesis (JARVIS chimes)
+  const recognitionRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+
+  // Web Audio API High-Tech Sound Synthesis (JARVIS Multi-Tone Harmonic Chimes)
   const playJarvisChime = (type: 'listening' | 'execute' | 'wake' | 'stop') => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
+      const now = ctx.currentTime;
 
-      if (type === 'listening') {
+      if (type === 'wake') {
+        // Futuristic Iron Man Arc Reactor boot chime (C5 -> E5 -> G5 -> C6)
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.18);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.05);
+          osc.stop(now + idx * 0.05 + 0.19);
+        });
+      } else if (type === 'listening') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.frequency.setValueAtTime(587.33, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.23);
+        osc.stop(now + 0.23);
       } else if (type === 'execute') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.16);
-        gain.gain.setValueAtTime(0.09, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
+        // High-tech affirmative double-tone (A4 -> E5 -> A5)
+        [440, 659.25, 880].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+          gain.gain.setValueAtTime(0.07, now + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.16);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.06);
+          osc.stop(now + idx * 0.06 + 0.17);
+        });
       } else if (type === 'stop') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.07, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.22);
+        osc.stop(now + 0.22);
       }
     } catch {}
   };
+
+  // 60 FPS Fluid Dynamic Canvas Frequency Equalizer
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let phase = 0;
+    const barCount = 44;
+
+    const renderWave = () => {
+      phase += isSpeaking ? 0.12 : isListening ? 0.08 : 0.025;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const barWidth = (width / barCount) * 0.65;
+      const barGap = (width / barCount) * 0.35;
+
+      for (let i = 0; i < barCount; i++) {
+        const x = i * (barWidth + barGap) + barGap / 2;
+        const normalized = i / barCount;
+        const wave =
+          Math.sin(phase + normalized * Math.PI * 4) *
+          Math.cos(phase * 0.6 + normalized * Math.PI * 2);
+
+        let amplitude = 0.12;
+        if (isSpeaking) {
+          amplitude = 0.28 + 0.72 * Math.abs(wave) * (0.85 + 0.15 * Math.sin(phase * 2.5 + i));
+        } else if (isListening) {
+          amplitude = 0.22 + 0.58 * Math.abs(wave);
+        } else {
+          amplitude = 0.1 + 0.08 * Math.abs(wave);
+        }
+
+        const barHeight = Math.max(4, amplitude * (height - 8));
+        const y = (height - barHeight) / 2;
+
+        const grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+        if (isSpeaking) {
+          grad.addColorStop(0, '#38bdf8');
+          grad.addColorStop(0.5, '#818cf8');
+          grad.addColorStop(1, '#06b6d4');
+        } else if (isListening) {
+          grad.addColorStop(0, '#34d399');
+          grad.addColorStop(0.5, '#10b981');
+          grad.addColorStop(1, '#059669');
+        } else {
+          grad.addColorStop(0, '#38bdf8');
+          grad.addColorStop(1, '#1e293b');
+        }
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        if ((ctx as any).roundRect) {
+          (ctx as any).roundRect(x, y, barWidth, barHeight, 2.5);
+        } else {
+          ctx.rect(x, y, barWidth, barHeight);
+        }
+        ctx.fill();
+      }
+
+      animFrameRef.current = requestAnimationFrame(renderWave);
+    };
+
+    renderWave();
+
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, [isSpeaking, isListening, isVoiceMode]);
 
   // Initialize Speech Recognition & Synthesis
   useEffect(() => {
@@ -212,6 +319,19 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
       const current = finalTranscript || interimTranscript;
       setLiveTranscript(current);
 
+      // Wake Word Audio Cue ("Hey Jarvis" / "Jarvis")
+      if (wakeWordEnabled && current) {
+        const lower = current.toLowerCase();
+        if (
+          lower.includes('hey jarvis') ||
+          lower.includes('hello jarvis') ||
+          lower.includes('ok jarvis') ||
+          (lower.startsWith('jarvis') && lower.length < 15)
+        ) {
+          playJarvisChime('wake');
+        }
+      }
+
       if (finalTranscript) {
         setInputMessage(finalTranscript);
         handleSendMessage(finalTranscript);
@@ -242,7 +362,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         window.speechSynthesis.cancel();
       }
     };
-  }, [voiceLang]);
+  }, [voiceLang, wakeWordEnabled]);
 
   // Update recognition language when toggled
   useEffect(() => {
@@ -251,32 +371,61 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     }
   }, [voiceLang]);
 
-  // Natural Voice Text-to-Speech Speak Function with Continuous Talkative Loop
+  // Natural Voice Text-to-Speech Speak Function with Voice Tone Tuning
   const speakText = (text: string, messageId?: string) => {
     if (!('speechSynthesis' in window)) return;
 
-    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
 
     if (!text || text.trim().length === 0) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = voiceLang;
-    utterance.rate = 1.06; // crisp swift JARVIS tempo
-    utterance.pitch = 0.98; // confident resonant pitch
 
-    // Try finding smooth Indian English or Hindi voice
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(
-      (v) =>
-        v.lang === voiceLang ||
-        v.lang.startsWith(voiceLang.split('-')[0]) ||
-        v.name.includes('India') ||
-        v.name.includes('Hindi') ||
-        v.name.includes('Natural')
-    );
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+    // Apply selected voice tone configuration
+    if (voiceTone === 'soft') {
+      utterance.rate = 0.92;
+      utterance.pitch = 0.93;
+    } else if (voiceTone === 'tactical') {
+      utterance.rate = 1.22;
+      utterance.pitch = 1.05;
+    } else if (voiceTone === 'hindi') {
+      utterance.lang = 'hi-IN';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+    } else {
+      // JARVIS Executive Tone
+      utterance.rate = voiceSpeed;
+      utterance.pitch = voicePitch;
     }
+
+    // Try finding preferred natural or British/Hindi voice
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        if (voiceTone === 'jarvis') {
+          const jarvisVoice = voices.find(
+            (v) =>
+              v.lang.startsWith('en') &&
+              (v.name.toLowerCase().includes('uk') ||
+                v.name.toLowerCase().includes('george') ||
+                v.name.toLowerCase().includes('daniel') ||
+                v.name.toLowerCase().includes('natural') ||
+                v.name.toLowerCase().includes('guy'))
+          );
+          if (jarvisVoice) utterance.voice = jarvisVoice;
+        } else if (voiceTone === 'hindi' || voiceLang === 'hi-IN') {
+          const hindiVoice = voices.find(
+            (v) =>
+              v.lang.includes('hi') ||
+              v.name.toLowerCase().includes('hindi') ||
+              v.name.toLowerCase().includes('kalpana') ||
+              v.name.toLowerCase().includes('madhur')
+          );
+          if (hindiVoice) utterance.voice = hindiVoice;
+        }
+      }
+    } catch {}
 
     utterance.onstart = () => {
       setIsSpeaking(true);
@@ -287,15 +436,17 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
       setIsSpeaking(false);
       setCurrentlyPlayingId(null);
 
-      // JARVIS TALKATIVE MODE: When speaking finishes, auto re-open mic for fluid conversation!
+      // JARVIS TALKATIVE MODE: Hands-free fluid conversation turn-taking
       if (isTalkativeModeRef.current && recognitionRef.current) {
         setTimeout(() => {
           try {
+            playJarvisChime('listening');
             recognitionRef.current.start();
+            setIsListening(true);
           } catch (e) {
-            // mic already active or blocked
+            // mic already active
           }
-        }, 650);
+        }, turnDelayMs);
       }
     };
 
@@ -487,14 +638,16 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
   return (
     <div className="space-y-4 pb-10 max-w-6xl mx-auto font-sans text-slate-100 animate-fadeIn">
-      {/* 1. SAMADHAAN OFFICIAL HEADER WITH VOICE TALK CONTROLS */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 border-2 border-emerald-500/30 p-5 sm:p-6 shadow-2xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      {/* 1. JARVIS HOLOGRAPHIC COMMAND HEADER */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 border-2 border-cyan-500/40 p-5 sm:p-6 shadow-2xl shadow-cyan-950/60 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
           {/* Logo and Core Identity */}
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-950 ring-2 ring-emerald-400/40">
-                <Sparkles className="w-7 h-7" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 via-teal-600 to-indigo-600 text-white shadow-xl shadow-cyan-950 ring-2 ring-cyan-400/50">
+                <Sparkles className="w-7 h-7 animate-pulse" />
               </div>
               {isSpeaking && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 border-2 border-slate-950 animate-ping"></div>
@@ -502,21 +655,25 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  FORIS SAMADHAAN (फॉरेंसिक समाधान)
+                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                  <span>J.A.R.V.I.S. FORENSIC VOICE AI</span>
+                  <span className="text-cyan-400 text-sm font-mono font-normal">v4.5</span>
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  AI VOICE INTELLIGENCE
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-cyan-400" />
+                  SUB-SECOND INTELLIGENCE
                 </span>
               </div>
-              <p className="text-xs text-slate-300 font-medium mt-0.5">
-                SFSL 24x7 Real-Time Voice & Legal Intelligence • Zero-Latency Voice Q&A
+              <p className="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-2">
+                <span>State Forensic Science Laboratory (SFSL) Core</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-cyan-400 font-mono">Hands-Free Conversational Turn-Taking</span>
               </p>
             </div>
           </div>
 
           {/* Voice Talk Action Station */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Talkative Mode Toggle */}
             <button
               onClick={() => {
@@ -526,38 +683,52 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                   playJarvisChime('wake');
                 }
               }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95 ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95 ${
                 isTalkativeMode
                   ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-emerald-500/30 ring-2 ring-emerald-400/50'
                   : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700'
               }`}
-              title="Toggle JARVIS Continuous Talkative Mode"
+              title="Toggle JARVIS Continuous Talkative Turn-Taking"
             >
-              <Sparkles className={`w-3.5 h-3.5 ${isTalkativeMode ? 'text-amber-300 animate-spin' : ''}`} />
+              <Radio className={`w-3.5 h-3.5 ${isTalkativeMode ? 'text-emerald-300 animate-pulse' : ''}`} />
               <span>{isTalkativeMode ? '🎙️ Talkative Mode: ON' : 'Talkative Mode: OFF'}</span>
+            </button>
+
+            {/* Voice Audio Settings Toggle */}
+            <button
+              onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                showVoiceSettings
+                  ? 'bg-cyan-950 border-cyan-400 text-cyan-200 ring-2 ring-cyan-500/40'
+                  : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-cyan-500/40'
+              }`}
+              title="Open Voice Tone & Sensitivity Tuning"
+            >
+              <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Audio Tuning</span>
             </button>
 
             {/* Toggle Fullscreen Voice Talk HUD */}
             <button
               onClick={() => setIsVoiceMode(!isVoiceMode)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95 ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md active:scale-95 ${
                 isVoiceMode
-                  ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-cyan-500/30'
+                  ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-cyan-500/30 ring-2 ring-cyan-400/40'
                   : 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400'
               }`}
             >
-              <Radio className={`w-4 h-4 ${isVoiceMode ? 'animate-pulse' : ''}`} />
-              <span>{isVoiceMode ? 'Exit Voice HUD' : '🎙️ Open Voice HUD'}</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span>{isVoiceMode ? 'Compact HUD' : 'Arc Reactor HUD'}</span>
             </button>
 
             {/* Language Selector */}
             <button
               onClick={() => setVoiceLang(voiceLang === 'hi-IN' ? 'en-IN' : 'hi-IN')}
-              className="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-xs font-mono font-semibold transition-all flex items-center gap-1.5"
+              className="px-2.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-xs font-mono font-semibold transition-all flex items-center gap-1.5"
               title="Toggle Voice Language"
             >
-              <Globe className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{voiceLang === 'hi-IN' ? '🇮🇳 Hindi / Hinglish' : '🌐 Indian English'}</span>
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{voiceLang === 'hi-IN' ? '🇮🇳 Hindi' : '🌐 English'}</span>
             </button>
 
             {/* Auto-Speak Toggle */}
@@ -566,18 +737,126 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 if (isSpeaking) stopSpeaking();
                 setAutoSpeak(!autoSpeak);
               }}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+              className={`p-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center ${
                 autoSpeak
-                  ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-                  : 'bg-slate-900 border-slate-800 text-slate-400'
+                  ? 'bg-cyan-950/80 border-cyan-500/50 text-cyan-300'
+                  : 'bg-slate-900 border-slate-800 text-slate-500'
               }`}
-              title="Toggle Auto-Speaking Voice"
+              title={autoSpeak ? 'Voice output active' : 'Voice output muted'}
             >
-              {autoSpeak ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
-              <span className="hidden sm:inline">{autoSpeak ? 'Voice Output ON' : 'Muted'}</span>
+              {autoSpeak ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
             </button>
           </div>
         </div>
+
+        {/* Audio Tuning Drawer (When Opened) */}
+        {showVoiceSettings && (
+          <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs animate-fadeIn">
+            {/* Tone Presets */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <label className="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Voice Personality Tone
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { id: 'jarvis', label: '🤖 Executive' },
+                  { id: 'soft', label: '🕊️ Soft Calm' },
+                  { id: 'tactical', label: '⚡ Tactical' },
+                  { id: 'hindi', label: '🇮🇳 Hindi Warm' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setVoiceTone(t.id as any)}
+                    className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                      voiceTone === t.id
+                        ? 'bg-cyan-600 text-white font-bold shadow-md shadow-cyan-900/50 ring-1 ring-cyan-400'
+                        : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Voice Speed */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400 font-bold">
+                <span>SPEECH TEMPO (SPEED)</span>
+                <span className="text-white">{voiceSpeed.toFixed(2)}x</span>
+              </div>
+              <input
+                type="range"
+                min="0.8"
+                max="1.35"
+                step="0.05"
+                value={voiceSpeed}
+                onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
+                className="w-full accent-cyan-400 bg-slate-800 h-1.5 rounded-lg cursor-pointer"
+              />
+              <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                <span>0.8x (Deliberate)</span>
+                <span>1.35x (Rapid)</span>
+              </div>
+            </div>
+
+            {/* Voice Pitch */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400 font-bold">
+                <span>AUDIO PITCH RESONANCE</span>
+                <span className="text-white">{voicePitch.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="0.8"
+                max="1.25"
+                step="0.05"
+                value={voicePitch}
+                onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
+                className="w-full accent-cyan-400 bg-slate-800 h-1.5 rounded-lg cursor-pointer"
+              />
+              <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                <span>Deep Resonant</span>
+                <span>Crisp High</span>
+              </div>
+            </div>
+
+            {/* Wake Word & Silence Delay */}
+            <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-cyan-400 font-bold flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-cyan-400" /> "HEY JARVIS" WAKE ARM
+                </span>
+                <button
+                  onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                    wakeWordEnabled ? 'bg-emerald-950 border border-emerald-500/50 text-emerald-300' : 'bg-slate-900 text-slate-500'
+                  }`}
+                >
+                  {wakeWordEnabled ? 'ACTIVE' : 'MUTED'}
+                </button>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-slate-300 pt-1">
+                <span className="text-[10px] text-slate-400 font-mono">Turn Pause:</span>
+                <div className="flex gap-1">
+                  {[500, 650, 900].map((ms) => (
+                    <button
+                      key={ms}
+                      onClick={() => setTurnDelayMs(ms)}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                        turnDelayMs === ms
+                          ? 'bg-cyan-500 text-slate-950 font-bold'
+                          : 'bg-slate-900 text-slate-400 border border-slate-800'
+                      }`}
+                    >
+                      {ms}ms
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Real-Time Auto-Navigation Toast Alert */}
@@ -593,124 +872,283 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         </div>
       )}
 
-      {/* 2. INTERACTIVE HANDS-FREE VOICE TALK HUD (WHEN EXPANDED) */}
+      {/* 2. JARVIS HOLOGRAPHIC ARC REACTOR & AUDIO FREQUENCY VISUALIZER */}
       {isVoiceMode && (
-        <div className="rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/50 border-2 border-cyan-500/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-fadeIn">
-          {/* Audio Background Glow Effects */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/60 border-2 border-cyan-500/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-fadeIn">
+          {/* Subtle Grid Matrix Background */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#08334415_1px,transparent_1px),linear-gradient(to_bottom,#08334415_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6 max-w-xl mx-auto">
-            {/* Live Visualizer Wave Ring & Mic Button */}
-            <div className="relative">
-              {/* Pulsing Aura Rings */}
-              {isListening && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping"></div>
-                  <div className="absolute -inset-4 rounded-full border-2 border-emerald-400/40 animate-pulse"></div>
-                  <div className="absolute -inset-8 rounded-full border border-cyan-400/20 animate-spin-slow"></div>
-                </>
-              )}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6 max-w-4xl mx-auto">
+            {/* Top Telemetry Row + Center Arc Reactor */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              {/* Left Telemetry Glass Card */}
+              <div className="hidden md:flex flex-col gap-2.5 p-4 rounded-2xl bg-slate-950/70 border border-cyan-500/30 text-left text-xs font-mono shadow-lg">
+                <div className="flex items-center gap-1.5 text-cyan-400 font-bold pb-1 border-b border-slate-800 text-[11px]">
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>NEURAL STATUS: ONLINE</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Latency:</span>
+                  <span className="text-emerald-400 font-bold">⚡ &lt; 10ms (Sub-Sec)</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Hash Seal:</span>
+                  <span className="text-cyan-300">SHA-256 (RFC 3161)</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Evidence Law:</span>
+                  <span className="text-indigo-300">BSA 2023 §63 / IEA §65B</span>
+                </div>
+              </div>
 
-              {isSpeaking && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-cyan-500/30 animate-ping"></div>
-                  <div className="absolute -inset-4 rounded-full border-2 border-cyan-400/50 animate-pulse"></div>
-                </>
-              )}
+              {/* Center Iron Man Arc Reactor 3D Hologram */}
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+                  {/* Outer Compass Degree Ticks */}
+                  <svg
+                    className={`absolute inset-0 w-full h-full ${
+                      isSpeaking
+                        ? 'animate-[spin_9s_linear_infinite]'
+                        : isListening
+                        ? 'animate-[spin_12s_linear_infinite]'
+                        : 'animate-[spin_26s_linear_infinite]'
+                    }`}
+                    viewBox="0 0 200 200"
+                  >
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="94"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className={isListening ? 'text-emerald-500/40' : 'text-cyan-500/40'}
+                      strokeDasharray="4 6"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="86"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      className={isListening ? 'text-emerald-400/60' : 'text-cyan-400/60'}
+                      strokeDasharray="18 22"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="80"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      className="text-indigo-400/30"
+                    />
+                    <text x="100" y="14" fill="#38bdf8" fontSize="6" fontFamily="monospace" textAnchor="middle">0°</text>
+                    <text x="186" y="102" fill="#38bdf8" fontSize="6" fontFamily="monospace" textAnchor="middle">90°</text>
+                    <text x="100" y="192" fill="#38bdf8" fontSize="6" fontFamily="monospace" textAnchor="middle">180°</text>
+                    <text x="14" y="102" fill="#38bdf8" fontSize="6" fontFamily="monospace" textAnchor="middle">270°</text>
+                  </svg>
 
-              {/* Big Center Action Mic Orb */}
-              <button
-                onClick={toggleListening}
-                className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-300 transform active:scale-90 ${
-                  isListening
-                    ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 shadow-emerald-500/50 scale-105 ring-4 ring-emerald-300'
-                    : isSpeaking
-                    ? 'bg-gradient-to-tr from-cyan-500 to-indigo-500 text-white shadow-cyan-500/50 ring-4 ring-cyan-300 animate-pulse'
-                    : 'bg-gradient-to-tr from-slate-800 to-slate-900 text-slate-200 border-2 border-slate-700 hover:border-cyan-400 hover:scale-105'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <Mic className="w-10 h-10 animate-bounce" />
-                    <span className="text-[10px] font-mono font-black mt-1 uppercase">LISTENING...</span>
-                  </>
-                ) : isSpeaking ? (
-                  <>
-                    <Volume2 className="w-10 h-10 animate-pulse" />
-                    <span className="text-[10px] font-mono font-black mt-1 uppercase">SPEAKING...</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-10 h-10" />
-                    <span className="text-[10px] font-mono font-bold mt-1 text-slate-400">TAP TO SPEAK</span>
-                  </>
-                )}
-              </button>
+                  {/* Counter-Rotating Segmented Ring */}
+                  <svg
+                    className={`absolute inset-4 w-[calc(100%-32px)] h-[calc(100%-32px)] ${
+                      isSpeaking
+                        ? 'animate-[spin_6s_linear_infinite_reverse]'
+                        : isListening
+                        ? 'animate-[spin_8s_linear_infinite_reverse]'
+                        : 'animate-[spin_18s_linear_infinite_reverse]'
+                    }`}
+                    viewBox="0 0 160 160"
+                  >
+                    <circle
+                      cx="80"
+                      cy="80"
+                      r="72"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className={isListening ? 'text-teal-400/70' : 'text-cyan-400/70'}
+                      strokeDasharray="28 14 8 14"
+                    />
+                    <circle
+                      cx="80"
+                      cy="80"
+                      r="64"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-sky-500/30"
+                      strokeDasharray="4 12"
+                    />
+                  </svg>
+
+                  {/* Glowing Energy Aura Ring */}
+                  <div
+                    className={`absolute inset-8 rounded-full blur-xl transition-all duration-500 ${
+                      isListening
+                        ? 'bg-emerald-500/40 scale-110'
+                        : isSpeaking
+                        ? 'bg-cyan-500/40 scale-115 animate-pulse'
+                        : 'bg-cyan-500/20 scale-95'
+                    }`}
+                  />
+
+                  {/* Center Action Core Button */}
+                  <button
+                    onClick={toggleListening}
+                    className={`relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-300 transform active:scale-95 group ${
+                      isListening
+                        ? 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 text-slate-950 shadow-emerald-500/60 ring-4 ring-emerald-300 scale-105'
+                        : isSpeaking
+                        ? 'bg-gradient-to-tr from-cyan-600 via-indigo-600 to-blue-500 text-white shadow-cyan-500/60 ring-4 ring-cyan-300 animate-pulse'
+                        : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 text-cyan-300 border-2 border-cyan-500/50 hover:border-cyan-400 hover:shadow-cyan-500/30 hover:shadow-xl hover:scale-105'
+                    }`}
+                  >
+                    <div className="absolute inset-2 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+                    {isListening ? (
+                      <>
+                        <Mic className="w-9 h-9 animate-bounce text-slate-950 drop-shadow" />
+                        <span className="text-[9px] font-mono font-black mt-1 uppercase tracking-widest text-slate-950">
+                          LISTENING
+                        </span>
+                      </>
+                    ) : isSpeaking ? (
+                      <>
+                        <Volume2 className="w-9 h-9 animate-pulse text-white drop-shadow" />
+                        <span className="text-[9px] font-mono font-black mt-1 uppercase tracking-widest text-white">
+                          SPEAKING
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-9 h-9 text-cyan-400 group-hover:rotate-12 transition-transform drop-shadow" />
+                        <span className="text-[9px] font-mono font-black mt-1 text-cyan-300 tracking-wider">
+                          JARVIS VOICE
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Telemetry Glass Card */}
+              <div className="hidden md:flex flex-col gap-2.5 p-4 rounded-2xl bg-slate-950/70 border border-cyan-500/30 text-left text-xs font-mono shadow-lg">
+                <div className="flex items-center gap-1.5 text-cyan-400 font-bold pb-1 border-b border-slate-800 text-[11px]">
+                  <Cpu className="w-3.5 h-3.5" />
+                  <span>PLATFORM REGISTER</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Active Cases:</span>
+                  <span className="text-cyan-300 font-bold">18 Files Online</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Evidence Vault:</span>
+                  <span className="text-teal-300">42 Sealed Artifacts</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span className="text-slate-500">Wake Word:</span>
+                  <span className={wakeWordEnabled ? "text-emerald-400" : "text-slate-500"}>
+                    {wakeWordEnabled ? '"Hey Jarvis" Armed' : 'Muted'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fluid Canvas Audio Spectrum Visualizer */}
+            <div className="w-full max-w-xl flex flex-col items-center space-y-2">
+              <canvas
+                ref={canvasRef}
+                width={520}
+                height={48}
+                className="w-full max-w-lg h-12 rounded-xl bg-slate-950/60 border border-cyan-500/20 shadow-inner"
+              />
+              <div className="flex items-center justify-between w-full max-w-lg text-[10px] font-mono text-slate-500 px-1">
+                <span>32-CH OSCILLATOR FREQUENCY</span>
+                <span className="text-cyan-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                  SYNTHESIZED HARMONICS ACTIVE
+                </span>
+                <span>60 FPS REALTIME</span>
+              </div>
             </div>
 
             {/* Status & Live Speech Transcript Box */}
-            <div className="space-y-2 w-full">
+            <div className="space-y-2 w-full max-w-xl">
               <div className="flex items-center justify-center gap-2 text-xs font-mono font-bold">
                 {isListening ? (
                   <span className="text-emerald-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    Microphone Active • Bolo main sun raha hoon...
+                    Microphone Active • Bolo Sir, main sun raha hoon...
                   </span>
                 ) : isSpeaking ? (
                   <span className="text-cyan-300 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Samadhaan Voice Speaking Answer...
+                    JARVIS Speaking Response...
                   </span>
                 ) : loading ? (
                   <span className="text-amber-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span>
-                    Processing Instant Forensic Answer...
+                    Processing Instant Forensic Solution...
                   </span>
                 ) : (
-                  <span className="text-slate-400">
-                    Click mic to ask any question verbally (Hindi / English)
+                  <span className="text-slate-400 flex items-center gap-2">
+                    <span>Click orb or say <strong>"Hey Jarvis"</strong> to ask any question</span>
                   </span>
                 )}
               </div>
 
               {/* Real-Time Live Transcript Preview */}
               {liveTranscript && (
-                <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-emerald-500/40 text-emerald-200 text-sm font-medium shadow-inner animate-fadeIn">
+                <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-cyan-500/40 text-cyan-200 text-sm font-medium shadow-inner animate-fadeIn">
                   "{liveTranscript}"
                 </div>
               )}
             </div>
 
-            {/* Quick Stop Audio Button & Equalizer */}
+            {/* Stop Speaking Button */}
             {isSpeaking && (
-              <div className="flex flex-col items-center gap-3">
-                {/* JARVIS Acoustic Equalizer Wave */}
-                <div className="flex items-center justify-center gap-1.5 h-8 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30">
-                  <span className="text-[10px] font-mono text-cyan-400 mr-2 uppercase tracking-wider flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    Voice Modulation
-                  </span>
-                  <span className="w-1 bg-cyan-400 rounded-full animate-[pulse_0.35s_ease-in-out_infinite] h-4"></span>
-                  <span className="w-1 bg-teal-400 rounded-full animate-[pulse_0.55s_ease-in-out_infinite] h-6"></span>
-                  <span className="w-1 bg-cyan-300 rounded-full animate-[pulse_0.28s_ease-in-out_infinite] h-3"></span>
-                  <span className="w-1 bg-blue-400 rounded-full animate-[pulse_0.48s_ease-in-out_infinite] h-7"></span>
-                  <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.38s_ease-in-out_infinite] h-5"></span>
-                  <span className="w-1 bg-cyan-400 rounded-full animate-[pulse_0.3s_ease-in-out_infinite] h-6"></span>
-                  <span className="w-1 bg-teal-300 rounded-full animate-[pulse_0.45s_ease-in-out_infinite] h-3"></span>
-                </div>
-
-                <button
-                  onClick={stopSpeaking}
-                  className="px-4 py-1.5 rounded-full bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 text-xs font-mono font-bold transition-all flex items-center gap-1.5 shadow-lg"
-                >
-                  <VolumeX className="w-3.5 h-3.5" />
-                  <span>Stop Speaking</span>
-                </button>
-              </div>
+              <button
+                onClick={stopSpeaking}
+                className="px-5 py-2 rounded-full bg-red-950/90 hover:bg-red-900 border border-red-500/50 text-red-200 text-xs font-mono font-bold transition-all flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95"
+              >
+                <VolumeX className="w-4 h-4" />
+                <span>Silence Voice</span>
+              </button>
             )}
           </div>
         </div>
       )}
+
+      {/* 2B. QUICK ACTION COMMAND CARDS GRID */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+        {[
+          { label: 'Open Evidence Vault', command: 'Open Evidence Vault', icon: Lock, color: 'text-cyan-400', border: 'border-cyan-500/30' },
+          { label: 'Open Forensic Lens', command: 'Open Forensic Lens AI', icon: Eye, color: 'text-purple-400', border: 'border-purple-500/30' },
+          { label: 'Active Cases Summary', command: 'Active cases ka summary batao', icon: Briefcase, color: 'text-emerald-400', border: 'border-emerald-500/30' },
+          { label: 'Sec 65B Certificate', command: 'Section 65B Certificate process kya hai?', icon: FileText, color: 'text-amber-400', border: 'border-amber-500/30' },
+          { label: 'Ballistics Match', command: '9mm Beretta Ballistics case details', icon: Disc, color: 'text-rose-400', border: 'border-rose-500/30' },
+          { label: 'Cyber Syndicate Case', command: 'Case 0482 me kya mila tha?', icon: Terminal, color: 'text-blue-400', border: 'border-blue-500/30' },
+        ].map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={idx}
+              onClick={() => handleSendMessage(item.command)}
+              className={`p-3 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border ${item.border} hover:scale-102 active:scale-95 transition-all text-left flex flex-col justify-between h-20 shadow-md group`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <Icon className={`w-4 h-4 ${item.color} group-hover:scale-110 transition-transform`} />
+                <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-white transition-colors" />
+              </div>
+              <span className="font-semibold text-slate-200 text-[11px] leading-tight line-clamp-2">
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* 3. MAIN CHAT AREA */}
       <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col h-[580px] overflow-hidden">

@@ -111,11 +111,20 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
     recognition.onstart = () => setIsListening(true);
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
+      let interimTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
           finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
         }
       }
+
+      const current = (finalTranscript || interimTranscript).toLowerCase();
+      if (current.includes('hey jarvis') || current.includes('hello jarvis') || current.includes('jarvis')) {
+        playJarvisChime('wake');
+      }
+
       if (finalTranscript) {
         setInputMessage(finalTranscript);
         handleSend(finalTranscript);
@@ -289,11 +298,21 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold text-xs shadow-2xl shadow-cyan-950/80 ring-2 ring-cyan-400/50 transition-all hover:scale-105 active:scale-95 group"
+          className="relative flex items-center gap-3 px-4 py-3 rounded-full bg-slate-950/90 border-2 border-cyan-400 text-cyan-200 font-bold text-xs shadow-2xl shadow-cyan-950/90 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all group backdrop-blur-xl"
         >
-          <Sparkles className="w-4 h-4 text-cyan-200 animate-pulse group-hover:rotate-12 transition-transform" />
-          <span className="tracking-wide">JARVIS VOICE AI</span>
-          <span className="w-2 h-2 rounded-full bg-cyan-300 animate-ping"></span>
+          {/* Rotating Arc Reactor Dash Ring */}
+          <div className="relative w-5 h-5 flex items-center justify-center">
+            <svg className="absolute inset-0 w-full h-full animate-[spin_8s_linear_infinite]" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="#22d3ee" strokeWidth="2" strokeDasharray="6 4" />
+            </svg>
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-md shadow-cyan-400"></div>
+          </div>
+          <span className="tracking-widest font-mono font-black text-[11px] uppercase bg-gradient-to-r from-cyan-300 via-white to-teal-300 bg-clip-text text-transparent">
+            J.A.R.V.I.S. AI
+          </span>
+          <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 text-[9px] font-mono border border-cyan-500/40">
+            ⚡ &lt;10ms
+          </span>
         </button>
       )}
 
