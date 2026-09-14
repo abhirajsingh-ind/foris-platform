@@ -3,14 +3,27 @@ import { prisma } from '../db';
 import { requireAuth } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/auditLogger';
 import { anomalyEngine } from '../utils/anomalyEngine';
+import { ensureMinuteDataFreshness, addMinuteDataTick } from '../services/minuteDataDaemon';
 
 export const securityRouter = Router();
 
 securityRouter.use(requireAuth);
 
+// POST /api/security/minute-tick - Trigger an immediate 1-minute forensic data tick
+securityRouter.post('/minute-tick', async (req: Request, res: Response) => {
+  try {
+    const result = await addMinuteDataTick();
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: 'Failed to generate minute data tick.' });
+  }
+});
+
 // GET /api/security/overview & /api/security/stats - Real-time security posture indicators & metric counts
 securityRouter.get(['/overview', '/stats'], async (req: Request, res: Response) => {
   try {
+    await ensureMinuteDataFreshness();
+
     const [auditCount, securityCount, unresolvedAlerts, reportsCount, evidenceCount] = await Promise.all([
       prisma.auditEvent.count(),
       prisma.securityEvent.count(),

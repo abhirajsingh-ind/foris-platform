@@ -3,6 +3,7 @@ import { prisma } from '../db';
 import { requireAuth } from '../middleware/auth';
 import { verifyAuditChain, GENESIS_AUDIT_HASH } from '../utils/crypto';
 import { logAuditEvent } from '../middleware/auditLogger';
+import { ensureMinuteDataFreshness } from '../services/minuteDataDaemon';
 
 export const auditRouter = Router();
 
@@ -11,6 +12,8 @@ auditRouter.use(requireAuth);
 // GET /api/audit - Paginated audit logs with search and filtering
 auditRouter.get('/', async (req: Request, res: Response) => {
   try {
+    await ensureMinuteDataFreshness();
+
     const { action, userBadge, caseId, severity, page = '1', limit = '50' } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10) || 1);

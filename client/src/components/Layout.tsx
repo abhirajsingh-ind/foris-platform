@@ -1,34 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { StatusBadge } from './StatusBadge';
-import { FloatingSamadhaan } from './FloatingSamadhaan';
 import {
-  Shield,
-  Briefcase,
-  FileText,
-  Clock,
-  History,
-  ShieldAlert,
-  Users,
-  BarChart3,
-  LogOut,
-  ChevronDown,
-  Scale,
+  LayoutDashboard,
   Search,
-  Cpu,
-  Bell,
-  Sparkles,
-  ExternalLink,
-  Layers,
-  FileSignature,
-  CheckCircle2,
+  FileText,
+  BarChart2,
+  Settings,
+  Lock,
+  RefreshCw,
+  Share2,
+  Plus,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeft,
+  LogOut,
   X,
-  Radio,
-  Zap,
-  Sun,
-  Moon,
-  Activity,
+  User,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -42,734 +31,215 @@ export const Layout: React.FC<LayoutProps> = ({
   children,
   activeTab,
   setActiveTab,
-  onNavigateResource,
 }) => {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
-  const [judgeViolationFeedback, setJudgeViolationFeedback] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Global Search State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{
-    cases: any[];
-    evidence: any[];
-    reports: any[];
-  }>({ cases: [], evidence: [], reports: [] });
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Live Clock
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Keyboard shortcut Ctrl+K / Cmd+K for search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Global search effect
-  useEffect(() => {
-    if (!searchQuery || searchQuery.trim().length < 2) {
-      setSearchResults({ cases: [], evidence: [], reports: [] });
-      setShowSearchDropdown(false);
-      return;
-    }
-
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const token = localStorage.getItem('foris_token');
-        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSearchResults(data.results);
-          setShowSearchDropdown(true);
-        }
-      } catch (e) {
-        console.error('Search failed:', e);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 200);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery]);
-
-  interface NavItem {
-    id: string;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    badge?: string;
-    alert?: boolean;
-    highlight?: boolean;
-    isAi?: boolean;
-  }
-
-  interface NavSection {
-    category: string;
-    items: NavItem[];
-  }
-
-  // Wallarm & Developer Console Categorized Navigation Structure
-  const navSections: NavSection[] = [
+  // Navigation Items matching the reference design 1:1
+  const navItems = [
     {
-      category: 'CORE CONSOLE',
-      items: [
-        { id: 'dashboard', label: 'Overview & Telemetry', icon: BarChart3, badge: 'LIVE' },
-        { id: 'security', label: 'SOC Security Center', icon: ShieldAlert, alert: true },
-        { id: 'analytics', label: 'Metrics & Forecasting', icon: Activity },
-      ],
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      targetTab: 'dashboard',
     },
     {
-      category: 'FORENSIC VAULT',
-      items: [
-        { id: 'cases', label: 'Case Dossiers', icon: Briefcase },
-        { id: 'evidence', label: 'Evidence Register', icon: Shield },
-        { id: 'custody', label: 'Chain of Custody', icon: Clock },
-        { id: 'reports', label: 'Forensic Reports', icon: FileText, highlight: true },
-      ],
+      id: 'investigations',
+      label: 'Investigations',
+      icon: Search,
+      targetTab: 'cases',
     },
     {
-      category: 'GOVERNANCE & AI',
-      items: [
-        { id: 'audit', label: 'Immutable Audit Trail', icon: History },
-        { id: 'users', label: 'IAM & Access Control', icon: Users },
-        { id: 'samadhaan', label: 'FORIS SAMADHAAN (AI)', icon: Sparkles, isAi: true },
-      ],
+      id: 'reports',
+      label: 'Reports',
+      icon: FileText,
+      targetTab: 'reports',
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: BarChart2,
+      targetTab: 'analytics',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      targetTab: 'security',
     },
   ];
 
-  const handleTestJudgeViolation = async () => {
-    try {
-      const res = await fetch('/api/security/test-judge-violation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('foris_token')}`,
-        },
-        body: JSON.stringify({ action: 'UNAUTHORIZED_JUDICIAL_WRITE' }),
-      });
-      const data = await res.json();
-      if (res.status === 403) {
-        setJudgeViolationFeedback(
-          '✓ DEMO TEST PASSED: Server rejected mutation with HTTP 403 Forbidden and logged the security event.'
-        );
-        setTimeout(() => setJudgeViolationFeedback(null), 6000);
-      } else {
-        alert(data.message || 'Operation completed.');
-      }
-    } catch (e) {
-      alert('Network request failed.');
-    }
-  };
-
-  const handleSelectSearchResult = (type: 'case' | 'evidence' | 'report', id: string) => {
-    setShowSearchDropdown(false);
-    setSearchQuery('');
-    if (type === 'case') {
-      setActiveTab('cases');
-    } else if (type === 'evidence') {
-      setActiveTab('evidence');
-    } else if (type === 'report') {
-      setActiveTab('reports');
-    }
-    if (onNavigateResource) {
-      onNavigateResource(type, id);
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-black text-slate-100 overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
-      {/* Wallarm-style Developer & Security Console Sidebar */}
-      <aside className="w-64 bg-[#03060d] border-r border-slate-800/80 flex flex-col justify-between shrink-0 shadow-2xl z-20">
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Brand Logo & Console Status */}
-          <div className="p-4 border-b border-slate-800/80 bg-[#000000]/90">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-600 text-white shadow-lg shadow-cyan-950 font-black text-sm tracking-wider ring-1 ring-cyan-400/40">
-                SFSL
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-sm tracking-wider text-white truncate">
-                    FORIS CONSOLE
-                  </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                </div>
-                <span className="text-[10px] text-cyan-400/80 font-mono tracking-tight block truncate">
-                  Forensic DevSecOps Gate
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono">
-              <span className="flex items-center gap-1 text-emerald-400 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                ONLINE • SYNCED
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800 text-[9px]">
-                SEC-V2.4
-              </span>
-            </div>
+    <div className="flex flex-col h-screen w-screen bg-[#e5e7eb] overflow-hidden font-sans select-none">
+      {/* ==================================================================== */}
+      {/* 1. TOP MACOS / BROWSER CHROME FRAME (Matching Screenshot 1:1)       */}
+      {/* ==================================================================== */}
+      <header className="h-10 bg-[#e5e7eb] border-b border-gray-300/80 px-4 flex items-center justify-between shrink-0 text-gray-600 text-xs">
+        {/* Left: Window Dots & Navigation Controls */}
+        <div className="flex items-center gap-3">
+          {/* macOS Traffic Lights */}
+          <div className="flex items-center gap-1.5 mr-1">
+            <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] inline-block shadow-2xs" />
           </div>
 
-          {/* Categorized Navigation Groups */}
-          <nav className="p-3 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
-            {navSections.map((section) => (
-              <div key={section.category} className="space-y-1">
-                <div className="px-2.5 py-1 text-[10px] font-mono font-bold tracking-widest text-slate-300 uppercase">
-                  {section.category}
-                </div>
-                <div className="space-y-0.5">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-                          isActive
-                            ? item.isAi
-                              ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-950/40'
-                              : 'bg-cyan-950/60 text-cyan-200 border border-cyan-500/40 shadow-lg shadow-cyan-950/40 font-bold'
-                            : item.isAi
-                            ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent'
-                        }`}
-                      >
-                        <Icon
-                          className={`w-4 h-4 shrink-0 ${
-                            isActive
-                              ? item.isAi
-                                ? 'text-emerald-300 animate-pulse'
-                                : 'text-cyan-400'
-                              : item.isAi
-                              ? 'text-emerald-400'
-                              : 'text-slate-500'
-                          }`}
-                        />
-                        <span className="flex-1 text-left truncate">{item.label}</span>
-                        {item.badge && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold">
-                            {item.badge}
-                          </span>
-                        )}
-                        {item.isAi && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-widest font-mono font-bold">
-                            AI
-                          </span>
-                        )}
-                        {item.alert && (
-                          <span className="w-2 h-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]"></span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
-
-          {/* Defense Status & Bottom Info */}
-          <div className="p-3 border-t border-slate-800/80 bg-[#000000]/80 space-y-2 shrink-0">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 font-mono">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                SHA-256 Locked
-              </span>
-              <span className="text-slate-400">NODE: DEL-01</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsDemoGuideOpen(true)}
-                className="flex-1 px-2 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-[10px] font-mono text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors flex items-center justify-center gap-1"
-                title="Open platform roadmap guide"
-              >
-                <Sparkles className="w-3 h-3 text-cyan-400" />
-                <span>Roadmap</span>
-              </button>
-
-              <button
-                onClick={logout}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-red-950/40 text-[10px] font-mono text-slate-400 hover:text-red-300 border border-slate-800 hover:border-red-500/40 transition-colors flex items-center justify-center gap-1"
-                title="Sign out officer session"
-              >
-                <LogOut className="w-3 h-3" />
-                <span>Exit</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar - AMOLED Developer Console */}
-        <header className="h-16 bg-[#000000]/95 backdrop-blur-xl border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0 z-30">
-          {/* Left section: Global Search & Current Title */}
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
-            <div className="relative w-full">
-              <div className="relative flex items-center">
-                <Search className="w-4 h-4 text-cyan-400 absolute left-3 pointer-events-none" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Console Query (Case ID, FIR, SHA-256 Hash, Officer, Evidence)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => {
-                    if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
-                  }}
-                  className="w-full bg-[#050811] border border-slate-800 focus:border-cyan-400/80 focus:ring-1 focus:ring-cyan-400/50 rounded-xl pl-9 pr-14 py-2 text-xs font-mono text-slate-200 placeholder-slate-500 transition-all outline-none"
-                />
-                <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-slate-800 text-slate-400 border border-slate-700 rounded shadow-sm">
-                    ⌘K
-                  </kbd>
-                </div>
-                {searchQuery && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setShowSearchDropdown(false);
-                    }}
-                    className="absolute right-10 text-slate-400 hover:text-slate-200"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Instant Search Results Dropdown */}
-              {showSearchDropdown && (
-                <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 animate-fadeIn max-h-96 overflow-y-auto">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pb-2 mb-2 border-b border-slate-800">
-                    <span className="font-bold uppercase tracking-wider text-cyan-400">
-                      Search Results for "{searchQuery}"
-                    </span>
-                    <button
-                      onClick={() => setShowSearchDropdown(false)}
-                      className="text-slate-400 hover:text-white"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {searchResults.cases.length === 0 &&
-                    searchResults.evidence.length === 0 &&
-                    searchResults.reports.length === 0 && (
-                      <div className="py-6 text-center text-xs text-slate-500">
-                        {isSearching ? 'Searching cryptographic ledger...' : 'No matching forensic records found.'}
-                      </div>
-                    )}
-
-                  {/* Cases */}
-                  {searchResults.cases.length > 0 && (
-                    <div className="mb-3">
-                      <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block mb-1.5 px-1">
-                        Case Dossiers ({searchResults.cases.length})
-                      </span>
-                      <div className="space-y-1">
-                        {searchResults.cases.map((c) => (
-                          <div
-                            key={c.id}
-                            onClick={() => handleSelectSearchResult('case', c.id)}
-                            className="p-2 rounded-xl hover:bg-slate-800/80 cursor-pointer transition-colors border border-transparent hover:border-cyan-500/30 flex items-center justify-between"
-                          >
-                            <div>
-                              <div className="text-xs font-bold text-white flex items-center gap-2">
-                                <span className="text-cyan-400 font-mono">{c.id}</span>
-                                <span className="text-slate-300 truncate max-w-xs">{c.title}</span>
-                              </div>
-                              <div className="text-[10px] text-slate-400 font-mono">
-                                FIR: {c.firNumber} • {c.category}
-                              </div>
-                            </div>
-                            <StatusBadge type="case" value={c.status} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Evidence */}
-                  {searchResults.evidence.length > 0 && (
-                    <div className="mb-3">
-                      <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block mb-1.5 px-1">
-                        Evidence Register ({searchResults.evidence.length})
-                      </span>
-                      <div className="space-y-1">
-                        {searchResults.evidence.map((ev) => (
-                          <div
-                            key={ev.id}
-                            onClick={() => handleSelectSearchResult('evidence', ev.id)}
-                            className="p-2 rounded-xl hover:bg-slate-800/80 cursor-pointer transition-colors border border-transparent hover:border-cyan-500/30 flex items-center justify-between"
-                          >
-                            <div>
-                              <div className="text-xs font-bold text-white flex items-center gap-2">
-                                <span className="text-cyan-400 font-mono">{ev.id}</span>
-                                <span className="text-slate-300 truncate max-w-xs">{ev.description}</span>
-                              </div>
-                              <div className="text-[10px] text-slate-400 font-mono truncate max-w-sm">
-                                SHA-256: {ev.sha256Hash}
-                              </div>
-                            </div>
-                            <StatusBadge type="evidence" value={ev.currentStatus} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Reports */}
-                  {searchResults.reports.length > 0 && (
-                    <div>
-                      <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block mb-1.5 px-1">
-                        Forensic Reports ({searchResults.reports.length})
-                      </span>
-                      <div className="space-y-1">
-                        {searchResults.reports.map((r) => (
-                          <div
-                            key={r.id}
-                            onClick={() => handleSelectSearchResult('report', r.id)}
-                            className="p-2 rounded-xl hover:bg-slate-800/80 cursor-pointer transition-colors border border-transparent hover:border-cyan-500/30 flex items-center justify-between"
-                          >
-                            <div>
-                              <div className="text-xs font-bold text-white flex items-center gap-2">
-                                <span className="text-cyan-400 font-mono">{r.id}</span>
-                                <span className="text-slate-300 truncate max-w-xs">{r.title}</span>
-                              </div>
-                              <div className="text-[10px] text-slate-400 font-mono">
-                                Author: {r.author?.name} [{r.author?.badgeId}] • Active: V{r.currentVersion}
-                              </div>
-                            </div>
-                            <StatusBadge type="report" value={r.status} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right section: System Telemetry, Demo Role Switcher & User Profile */}
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle Button (Dark / Light) */}
+          {/* Sidebar Toggle & History Controls */}
+          <div className="flex items-center gap-1 text-gray-500">
             <button
-              onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-md active:scale-95 ${
-                theme === 'dark'
-                  ? 'bg-slate-800/90 hover:bg-slate-700/90 border-slate-700 hover:border-amber-400/50 text-slate-200 hover:text-amber-300'
-                  : 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-amber-900/10'
-              }`}
-              title={theme === 'dark' ? 'Switch to Official Laboratory Light Mode' : 'Switch to Tactical Dark Mode'}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-1 hover:bg-gray-300/70 rounded transition-colors"
+              title="Toggle sidebar"
             >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
-                  <span className="font-semibold text-[11px] text-amber-300 hidden sm:inline">Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-indigo-600" />
-                  <span className="font-semibold text-[11px] text-indigo-900 hidden sm:inline">Dark Mode</span>
-                </>
-              )}
+              <PanelLeft className="w-3.5 h-3.5" />
             </button>
-
-            {/* Live Clock & Epoch */}
-            <div className="hidden xl:flex flex-col items-end text-right px-3 py-1 bg-slate-950/50 border border-slate-800/80 rounded-xl">
-              <span className="text-[11px] font-mono text-cyan-300 font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                {currentTime.toLocaleTimeString()} IST
-              </span>
-              <span className="text-[9px] font-mono text-slate-500">
-                {currentTime.toISOString().slice(0, 10)}
-              </span>
-            </div>
-
-            {/* Quick Demo Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 hover:border-cyan-500/50 text-xs font-medium transition-all shadow-md active:scale-95"
-              >
-                <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-slate-400 hidden sm:inline">Role Persona:</span>
-                <span className="font-bold text-white font-mono">{user?.badgeId}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-
-              {isRoleDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700 shadow-2xl p-2.5 z-50 animate-fadeIn">
-                  <div className="flex items-center justify-between px-2 py-1.5 mb-1 border-b border-slate-800">
-                    <span className="text-[10px] uppercase font-bold text-slate-400">
-                      Switch Officer Role:
-                    </span>
-                    <span className="text-[9px] font-mono text-cyan-400">Instant Switch</span>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    className={`w-full text-left p-2.5 rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-between text-xs group ${user?.badgeId === 'FEX-1024' ? 'bg-slate-800/50 border border-cyan-800/40' : ''}`}
-                  >
-                    <div>
-                      <div className="font-bold text-white flex items-center gap-2">
-                        FEX-1024
-                        <span className="text-[10px] font-normal text-cyan-300 px-1.5 py-0.2 rounded bg-cyan-950 border border-cyan-800">
-                          Forensic Officer
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        Dr. Abhiraj Singh • Draft, Amend, Sign V1 $\to$ V2
-                      </div>
-                    </div>
-                    {user?.badgeId === 'FEX-1024' ? (
-                      <span className="text-cyan-400 font-bold text-sm">✓</span>
-                    ) : (
-                      <span className="text-[9px] font-mono text-slate-500 group-hover:text-cyan-400">LOGIN →</span>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    className={`w-full text-left p-2.5 rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-between text-xs group ${user?.badgeId === 'SPO-2048' ? 'bg-slate-800/50 border border-blue-800/40' : ''}`}
-                  >
-                    <div>
-                      <div className="font-bold text-white flex items-center gap-2">
-                        SPO-2048
-                        <span className="text-[10px] font-normal text-blue-300 px-1.5 py-0.2 rounded bg-blue-950 border border-blue-800">
-                          Senior Police
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        ACP Vikram Rathore • Cases & Evidence Custody
-                      </div>
-                    </div>
-                    {user?.badgeId === 'SPO-2048' ? (
-                      <span className="text-blue-400 font-bold text-sm">✓</span>
-                    ) : (
-                      <span className="text-[9px] font-mono text-slate-500 group-hover:text-blue-400">LOGIN →</span>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsRoleDropdownOpen(false);
-                    }}
-                    className={`w-full text-left p-2.5 rounded-xl hover:bg-amber-950/40 border border-transparent hover:border-amber-500/30 transition-colors flex items-center justify-between text-xs group ${user?.badgeId === 'JDG-3012' ? 'bg-amber-950/30 border-amber-800/40' : ''}`}
-                  >
-                    <div>
-                      <div className="font-bold text-amber-300 flex items-center gap-2">
-                        JDG-3012
-                        <span className="text-[10px] font-bold text-amber-200 px-1.5 py-0.2 rounded bg-amber-900/50 border border-amber-600/50">
-                          Special Judge (READ-ONLY)
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-amber-400/80 mt-0.5">
-                        Hon. Justice Manisha • Strict Court Read-Only Mode
-                      </div>
-                    </div>
-                    {user?.badgeId === 'JDG-3012' ? (
-                      <span className="text-amber-400 font-bold text-sm">✓</span>
-                    ) : (
-                      <span className="text-[9px] font-mono text-slate-500 group-hover:text-amber-400">LOGIN →</span>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* User Profile Pill */}
-            {user && (
-              <div className="flex items-center gap-2.5 pl-3 border-l border-slate-800/80">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-cyan-950">
-                  {user.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)}
-                </div>
-                <div className="hidden lg:block text-left">
-                  <span className="text-xs font-bold text-white block leading-tight">
-                    {user.name}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block font-mono truncate max-w-[150px]">
-                    {user.designation}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* PROMINENT JUDICIAL READ-ONLY BANNER */}
-        {user?.role === 'JUDGE' && (
-          <div className="bg-gradient-to-r from-amber-950 via-amber-900/80 to-amber-950 border-b border-amber-500/50 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg animate-fadeIn z-20">
-            <div className="flex items-center gap-2.5 text-amber-300">
-              <div className="p-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                <Scale className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-bold tracking-wider uppercase text-amber-200">
-                  READ-ONLY JUDICIAL ACCESS ACTIVE
-                </span>
-                <span className="text-[11px] text-amber-300/80 block sm:inline sm:ml-2">
-                  (Dossier Inspection & Audit Verification Mode — State modifications prohibited)
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleTestJudgeViolation}
-                className="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/50 text-[11px] font-bold font-mono transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-300" />
-                Test Unauthorized Judicial Mutation (HTTP 403)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Toast Feedback for Judge Violation Test */}
-        {judgeViolationFeedback && (
-          <div className="bg-emerald-950/90 border-b border-emerald-500/50 px-6 py-2.5 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-fadeIn shadow-lg">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>{judgeViolationFeedback}</span>
-          </div>
-        )}
-
-        {/* Main Content Render Area - AMOLED Developer Console */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-black text-slate-100 bg-cyber-grid relative selection:bg-cyan-500/30 selection:text-cyan-200">{children}</main>
-      </div>
-
-      {/* 17-Step Demo Guide Modal */}
-      {isDemoGuideOpen && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-cyan-500/30 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-fadeIn">
-            <div className="p-5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-cyan-600/20 text-cyan-300 border border-cyan-500/30">
-                  <Sparkles className="w-5 h-5 text-cyan-400" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-base text-white">
-                    Platform Demonstration Roadmap
-                  </h3>
-                  <p className="text-xs text-slate-400 font-mono">
-                    5–7 Minute Master Demonstration Workflow
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsDemoGuideOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">1. Persona Login</span>
-                  <p className="text-slate-400">
-                    Log in as Forensic Officer <span className="text-white font-mono">FEX-1024</span>.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">2. Open Case Dossier</span>
-                  <p className="text-slate-400">
-                    Inspect <span className="text-white font-mono">MP-FOR-2026-00125</span> Cyber Case.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">3 & 4. Chain of Custody</span>
-                  <p className="text-slate-400">
-                    Open <span className="text-white font-mono">EV-001</span> to view 4-stage custody timeline.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">5, 6 & 7. Report V1 & SHA-256</span>
-                  <p className="text-slate-400">
-                    Open Report V1 $\to$ Click <span className="text-emerald-300 font-semibold">Verify SHA-256</span>.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">8 & 9. Formal Amendment</span>
-                  <p className="text-slate-400">
-                    Click <span className="text-cyan-300 font-semibold">Amend Report</span> $\to$ Select "Additional evidence" $\to$ Submit V2.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">10 & 11. Immutability & Diff</span>
-                  <p className="text-slate-400">
-                    Show V1 remains intact $\to$ Click <span className="text-cyan-300 font-semibold">Compare V1 ↔ V2</span> for side-by-side diff.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-cyan-300 font-mono">12 & 13. Audit Hash Chain</span>
-                  <p className="text-slate-400">
-                    Open Audit Trail $\to$ Click <span className="text-emerald-300 font-semibold">Verify Audit Integrity</span>.
-                  </p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                  <span className="font-bold text-amber-300 font-mono">14, 15 & 16. Judicial 403 Test</span>
-                  <p className="text-slate-400">
-                    Switch to Judge <span className="text-amber-300 font-mono">JDG-3012</span> $\to$ Click 403 test button $\to$ Server blocks write.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 text-slate-300 text-[11px] leading-relaxed">
-                <span className="font-bold text-cyan-300 block mb-1">💡 Pro-Tip for Evaluation:</span>
-                Explain to the judges: <em>"We do not prevent authorized amendments; we ensure that every amendment is permanent, versioned, cryptographically hashed, attributed to an officer, and verifiable by the court."</em>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
-              <button
-                onClick={() => setIsDemoGuideOpen(false)}
-                className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-900/30"
-              >
-                Close Roadmap
-              </button>
-            </div>
+            <button className="p-1 hover:bg-gray-300/70 rounded transition-colors disabled:opacity-40">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="p-1 hover:bg-gray-300/70 rounded transition-colors disabled:opacity-40">
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Global Floating AI Assistant */}
-      <FloatingSamadhaan onNavigateTab={setActiveTab} />
+        {/* Center: URL Address Bar */}
+        <div className="flex items-center justify-center flex-1 max-w-md px-2">
+          <div className="w-full bg-[#f3f4f6] border border-gray-300/90 rounded-md py-0.5 px-3 flex items-center justify-center gap-1.5 shadow-2xs">
+            <Lock className="w-3 h-3 text-gray-500" />
+            <span className="text-[11px] font-medium text-gray-800 tracking-tight">
+              dronetrace.com
+            </span>
+            <RefreshCw className="w-2.5 h-2.5 text-gray-400 ml-1 hover:text-gray-700 cursor-pointer" />
+          </div>
+        </div>
+
+        {/* Right: Action Icons */}
+        <div className="flex items-center gap-2 text-gray-500">
+          <button className="p-1 hover:bg-gray-300/70 rounded transition-colors" title="Share">
+            <Share2 className="w-3.5 h-3.5" />
+          </button>
+          <button className="p-1 hover:bg-gray-300/70 rounded transition-colors" title="New Tab">
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+          <button className="p-1 hover:bg-gray-300/70 rounded transition-colors" title="View Tabs">
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </header>
+
+      {/* ==================================================================== */}
+      {/* 2. MAIN APP BODY: SIDEBAR (LEFT) + CONTENT (RIGHT)                   */}
+      {/* ==================================================================== */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ------------------------------------------------------------------ */}
+        {/* SIDEBAR (Matching Reference 1:1)                                   */}
+        {/* ------------------------------------------------------------------ */}
+        {isSidebarOpen && (
+          <aside className="w-56 bg-white border-r border-gray-200/90 flex flex-col justify-between shrink-0 p-4">
+            <div className="space-y-4">
+              {/* Brand Logo: Red & Black Delta Triangle + DRONETRACE */}
+              <div className="flex items-center gap-2.5 px-1.5 py-1">
+                <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none">
+                  <path d="M12 21L3 5h18L12 21z" fill="#0f172a" />
+                  <path d="M12 21L7.5 13h9L12 21z" fill="#d91d18" />
+                  <path d="M12 5L7.5 13h9L12 5z" fill="#ffffff" opacity="0.25" />
+                </svg>
+                <span className="font-extrabold text-[12px] tracking-widest text-gray-900 uppercase">
+                  DRONETRACE
+                </span>
+              </div>
+
+              {/* Dotted Divider Line (Exactly as in Reference Screenshot) */}
+              <div className="border-b border-dashed border-gray-200/90 mx-1" />
+
+              {/* Navigation Links */}
+              <nav className="space-y-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    (item.id === 'dashboard' && activeTab === 'dashboard') ||
+                    (item.id === 'investigations' && activeTab === 'cases') ||
+                    (item.id === 'reports' && activeTab === 'reports') ||
+                    (item.id === 'analytics' && activeTab === 'analytics') ||
+                    (item.id === 'settings' && (activeTab === 'security' || activeTab === 'users'));
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.targetTab)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${
+                        isActive
+                          ? 'border border-gray-200/90 bg-white text-gray-900 font-semibold shadow-2xs'
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 font-medium'
+                      }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 shrink-0 ${
+                          isActive ? 'text-gray-800' : 'text-gray-400'
+                        }`}
+                      />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Bottom Section: Get Started (5/6 Completed) + Exit Session */}
+            <div className="space-y-3 pt-4">
+              {/* "Get Started" Progress Widget (Exactly as in Reference Screenshot) */}
+              <div className="p-2.5 bg-white border border-gray-200/90 rounded-2xl shadow-2xs flex items-center gap-2.5">
+                {/* Red Circular Progress Arc */}
+                <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                  <svg className="w-7 h-7 -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-gray-100"
+                      strokeWidth="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#d91d18]"
+                      strokeDasharray="83, 100"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-gray-900 leading-tight">Get Started</h4>
+                  <p className="text-[10px] text-gray-400 font-medium">5/6 Completed</p>
+                </div>
+              </div>
+
+              {/* Officer Account / Exit */}
+              <div className="flex items-center justify-between px-2 pt-1 text-[11px] text-gray-500 border-t border-gray-100">
+                <span className="truncate font-medium">{user?.name || 'Dr. Abhiraj Singh'}</span>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                  title="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
+
+        {/* ------------------------------------------------------------------ */}
+        {/* MAIN CONTENT AREA: Renders Dashboard or Selected View             */}
+        {/* ------------------------------------------------------------------ */}
+        <main className="flex-1 overflow-y-auto bg-[#f4f5f7]">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

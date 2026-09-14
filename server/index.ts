@@ -99,6 +99,8 @@ app.get('*', (_req, res, next) => {
   });
 });
 
+import { startMinuteDataDaemon } from './services/minuteDataDaemon';
+
 // Centralized error handler
 app.use(errorHandler);
 
@@ -107,6 +109,7 @@ if (process.env.NODE_ENV !== 'test' && !isTestEnv && !isVercel) {
   app.listen(PORT, () => {
     console.log(`[FORIS SERVER] Forensic Core online on port ${PORT}`);
     console.log(`[FORIS SERVER] Defense-in-depth security active`);
+    startMinuteDataDaemon();
   });
 }
 
