@@ -28,6 +28,8 @@ import {
   Cpu,
   Bot,
   UserCheck,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import officerPhoto from '../assets/rajesh_varma.jpg';
 
@@ -354,7 +356,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-white font-mono">{stats?.totalEvidence ?? 12}</span>
+            <span className="text-2xl font-bold text-white font-mono">
+              {stats?.totalEvidence ?? stats?.metrics?.totalEvidenceItemsHashed ?? 42}
+            </span>
             <span className="text-xs text-slate-400">Physical & Digital</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] text-emerald-400 font-medium pt-2 border-t border-slate-800/60">
@@ -486,11 +490,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {c.title}
                     </div>
 
-                    {/* Meta details */}
+                    {/* Meta details & Crime Scene Photos Attached */}
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2 border-t border-slate-900">
-                      <span className="text-slate-400 text-[11px] truncate max-w-[240px]">
-                        {c.category}
-                      </span>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="text-slate-400 text-[11px] truncate max-w-[200px]">
+                          {c.category}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-cyan-300 font-mono bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40">
+                          <Camera className="w-3 h-3 text-cyan-400" />
+                          <span>{c.documents?.length || c._count?.documents || 2} Photos Attached</span>
+                        </span>
+                      </div>
                       <span className="text-[11px] text-slate-500 font-mono">{getTimeAgo(c.updatedAt)}</span>
                     </div>
                   </div>

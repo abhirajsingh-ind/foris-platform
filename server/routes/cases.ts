@@ -53,6 +53,10 @@ casesRouter.get('/', async (req: Request, res: Response) => {
         assignedOfficer: {
           select: { id: true, badgeId: true, name: true, designation: true },
         },
+        documents: {
+          select: { id: true, mimeType: true, originalFilename: true, sha256Hash: true },
+          take: 4,
+        },
         _count: {
           select: { evidence: true, reports: true, documents: true },
         },

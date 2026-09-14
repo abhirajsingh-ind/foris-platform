@@ -43,6 +43,10 @@ securityRouter.get(['/overview', '/stats'], async (req: Request, res: Response) 
         databaseConnected: true,
         anomalyEngineActive: true,
       },
+      totalEvidence: evidenceCount,
+      totalReports: reportsCount,
+      totalAudit: auditCount,
+      totalCases: await prisma.case.count(),
       metrics: {
         totalAuditEvents: auditCount,
         totalSecurityEvents: securityCount,
