@@ -22,6 +22,9 @@ import {
   RefreshCw,
   Waves,
 } from 'lucide-react';
+import { BorderBeam } from '../components/BorderBeam';
+import { CyberDecryptText } from '../components/CyberDecryptText';
+
 
 interface BoundingBox {
   id: string;
@@ -500,7 +503,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-200 to-pink-300">
-                FORENSIC AI LENS
+                <CyberDecryptText text="FORENSIC AI LENS" />
               </h1>
               <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 tracking-wider shadow-[0_0_10px_rgba(217,70,239,0.25)]">
                 GOOGLE LENS OCR

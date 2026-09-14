@@ -30,6 +30,11 @@ import {
   Moon,
   ScanText,
 } from 'lucide-react';
+import { CyberBackgroundMesh } from './CyberBackgroundMesh';
+import { CyberHUDCursor } from './CyberHUDCursor';
+import { CyberDecryptText } from './CyberDecryptText';
+import { CryptographicPulseWave } from './CryptographicPulseWave';
+
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -50,6 +55,18 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
   const [judgeViolationFeedback, setJudgeViolationFeedback] = useState<string | null>(null);
+  const [cyberFxEnabled, setCyberFxEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('foris_cyber_fx');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const toggleCyberFx = () => {
+    setCyberFxEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem('foris_cyber_fx', String(next));
+      return next;
+    });
+  };
 
   // Global Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,25 +183,33 @@ export const Layout: React.FC<LayoutProps> = ({
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-emerald-500/30 selection:text-emerald-200 relative">
+      {/* Global Interactive Cyber Mesh Background */}
+      <CyberBackgroundMesh intensity={cyberFxEnabled ? 1.0 : 0.4} />
+
+      {/* Tactical Forensic HUD Crosshair & Click Ripples */}
+      <CyberHUDCursor enabled={cyberFxEnabled} />
+
       {/* Left Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 shadow-xl z-20">
+      <aside className="w-64 bg-slate-900/90 backdrop-blur-md border-r border-slate-800 flex flex-col justify-between shrink-0 shadow-xl z-20">
         <div>
           {/* Brand Logo & Subtitle */}
           <div className="p-4 border-b border-slate-800 bg-slate-950/80">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 text-white shadow-md font-serif font-black text-sm">
-                SFSL
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 text-white shadow-md font-serif font-black text-sm relative group overflow-hidden">
+                <span className="relative z-10">SFSL</span>
+                <span className="absolute inset-0 bg-gradient-to-t from-emerald-700 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div>
                 <span className="font-bold text-base tracking-wide text-white block">
-                  FORIS Portal
+                  <CyberDecryptText text="FORIS Portal" />
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono block">
                   State Forensic Laboratory
                 </span>
               </div>
             </div>
+
             <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
               <span className="flex items-center gap-1 text-emerald-400 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -442,6 +467,25 @@ export const Layout: React.FC<LayoutProps> = ({
               )}
             </button>
 
+            {/* Cyber HUD FX Toggle Button */}
+            <button
+              onClick={toggleCyberFx}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-md active:scale-95 ${
+                cyberFxEnabled
+                  ? 'bg-cyan-950/80 hover:bg-cyan-900/80 border-cyan-500/50 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                  : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700 text-slate-400'
+              }`}
+              title={cyberFxEnabled ? 'Disable Tactical Cyber HUD FX' : 'Enable Tactical Cyber HUD FX'}
+            >
+              <Zap className={`w-3.5 h-3.5 ${cyberFxEnabled ? 'text-cyan-400 animate-pulse' : 'text-slate-500'}`} />
+              <span className="font-mono text-[11px] hidden md:inline">
+                {cyberFxEnabled ? 'CYBER FX: ON' : 'FX: OFF'}
+              </span>
+            </button>
+
+            {/* Cryptographic Hash Pulse Telemetry */}
+            <CryptographicPulseWave className="hidden lg:flex" />
+
             {/* Live Clock & Epoch */}
             <div className="hidden xl:flex flex-col items-end text-right px-3 py-1 bg-slate-950/50 border border-slate-800/80 rounded-xl">
               <span className="text-[11px] font-mono text-cyan-300 font-semibold flex items-center gap-1.5">
@@ -461,9 +505,10 @@ export const Layout: React.FC<LayoutProps> = ({
               >
                 <Cpu className="w-3.5 h-3.5 text-cyan-400" />
                 <span className="text-slate-400 hidden sm:inline">Role Persona:</span>
-                <span className="font-bold text-white font-mono">{user?.badgeId}</span>
+                <CyberDecryptText text={user?.badgeId || 'FEX-1024'} className="font-bold text-white font-mono" />
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
+
 
               {isRoleDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-700 shadow-2xl p-2.5 z-50 animate-fadeIn">

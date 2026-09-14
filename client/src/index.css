@@ -168,6 +168,59 @@
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes borderTrace {
+  0% {
+    stroke-dashoffset: 400;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-borderTrace {
+  animation: borderTrace 5s linear infinite;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+/* Holographic Card Glare & Laser Edge */
+.cyber-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cyber-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(6, 182, 212, 0.25), 0 0 15px rgba(6, 182, 212, 0.15);
+}
+
+@keyframes holographicShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-hologram-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: holographicShimmer 3s infinite;
+}
+
+
 /* =========================================================
    LIGHT THEME (Official State Forensic Laboratory Day Mode)
    ========================================================= */
