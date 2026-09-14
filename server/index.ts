@@ -35,7 +35,10 @@ app.use(
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow any origin for Vercel/cloud deployments or local development
+      callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -57,10 +60,10 @@ const authLimiter = rateLimit({
   },
 });
 
-app.use('/api/auth/login', authLimiter);
+app.use(['/api/auth/login', '/auth/login'], authLimiter);
 
 // Health check
-app.get('/api/health', (_req, res) => {
+app.get(['/api/health', '/health'], (_req, res) => {
   res.json({
     status: 'OPERATIONAL',
     system: 'FORIS — Forensic Integrity & Evidence System',
@@ -69,29 +72,29 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Mount Routes
-app.use('/api/auth', authRouter);
-app.use('/api/cases', casesRouter);
-app.use('/api/evidence', evidenceRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api/audit', auditRouter);
-app.use('/api/security', securityRouter);
-app.use('/api/documents', documentsRouter);
-app.use('/api/search', searchRouter);
-app.use('/api/ai/samadhaan', samadhaanRouter);
+// Mount Routes (supporting both /api/* and direct subpaths for Vercel serverless routing)
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/cases', '/cases'], casesRouter);
+app.use(['/api/evidence', '/evidence'], evidenceRouter);
+app.use(['/api/reports', '/reports'], reportsRouter);
+app.use(['/api/audit', '/audit'], auditRouter);
+app.use(['/api/security', '/security'], securityRouter);
+app.use(['/api/documents', '/documents'], documentsRouter);
+app.use(['/api/search', '/search'], searchRouter);
+app.use(['/api/ai/samadhaan', '/ai/samadhaan'], samadhaanRouter);
 
 // Serve static frontend build if present
 const distPath = path.resolve(process.cwd(), 'dist');
 app.use(express.static(distPath));
 app.get('*', (_req, res, next) => {
-  if (_req.originalUrl.startsWith('/api')) {
+  if (_req.originalUrl.startsWith('/api') || _req.path.startsWith('/api')) {
     return next();
   }
   const indexPath = path.join(distPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      // In dev mode when client is served by Vite on port 5173
-      res.status(404).send('FORIS API Server Running. Frontend available at http://localhost:5173');
+      // In dev mode or serverless execution when static is not co-located
+      res.status(404).send('FORIS API Server Running.');
     }
   });
 });
@@ -99,7 +102,8 @@ app.get('*', (_req, res, next) => {
 // Centralized error handler
 app.use(errorHandler);
 
-if (process.env.NODE_ENV !== 'test' && !isTestEnv) {
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+if (process.env.NODE_ENV !== 'test' && !isTestEnv && !isVercel) {
   app.listen(PORT, () => {
     console.log(`[FORIS SERVER] Forensic Core online on port ${PORT}`);
     console.log(`[FORIS SERVER] Defense-in-depth security active`);

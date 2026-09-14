@@ -20,5 +20,5 @@
       "@/*": ["./client/src/*"]
     }
   },
-  "include": ["client/src", "server", "prisma", "tests"]
+  "include": ["client/src", "server", "prisma", "tests", "api"]
 }

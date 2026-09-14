@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 .pnp
 .pnp.js
@@ -15,12 +15,14 @@ build/
 .env.test.local
 .env.production.local
 
-# Database & SQLite files
+# Database & SQLite files (keep seeded demo dev.db for cloud deployment)
 prisma/*.db
+!prisma/dev.db
 prisma/*.db-journal
 prisma/*.sqlite
 prisma/*.sqlite-journal
 *.db
+!prisma/dev.db
 *.sqlite
 
 # Large archive files

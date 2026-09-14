@@ -239,16 +239,25 @@ authRouter.post('/enroll-photo', requireAuth, async (req: Request, res: Response
       });
     }
 
-    // Ensure uploads directory exists
-    const biometricsDir = path.join(process.cwd(), 'uploads', 'biometrics');
-    if (!fs.existsSync(biometricsDir)) {
-      fs.mkdirSync(biometricsDir, { recursive: true });
+    // Ensure uploads directory exists (uses /tmp on Vercel)
+    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+    const biometricsDir = isVercel ? path.join('/tmp', 'uploads', 'biometrics') : path.join(process.cwd(), 'uploads', 'biometrics');
+    try {
+      if (!fs.existsSync(biometricsDir)) {
+        fs.mkdirSync(biometricsDir, { recursive: true });
+      }
+    } catch (e) {
+      console.warn('[BIOMETRICS] Directory creation deferred/read-only:', e);
     }
 
     // Save reference image for this badge
     const safeBadge = user.badgeId.replace(/[^a-zA-Z0-9_-]/g, '_');
     const filePath = path.join(biometricsDir, `${safeBadge}.ref`);
-    fs.writeFileSync(filePath, photoDataUrl, 'utf-8');
+    try {
+      fs.writeFileSync(filePath, photoDataUrl, 'utf-8');
+    } catch (writeErr) {
+      console.warn('[BIOMETRICS] Could not write .ref file:', writeErr);
+    }
 
     // Also extract binary JPEG and overwrite permanent static image files
     try {
@@ -256,24 +265,28 @@ authRouter.post('/enroll-photo', requireAuth, async (req: Request, res: Response
       const buffer = Buffer.from(base64Data, 'base64');
 
       // Save JPEG in uploads
-      fs.writeFileSync(path.join(biometricsDir, `${safeBadge}.jpg`), buffer);
-      fs.writeFileSync(path.join(biometricsDir, 'FEX-1024.ref'), photoDataUrl, 'utf-8');
-      fs.writeFileSync(path.join(biometricsDir, 'FEX-1024.jpg'), buffer);
+      try {
+        fs.writeFileSync(path.join(biometricsDir, `${safeBadge}.jpg`), buffer);
+        fs.writeFileSync(path.join(biometricsDir, 'FEX-1024.ref'), photoDataUrl, 'utf-8');
+        fs.writeFileSync(path.join(biometricsDir, 'FEX-1024.jpg'), buffer);
+      } catch (saveErr) {
+        console.warn('[BIOMETRICS] Could not save jpg in biometricsDir:', saveErr);
+      }
 
-      // Overwrite static files in client/public and dist
+      // Overwrite static files in client/public and dist if filesystem is writable
       const publicPath = path.join(process.cwd(), 'client', 'public', 'rajesh_varma.jpg');
       if (fs.existsSync(path.dirname(publicPath))) {
-        fs.writeFileSync(publicPath, buffer);
+        try { fs.writeFileSync(publicPath, buffer); } catch (_) {}
       }
 
       const distPath = path.join(process.cwd(), 'dist', 'rajesh_varma.jpg');
       if (fs.existsSync(path.dirname(distPath))) {
-        fs.writeFileSync(distPath, buffer);
+        try { fs.writeFileSync(distPath, buffer); } catch (_) {}
       }
 
       const srcAssetPath = path.join(process.cwd(), 'client', 'src', 'assets', 'rajesh_varma.jpg');
       if (fs.existsSync(path.dirname(srcAssetPath))) {
-        fs.writeFileSync(srcAssetPath, buffer);
+        try { fs.writeFileSync(srcAssetPath, buffer); } catch (_) {}
       }
     } catch (imgErr) {
       console.error('Error syncing permanent photo buffer:', imgErr);
@@ -308,17 +321,18 @@ authRouter.get('/enrolled-photo/:badgeId', async (req: Request, res: Response) =
   try {
     const { badgeId } = req.params;
     const safeBadge = badgeId.replace(/[^a-zA-Z0-9_-]/g, '_');
-    const filePath = path.join(process.cwd(), 'uploads', 'biometrics', `${safeBadge}.ref`);
+    const candidates = [
+      path.join('/tmp', 'uploads', 'biometrics', `${safeBadge}.ref`),
+      path.join(process.cwd(), 'uploads', 'biometrics', `${safeBadge}.ref`),
+      path.join('/tmp', 'uploads', 'biometrics', 'FEX-1024.ref'),
+      path.join(process.cwd(), 'uploads', 'biometrics', 'FEX-1024.ref'),
+    ];
 
-    if (fs.existsSync(filePath)) {
-      const dataUrl = fs.readFileSync(filePath, 'utf-8');
-      return res.json({ success: true, photoDataUrl: dataUrl });
-    }
-
-    const defaultRefPath = path.join(process.cwd(), 'uploads', 'biometrics', 'FEX-1024.ref');
-    if (fs.existsSync(defaultRefPath)) {
-      const dataUrl = fs.readFileSync(defaultRefPath, 'utf-8');
-      return res.json({ success: true, photoDataUrl: dataUrl });
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        const dataUrl = fs.readFileSync(p, 'utf-8');
+        return res.json({ success: true, photoDataUrl: dataUrl });
+      }
     }
 
     res.json({ success: false, message: 'No custom photo enrolled, use default profile.' });

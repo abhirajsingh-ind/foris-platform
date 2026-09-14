@@ -13,9 +13,17 @@ export const documentsRouter = Router();
 
 documentsRouter.use(requireAuth);
 
-const UPLOAD_DIR = path.resolve(process.cwd(), process.env.UPLOAD_DIR || './uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+const UPLOAD_DIR = isVercel
+  ? path.resolve('/tmp', 'uploads')
+  : path.resolve(process.cwd(), process.env.UPLOAD_DIR || './uploads');
+
+try {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[DOCUMENTS ROUTER] Upload directory creation deferred or read-only:', err);
 }
 
 // Multer storage with sanitized UUID filenames
