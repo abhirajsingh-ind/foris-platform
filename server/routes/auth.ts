@@ -588,7 +588,7 @@ authRouter.post('/send-2fa-otp', requireAuth, async (req: Request, res: Response
       maskedPhone: maskEmail(targetEmail),
       targetType: 'EMAIL',
       expiresAt,
-      demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      demoOtp: otp,
       message: `Official 6-digit verification code sent to Gmail: ${targetEmail}`,
     });
   } catch (error: any) {
@@ -755,7 +755,7 @@ authRouter.post('/resend-2fa-otp', requireAuth, async (req: Request, res: Respon
       maskedPhone: maskEmail(targetEmail),
       targetType: 'EMAIL',
       expiresAt,
-      demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      demoOtp: otp,
       message: `Fresh verification code sent via Gmail to ${targetEmail}`,
     });
   } catch (error: any) {
