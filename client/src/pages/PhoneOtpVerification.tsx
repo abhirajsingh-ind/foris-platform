@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   ShieldCheck,
-  Smartphone,
+  Mail,
   Lock,
   ArrowRight,
   RefreshCw,
@@ -21,7 +21,8 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  MessageSquare,
+  Inbox,
+  AtSign,
 } from 'lucide-react';
 
 export const PhoneOtpVerification: React.FC = () => {
@@ -37,11 +38,11 @@ export const PhoneOtpVerification: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [targetPhone, setTargetPhone] = useState<string>('6203145059');
-  const [maskedPhone, setMaskedPhone] = useState<string>('+91 ******5059');
+  const [targetEmail, setTargetEmail] = useState<string>('abhirajsingh0904@gmail.com');
+  const [maskedEmail, setMaskedEmail] = useState<string>('a****4@gmail.com');
   const [demoCode, setDemoCode] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
-  const [showSmsGuide, setShowSmsGuide] = useState<boolean>(false);
+  const [showMailGuide, setShowMailGuide] = useState<boolean>(false);
 
   // 5-minute expiry countdown (300s)
   const [expirySeconds, setExpirySeconds] = useState<number>(300);
@@ -52,7 +53,7 @@ export const PhoneOtpVerification: React.FC = () => {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Trigger initial SMS OTP dispatch on page mount
+  // Trigger initial Email OTP dispatch on page mount
   useEffect(() => {
     let isMounted = true;
 
@@ -68,18 +69,18 @@ export const PhoneOtpVerification: React.FC = () => {
         });
         const data = await res.json();
         if (data.success && isMounted) {
-          if (data.phoneNumber) setTargetPhone(data.phoneNumber);
-          if (data.maskedPhone) setMaskedPhone(data.maskedPhone);
+          if (data.email) setTargetEmail(data.email);
+          if (data.maskedEmail) setMaskedEmail(data.maskedEmail);
           if (data.demoOtp) setDemoCode(data.demoOtp);
           setExpirySeconds(300);
           setCooldownSeconds(30);
-          setSuccessMsg(`✓ 6-Digit SMS OTP dispatched to +91 ${data.phoneNumber || '6203145059'}`);
+          setSuccessMsg(`✓ 6-Digit Verification Code dispatched to ${data.email || 'abhirajsingh0904@gmail.com'}`);
           setTimeout(() => {
             if (isMounted) setSuccessMsg(null);
           }, 6000);
         }
       } catch (err) {
-        console.error('Initial SMS OTP error:', err);
+        console.error('Initial Email OTP error:', err);
       }
     };
 
@@ -180,12 +181,12 @@ export const PhoneOtpVerification: React.FC = () => {
   const submitOtp = async (codeToSubmit?: string) => {
     const code = codeToSubmit || otpDigits.join('');
     if (code.length !== 6) {
-      setErrorMsg('Please enter all 6 digits of the SMS verification code.');
+      setErrorMsg('Please enter all 6 digits of the email verification code.');
       return;
     }
 
     if (expirySeconds <= 0) {
-      setErrorMsg('Verification code has expired. Please click Resend SMS.');
+      setErrorMsg('Verification code has expired. Please click Resend Code.');
       return;
     }
 
@@ -218,10 +219,10 @@ export const PhoneOtpVerification: React.FC = () => {
       setCooldownSeconds(30);
       setOtpDigits(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-      setSuccessMsg(`✓ Fresh 6-digit SMS code sent to +91 ${targetPhone}`);
+      setSuccessMsg(`✓ Fresh 6-digit verification code sent to ${targetEmail}`);
       setTimeout(() => setSuccessMsg(null), 5000);
     } else {
-      setErrorMsg(result.error || 'Failed to resend SMS verification code.');
+      setErrorMsg(result.error || 'Failed to resend verification code.');
     }
   };
 
@@ -243,24 +244,25 @@ export const PhoneOtpVerification: React.FC = () => {
       <div className="absolute inset-0 bg-amoled-radial pointer-events-none" />
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-indigo-500" />
 
-      {/* FLOATING LIVE SMS NOTIFICATION CARD */}
+      {/* FLOATING LIVE GMAIL NOTIFICATION CARD */}
       {demoCode && (
         <div className="fixed top-20 right-4 sm:right-8 max-w-sm w-full z-50 animate-bounce-short">
           <div className="bg-[#050811]/95 border-2 border-emerald-400 rounded-2xl p-4 shadow-2xl shadow-emerald-950/80 backdrop-blur-xl">
             <div className="flex items-start justify-between gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
-                <MessageSquare className="w-5 h-5 text-emerald-300 animate-pulse" />
+                <Mail className="w-5 h-5 text-emerald-300 animate-pulse" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-                    SMS Gateway Delivered
+                    Gmail Dispatch Delivered
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">Just Now</span>
                 </div>
-                <div className="text-xs text-white font-semibold mt-0.5 truncate">
-                  To: +91 {targetPhone}
+                <div className="text-xs text-white font-semibold mt-0.5 truncate flex items-center gap-1">
+                  <AtSign className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span className="truncate">{targetEmail}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between bg-black p-2 rounded-xl border border-emerald-500/30">
                   <span className="font-mono font-black text-xl text-emerald-300 tracking-widest pl-1">
@@ -291,11 +293,11 @@ export const PhoneOtpVerification: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="font-extrabold text-lg tracking-wider text-white">FORIS</span>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/90 text-emerald-400 border border-emerald-500/30 tracking-widest uppercase">
-                Phone 2-Step Verification
+                Gmail 2-Step Verification
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              STAGE 3/3 • Mobile SMS Cryptographic Identity Gate
+              STAGE 3/3 • Google Mail Cryptographic Identity Gate
             </p>
           </div>
         </div>
@@ -325,7 +327,7 @@ export const PhoneOtpVerification: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-emerald-200">Biometric Face Recognition Passed</div>
-                  <div className="text-[10px] text-emerald-400/80 font-mono">1:1 Landmark & Eye Feature Match: 99.4% Verified</div>
+                  <div className="text-[10px] text-emerald-400/80 font-mono">1:1 Landmark &amp; Eye Feature Match: 99.4% Verified</div>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 self-start sm:self-center">
@@ -336,20 +338,20 @@ export const PhoneOtpVerification: React.FC = () => {
             {/* Officer Header info */}
             <div className="text-center space-y-2">
               <div className="inline-flex p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 shadow-inner text-emerald-400 mb-1">
-                <Smartphone className="w-8 h-8 animate-pulse" />
+                <Mail className="w-8 h-8 animate-pulse" />
               </div>
               <h2 className="text-2xl font-black tracking-tight text-white">
-                Enter Mobile SMS Verification Code
+                Enter Gmail Verification Code
               </h2>
               <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                To complete officer authentication for <span className="text-emerald-300 font-semibold">{user?.name || 'Dr. Abhiraj Singh'}</span> (<span className="font-mono text-slate-300">{user?.badgeId || 'FEX-1024'}</span>), enter the 6-digit SMS OTP sent to:
+                To complete officer authentication for <span className="text-emerald-300 font-semibold">{user?.name || 'Dr. Abhiraj Singh'}</span> (<span className="font-mono text-slate-300">{user?.badgeId || 'FEX-1024'}</span>), enter the 6-digit cryptographic OTP sent to:
               </p>
 
-              {/* High-visibility Target Phone Box */}
+              {/* High-visibility Target Email Box */}
               <div className="inline-flex items-center space-x-2.5 px-4 py-2 rounded-xl bg-slate-950/80 border border-emerald-500/40 text-emerald-200 font-mono text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/50">
-                <span className="text-base">🇮🇳</span>
+                <AtSign className="w-4 h-4 text-cyan-400" />
                 <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="tracking-wider">+91 {targetPhone}</span>
+                <span className="tracking-wide text-white">{targetEmail}</span>
               </div>
             </div>
 
@@ -397,7 +399,7 @@ export const PhoneOtpVerification: React.FC = () => {
                   }`}
                 >
                   <RefreshCw className={`w-3 h-3 ${isResending ? 'animate-spin' : ''}`} />
-                  <span>{cooldownSeconds > 0 ? `Resend SMS in ${cooldownSeconds}s` : 'Resend SMS'}</span>
+                  <span>{cooldownSeconds > 0 ? `Resend Code in ${cooldownSeconds}s` : 'Resend Code'}</span>
                 </button>
               </div>
             </div>
@@ -432,12 +434,12 @@ export const PhoneOtpVerification: React.FC = () => {
               {isVerifying ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>VERIFYING SMS CRYPTOGRAPHIC TOKEN...</span>
+                  <span>VERIFYING GMAIL CRYPTOGRAPHIC TOKEN...</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  <span>VERIFY & ACCESS FORENSIC DASHBOARD</span>
+                  <span>VERIFY &amp; ACCESS FORENSIC DASHBOARD</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -450,7 +452,7 @@ export const PhoneOtpVerification: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
                     <span className="text-slate-300 text-xs">
-                      Live SMS OTP for <strong className="text-emerald-300">+91 {targetPhone}</strong>:
+                      Live Verification OTP for <strong className="text-emerald-300">{targetEmail}</strong>:
                     </span>
                     <span className="font-mono font-black text-amber-300 tracking-widest text-base bg-slate-950 px-2.5 py-1 rounded-lg border border-amber-500/40">
                       {demoCode}
@@ -464,7 +466,7 @@ export const PhoneOtpVerification: React.FC = () => {
                       className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <Zap className="w-3.5 h-3.5" />
-                      <span>Auto-Fill & Enter</span>
+                      <span>Auto-Fill &amp; Enter</span>
                     </button>
                     <button
                       type="button"
@@ -479,33 +481,33 @@ export const PhoneOtpVerification: React.FC = () => {
               </div>
             )}
 
-            {/* Fast2SMS / Twilio Gateway Setup Guide */}
+            {/* Real Gmail SMTP Dispatch Setup Guide */}
             <div className="pt-2 border-t border-slate-800/50">
               <button
                 type="button"
-                onClick={() => setShowSmsGuide(!showSmsGuide)}
-                className="w-full flex items-center justify-between py-2 text-xs text-slate-400 hover:text-emerald-300 transition-colors"
+                onClick={() => setShowMailGuide(!showMailGuide)}
+                className="w-full flex items-center justify-between py-2 text-xs text-slate-400 hover:text-emerald-300 transition-colors cursor-pointer"
               >
                 <span className="flex items-center gap-1.5 font-semibold">
                   <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Connect Real Indian SMS SIM Gateway (Fast2SMS / Twilio)</span>
+                  <span>Connect Real Gmail SMTP Dispatch (smtp.gmail.com)</span>
                 </span>
-                {showSmsGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showMailGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
 
-              {showSmsGuide && (
+              {showMailGuide && (
                 <div className="mt-2 p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-2.5 text-slate-300 animate-fadeIn">
                   <p className="leading-relaxed">
-                    To deliver physical cellular SMS messages to <strong className="text-emerald-300">+91 6203145059</strong> via Indian Telecom networks (TRAI DLT compliant):
+                    To deliver physical email messages straight to <strong className="text-emerald-300">abhirajsingh0904@gmail.com</strong>:
                   </p>
-                  <ol className="list-decimal pl-4 space-y-1 text-slate-400 text-[11px] leading-relaxed">
-                    <li>Create a free account on <strong className="text-white">Fast2SMS.com</strong> or <strong className="text-white">Twilio</strong>.</li>
-                    <li>Copy your API Authorization Key.</li>
-                    <li>Add <span className="font-mono text-emerald-300">FAST2SMS_API_KEY="your-api-key"</span> to the project <span className="font-mono text-white">.env</span> file!</li>
+                  <ol className="list-decimal pl-4 space-y-1.5 text-slate-400 text-[11px] leading-relaxed">
+                    <li>Go to your Google Account (<span className="text-cyan-400">myaccount.google.com/apppasswords</span>).</li>
+                    <li>Generate a 16-character <strong className="text-white">App Password</strong> for Mail.</li>
+                    <li>Add <span className="font-mono text-emerald-300">SMTP_USER="abhirajsingh0904@gmail.com"</span> and <span className="font-mono text-emerald-300">SMTP_PASS="your-16-char-app-pass"</span> to the project <span className="font-mono text-white">.env</span> (or Vercel Environment Variables)!</li>
                   </ol>
-                  <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-200 flex items-center gap-2">
+                  <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-200 flex items-center gap-2">
                     <Info className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>In the meantime, the real-time code is automatically captured and displayed above with instant 1-click Auto-Fill!</span>
+                    <span>Live real-time code is automatically captured and displayed above with 1-click Auto-Fill!</span>
                   </div>
                 </div>
               )}
@@ -516,9 +518,9 @@ export const PhoneOtpVerification: React.FC = () => {
           <div className="bg-slate-950/80 px-6 py-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
             <span className="flex items-center gap-1.5">
               <Lock className="w-3 h-3 text-emerald-400" />
-              <span>TRAI DLT • GSM 1.3 • SHA-256 OTP Encrypted</span>
+              <span>TLS 1.3 • SMTP SSL • SHA-256 OTP Encrypted</span>
             </span>
-            <span>SFSL TELECOM GATEWAY v2.4</span>
+            <span>SFSL CYBER MAIL GATEWAY v2.4</span>
           </div>
         </div>
       </main>

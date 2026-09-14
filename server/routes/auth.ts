@@ -8,6 +8,7 @@ import { requireAuth } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/auditLogger';
 import { anomalyEngine } from '../utils/anomalyEngine';
 import { sendSmsOtp } from '../services/smsService';
+import { sendOtpEmail } from '../services/emailService';
 
 export const authRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'foris_super_secure_jwt_secret_sih2026_key_!@#%&*';
@@ -511,29 +512,32 @@ authRouter.post('/verify-face', requireAuth, async (req: Request, res: Response)
   }
 });
 
-// In-memory OTP Store for Phone SMS 2-Step Verification
+// In-memory OTP Store for Email 2-Step Verification
 interface OtpEntry {
   otp: string;
   expiresAt: number;
   attempts: number;
   lastSentAt: number;
-  phoneNumber: string;
+  email: string;
+  phoneNumber?: string;
 }
 
 const otpStore = new Map<string, OtpEntry>();
+const TARGET_OTP_EMAIL = 'abhirajsingh0904@gmail.com';
 
-function maskPhoneNumber(phone: string): string {
-  const clean = phone.replace(/[^0-9]/g, '');
-  if (clean.length < 4) return phone;
-  return `+91 ******${clean.slice(-4)}`;
+function maskEmail(email: string): string {
+  const parts = email.split('@');
+  if (parts.length !== 2) return email;
+  const [local, domain] = parts;
+  if (local.length <= 2) return `${local[0]}*@${domain}`;
+  return `${local[0]}${'*'.repeat(Math.max(local.length - 2, 4))}${local.slice(-1)}@${domain}`;
 }
 
-// 1. Send / Trigger Phone SMS 2FA OTP (called right after biometric face verification)
+// 1. Send / Trigger Email 2FA OTP (called right after biometric face verification)
 authRouter.post('/send-2fa-otp', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user!;
-    // Target Phone Number requested: 6203145059
-    const targetPhone = '6203145059';
+    const targetEmail = TARGET_OTP_EMAIL;
 
     // Generate cryptographically secure 6-digit random code
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -545,57 +549,62 @@ authRouter.post('/send-2fa-otp', requireAuth, async (req: Request, res: Response
       expiresAt,
       attempts: 0,
       lastSentAt: now,
-      phoneNumber: targetPhone,
+      email: targetEmail,
+      phoneNumber: targetEmail,
     });
 
-    const dispatchResult = await sendSmsOtp({
-      phoneNumber: targetPhone,
+    const dispatchResult = await sendOtpEmail({
+      toEmail: targetEmail,
       otp,
       officerName: user.name,
       badgeId: user.badgeId,
       ipAddress: req.ip,
     });
 
-    await logAuditEvent({
+    logAuditEvent({
       userId: user.id,
       userBadge: user.badgeId,
       userName: user.name,
       role: user.role,
-      action: 'SMS_2FA_SENT',
-      resourceType: 'SMS_2FA_GATEWAY',
-      reason: `2-Step verification SMS dispatched to ${maskPhoneNumber(targetPhone)} following face biometric confirmation.`,
+      action: 'EMAIL_2FA_SENT',
+      resourceType: 'EMAIL_2FA_GATEWAY',
+      reason: `2-Step verification code dispatched to ${maskEmail(targetEmail)} following face biometric confirmation.`,
       result: 'SUCCESS',
       severity: 'INFO',
       metadata: {
-        destinationPhone: maskPhoneNumber(targetPhone),
+        destinationEmail: maskEmail(targetEmail),
         expiresInSeconds: 300,
         deliveryMode: dispatchResult.mode,
       },
       ipAddress: req.ip,
-    });
+    }).catch((e) => console.warn('[AUDIT] Failed logAuditEvent:', e));
 
     res.json({
       success: true,
-      phoneNumber: targetPhone,
-      maskedPhone: maskPhoneNumber(targetPhone),
+      email: targetEmail,
+      maskedEmail: maskEmail(targetEmail),
+      // Backward-compatible fields
+      phoneNumber: targetEmail,
+      maskedPhone: maskEmail(targetEmail),
+      targetType: 'EMAIL',
       expiresAt,
       demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
-      message: `Official 6-digit SMS verification code sent to +91 ${targetPhone}`,
+      message: `Official 6-digit verification code sent to Gmail: ${targetEmail}`,
     });
   } catch (error: any) {
-    console.error('Send SMS OTP error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send SMS Verification code.' });
+    console.error('Send Email OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send Email Verification code.' });
   }
 });
 
-// 2. Verify Phone SMS 2FA OTP
+// 2. Verify Email 2FA OTP
 authRouter.post(['/verify-2fa-otp', '/verify-phone-otp'], requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user!;
     const { otp } = req.body;
 
     if (!otp || typeof otp !== 'string') {
-      return res.status(400).json({ success: false, error: '6-digit SMS OTP code is required.' });
+      return res.status(400).json({ success: false, error: '6-digit OTP code is required.' });
     }
 
     const cleanOtp = otp.trim();
@@ -612,7 +621,7 @@ authRouter.post(['/verify-2fa-otp', '/verify-phone-otp'], requireAuth, async (re
       otpStore.delete(user.id);
       return res.status(400).json({
         success: false,
-        error: 'SMS code has expired (5-minute limit). Please click Resend SMS.',
+        error: 'Verification code has expired (5-minute limit). Please click Resend Code.',
       });
     }
 
@@ -621,18 +630,18 @@ authRouter.post(['/verify-2fa-otp', '/verify-phone-otp'], requireAuth, async (re
     if (cleanOtp !== entry.otp) {
       if (entry.attempts >= 5) {
         otpStore.delete(user.id);
-        await logAuditEvent({
+        logAuditEvent({
           userId: user.id,
           userBadge: user.badgeId,
           userName: user.name,
           role: user.role,
-          action: 'SMS_2FA_LOCKED',
-          resourceType: 'SMS_2FA_GATEWAY',
-          reason: 'Too many invalid SMS OTP attempts. Verification session terminated.',
+          action: 'EMAIL_2FA_LOCKED',
+          resourceType: 'EMAIL_2FA_GATEWAY',
+          reason: 'Too many invalid Email OTP attempts. Verification session terminated.',
           result: 'FAILURE',
           severity: 'HIGH',
           ipAddress: req.ip,
-        });
+        }).catch((e) => console.warn('[AUDIT] Failed logAuditEvent:', e));
 
         return res.status(403).json({
           success: false,
@@ -640,19 +649,19 @@ authRouter.post(['/verify-2fa-otp', '/verify-phone-otp'], requireAuth, async (re
         });
       }
 
-      await logAuditEvent({
+      logAuditEvent({
         userId: user.id,
         userBadge: user.badgeId,
         userName: user.name,
         role: user.role,
-        action: 'SMS_2FA_FAILED',
-        resourceType: 'SMS_2FA_GATEWAY',
-        reason: `Invalid SMS OTP attempt ${entry.attempts}/5`,
+        action: 'EMAIL_2FA_FAILED',
+        resourceType: 'EMAIL_2FA_GATEWAY',
+        reason: `Invalid Email OTP attempt ${entry.attempts}/5`,
         result: 'FAILURE',
         severity: 'LOW',
         metadata: { attempt: entry.attempts },
         ipAddress: req.ip,
-      });
+      }).catch((e) => console.warn('[AUDIT] Failed logAuditEvent:', e));
 
       return res.status(400).json({
         success: false,
@@ -663,32 +672,32 @@ authRouter.post(['/verify-2fa-otp', '/verify-phone-otp'], requireAuth, async (re
     // OTP Match Confirmed
     otpStore.delete(user.id);
 
-    await logAuditEvent({
+    logAuditEvent({
       userId: user.id,
       userBadge: user.badgeId,
       userName: user.name,
       role: user.role,
-      action: 'SMS_2FA_VERIFIED',
-      resourceType: 'SMS_2FA_GATEWAY',
-      reason: `2-Step SMS Verification confirmed successfully for ${user.name} via +91 ${entry.phoneNumber}.`,
+      action: 'EMAIL_2FA_VERIFIED',
+      resourceType: 'EMAIL_2FA_GATEWAY',
+      reason: `2-Step Email Verification confirmed successfully for ${user.name} via ${entry.email || TARGET_OTP_EMAIL}.`,
       result: 'SUCCESS',
       severity: 'INFO',
-      metadata: { destinationPhone: `+91 ${entry.phoneNumber}` },
+      metadata: { destinationEmail: entry.email || TARGET_OTP_EMAIL },
       ipAddress: req.ip,
-    });
+    }).catch((e) => console.warn('[AUDIT] Failed logAuditEvent:', e));
 
     res.json({
       success: true,
       verified: true,
-      message: '2-Step SMS Verification successfully confirmed. Access granted to FORIS Forensic Core.',
+      message: `2-Step Verification successfully confirmed via ${entry.email || TARGET_OTP_EMAIL}. Access granted to FORIS Forensic Core.`,
     });
   } catch (error: any) {
-    console.error('Verify SMS OTP error:', error);
+    console.error('Verify Email OTP error:', error);
     res.status(500).json({ success: false, error: 'Verification service error.' });
   }
 });
 
-// 3. Resend Phone SMS OTP (with 30-sec rate limit cooldown)
+// 3. Resend Email OTP (with 30-sec rate limit cooldown)
 authRouter.post('/resend-2fa-otp', requireAuth, async (req: Request, res: Response) => {
   try {
     const user = req.user!;
@@ -699,11 +708,11 @@ authRouter.post('/resend-2fa-otp', requireAuth, async (req: Request, res: Respon
       const remainingSeconds = Math.ceil((30000 - (now - entry.lastSentAt)) / 1000);
       return res.status(429).json({
         success: false,
-        error: `Please wait ${remainingSeconds}s before requesting another SMS code.`,
+        error: `Please wait ${remainingSeconds}s before requesting another verification code.`,
       });
     }
 
-    const targetPhone = '6203145059';
+    const targetEmail = TARGET_OTP_EMAIL;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = now + 5 * 60 * 1000;
 
@@ -712,41 +721,45 @@ authRouter.post('/resend-2fa-otp', requireAuth, async (req: Request, res: Respon
       expiresAt,
       attempts: 0,
       lastSentAt: now,
-      phoneNumber: targetPhone,
+      email: targetEmail,
+      phoneNumber: targetEmail,
     });
 
-    const dispatchResult = await sendSmsOtp({
-      phoneNumber: targetPhone,
+    const dispatchResult = await sendOtpEmail({
+      toEmail: targetEmail,
       otp,
       officerName: user.name,
       badgeId: user.badgeId,
       ipAddress: req.ip,
     });
 
-    await logAuditEvent({
+    logAuditEvent({
       userId: user.id,
       userBadge: user.badgeId,
       userName: user.name,
       role: user.role,
-      action: 'SMS_2FA_RESENT',
-      resourceType: 'SMS_2FA_GATEWAY',
-      reason: `New 2-Step SMS OTP re-dispatched to ${maskPhoneNumber(targetPhone)}.`,
+      action: 'EMAIL_2FA_RESENT',
+      resourceType: 'EMAIL_2FA_GATEWAY',
+      reason: `New 2-Step Email OTP re-dispatched to ${maskEmail(targetEmail)}.`,
       result: 'SUCCESS',
       severity: 'INFO',
       metadata: { deliveryMode: dispatchResult.mode },
       ipAddress: req.ip,
-    });
+    }).catch((e) => console.warn('[AUDIT] Failed logAuditEvent:', e));
 
     res.json({
       success: true,
-      phoneNumber: targetPhone,
-      maskedPhone: maskPhoneNumber(targetPhone),
+      email: targetEmail,
+      maskedEmail: maskEmail(targetEmail),
+      phoneNumber: targetEmail,
+      maskedPhone: maskEmail(targetEmail),
+      targetType: 'EMAIL',
       expiresAt,
       demoOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
-      message: `Fresh verification code sent via SMS to +91 ${targetPhone}`,
+      message: `Fresh verification code sent via Gmail to ${targetEmail}`,
     });
   } catch (error: any) {
-    console.error('Resend SMS OTP error:', error);
-    res.status(500).json({ success: false, error: 'Failed to resend SMS code.' });
+    console.error('Resend Email OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to resend verification code.' });
   }
 });

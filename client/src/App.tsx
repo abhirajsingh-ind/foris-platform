@@ -41,7 +41,7 @@ const AppContent: React.FC = () => {
     return <FaceVerification />;
   }
 
-  // PAGE 3: 2-Step Phone SMS Verification (OTP dispatched to +91 6203145059)
+  // PAGE 3: 2-Step Gmail Verification (OTP dispatched to abhirajsingh0904@gmail.com)
   if (!phoneOtpVerified) {
     return <PhoneOtpVerification />;
   }

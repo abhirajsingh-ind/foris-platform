@@ -215,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: data.error || 'Failed to resend SMS verification code.' };
       }
 
-      return { success: true, message: 'Fresh SMS verification code dispatched to +91 6203145059' };
+      return { success: true, message: 'Fresh verification code dispatched to abhirajsingh0904@gmail.com' };
     } catch (err: any) {
       return { success: false, error: err.message || 'Failed to resend code.' };
     }

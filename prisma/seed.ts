@@ -39,7 +39,7 @@ async function main() {
     data: {
       badgeId: 'FEX-1024',
       name: 'Dr. Abhiraj Singh',
-      email: 'fex1024@foris.gov.in',
+      email: 'abhirajsingh0904@gmail.com',
       passwordHash,
       role: 'FORENSIC_OFFICER',
       designation: 'Senior Digital & Physical Forensic Specialist',

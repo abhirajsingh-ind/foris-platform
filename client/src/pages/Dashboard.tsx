@@ -787,9 +787,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-xs font-bold text-white block">SMS OTP Gateway</span>
-            <span className="text-[10px] text-indigo-400 font-mono block">Target: +91 6203145059</span>
-            <span className="text-[10px] text-slate-500 font-mono block">Direct Carrier Link Active</span>
+            <span className="text-xs font-bold text-white block">Email OTP Gateway</span>
+            <span className="text-[10px] text-indigo-400 font-mono block">Target: abhirajsingh0904@gmail.com</span>
+            <span className="text-[10px] text-slate-500 font-mono block">Gmail SMTP Dispatch Active</span>
           </div>
         </div>
       </div>
