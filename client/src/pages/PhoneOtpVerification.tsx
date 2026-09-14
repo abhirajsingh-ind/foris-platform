@@ -238,16 +238,15 @@ export const PhoneOtpVerification: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col justify-between relative overflow-hidden font-sans select-none">
+    <div className="min-h-screen bg-black text-slate-100 flex flex-col justify-between relative overflow-hidden font-sans select-none bg-cyber-grid">
       {/* Dynamic Ambient Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(6,182,212,0.18),rgba(255,255,255,0))] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.12),transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-amoled-radial pointer-events-none" />
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-indigo-500" />
 
       {/* FLOATING LIVE SMS NOTIFICATION CARD */}
       {demoCode && (
         <div className="fixed top-20 right-4 sm:right-8 max-w-sm w-full z-50 animate-bounce-short">
-          <div className="bg-slate-900/95 border-2 border-emerald-400 rounded-2xl p-4 shadow-2xl shadow-emerald-950/80 backdrop-blur-xl">
+          <div className="bg-[#050811]/95 border-2 border-emerald-400 rounded-2xl p-4 shadow-2xl shadow-emerald-950/80 backdrop-blur-xl">
             <div className="flex items-start justify-between gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
                 <MessageSquare className="w-5 h-5 text-emerald-300 animate-pulse" />
@@ -263,7 +262,7 @@ export const PhoneOtpVerification: React.FC = () => {
                 <div className="text-xs text-white font-semibold mt-0.5 truncate">
                   To: +91 {targetPhone}
                 </div>
-                <div className="mt-2 flex items-center justify-between bg-slate-950/90 p-2 rounded-xl border border-emerald-500/30">
+                <div className="mt-2 flex items-center justify-between bg-black p-2 rounded-xl border border-emerald-500/30">
                   <span className="font-mono font-black text-xl text-emerald-300 tracking-widest pl-1">
                     {demoCode}
                   </span>
@@ -283,7 +282,7 @@ export const PhoneOtpVerification: React.FC = () => {
       )}
 
       {/* Top Navigation Bar */}
-      <header className="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10">
+      <header className="border-b border-slate-800/80 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-400/30">
             <ShieldCheck className="w-6 h-6 text-white" />
@@ -313,7 +312,7 @@ export const PhoneOtpVerification: React.FC = () => {
 
       {/* Main Verification Card */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 z-10 my-4">
-        <div className="w-full max-w-xl bg-slate-900/90 border border-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden relative">
+        <div className="w-full max-w-xl bg-[#050811]/95 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden relative">
           {/* Glowing Top Accent */}
           <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400" />
 

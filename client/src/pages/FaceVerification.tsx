@@ -937,7 +937,7 @@ export const FaceVerification: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-3 sm:p-6 lg:p-8 relative overflow-hidden bg-cyber-grid selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="min-h-screen bg-black flex flex-col justify-center items-center p-3 sm:p-6 lg:p-8 relative overflow-hidden bg-cyber-grid biometric-sensor-isolated selection:bg-cyan-500/30 selection:text-cyan-200">
       <ThreeForensicCanvas intensity={0.9} />
       <div className="absolute inset-0 bg-radial-vignette pointer-events-none"></div>
 
@@ -980,7 +980,7 @@ export const FaceVerification: React.FC = () => {
 
         {/* SIDE-BY-SIDE 1:1 FACIAL RECOGNITION CONSOLE */}
         <ThreeDCard maxTilt={4} glowColor="rgba(16, 185, 129, 0.2)">
-          <div className="glass-panel rounded-3xl p-5 sm:p-7 border border-emerald-500/30 bg-slate-900/90 backdrop-blur-2xl shadow-2xl space-y-5">
+          <div className="glass-panel-amoled rounded-3xl p-5 sm:p-7 border border-emerald-500/30 bg-[#050811]/95 backdrop-blur-2xl shadow-2xl space-y-5">
             {/* Top Security Status Bar with Live Optical Indicator */}
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800 text-xs font-mono">
               <div className="flex items-center gap-2">

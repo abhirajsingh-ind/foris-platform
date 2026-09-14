@@ -28,6 +28,7 @@ import {
   Zap,
   Sun,
   Moon,
+  Activity,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -111,17 +112,48 @@ export const Layout: React.FC<LayoutProps> = ({
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Briefcase },
-    { id: 'cases', label: 'Case Dossiers', icon: Briefcase },
-    { id: 'evidence', label: 'Evidence Register', icon: Shield },
-    { id: 'reports', label: 'Forensic Reports', icon: FileText, highlight: true },
-    { id: 'custody', label: 'Chain of Custody', icon: Clock },
-    { id: 'audit', label: 'Audit Trail', icon: History },
-    { id: 'security', label: 'Security Center', icon: ShieldAlert },
-    { id: 'users', label: 'Users & Roles', icon: Users },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'samadhaan', label: 'FORIS SAMADHAAN (AI)', icon: Sparkles, isAi: true },
+  interface NavItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string;
+    alert?: boolean;
+    highlight?: boolean;
+    isAi?: boolean;
+  }
+
+  interface NavSection {
+    category: string;
+    items: NavItem[];
+  }
+
+  // Wallarm & Developer Console Categorized Navigation Structure
+  const navSections: NavSection[] = [
+    {
+      category: 'CORE CONSOLE',
+      items: [
+        { id: 'dashboard', label: 'Overview & Telemetry', icon: BarChart3, badge: 'LIVE' },
+        { id: 'security', label: 'SOC Security Center', icon: ShieldAlert, alert: true },
+        { id: 'analytics', label: 'Metrics & Forecasting', icon: Activity },
+      ],
+    },
+    {
+      category: 'FORENSIC VAULT',
+      items: [
+        { id: 'cases', label: 'Case Dossiers', icon: Briefcase },
+        { id: 'evidence', label: 'Evidence Register', icon: Shield },
+        { id: 'custody', label: 'Chain of Custody', icon: Clock },
+        { id: 'reports', label: 'Forensic Reports', icon: FileText, highlight: true },
+      ],
+    },
+    {
+      category: 'GOVERNANCE & AI',
+      items: [
+        { id: 'audit', label: 'Immutable Audit Trail', icon: History },
+        { id: 'users', label: 'IAM & Access Control', icon: Users },
+        { id: 'samadhaan', label: 'FORIS SAMADHAAN (AI)', icon: Sparkles, isAi: true },
+      ],
+    },
   ];
 
   const handleTestJudgeViolation = async () => {
@@ -164,115 +196,163 @@ export const Layout: React.FC<LayoutProps> = ({
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 shadow-xl z-20">
-        <div>
-          {/* Brand Logo & Subtitle */}
-          <div className="p-4 border-b border-slate-800 bg-slate-950/80">
+    <div className="flex h-screen bg-black text-slate-100 overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* Wallarm-style Developer & Security Console Sidebar */}
+      <aside className="w-64 bg-[#03060d] border-r border-slate-800/80 flex flex-col justify-between shrink-0 shadow-2xl z-20">
+        <div className="flex flex-col h-full overflow-hidden">
+          {/* Brand Logo & Console Status */}
+          <div className="p-4 border-b border-slate-800/80 bg-[#000000]/90">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 text-white shadow-md font-serif font-black text-sm">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-600 text-white shadow-lg shadow-cyan-950 font-black text-sm tracking-wider ring-1 ring-cyan-400/40">
                 SFSL
               </div>
-              <div>
-                <span className="font-bold text-base tracking-wide text-white block">
-                  FORIS Portal
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono block">
-                  State Forensic Laboratory
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-sm tracking-wider text-white truncate">
+                    FORIS CONSOLE
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                </div>
+                <span className="text-[10px] text-cyan-400/80 font-mono tracking-tight block truncate">
+                  Forensic DevSecOps Gate
                 </span>
               </div>
             </div>
-            <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
-              <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/60 text-[10px] font-mono">
+              <span className="flex items-center gap-1 text-emerald-400 font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                OFFICIAL SYSTEM
+                ONLINE • SYNCED
               </span>
-              <span>SFSL-GOV-IN</span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800 text-[9px]">
+                SEC-V2.4
+              </span>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-2.5 space-y-1 overflow-y-auto max-h-[calc(100vh-270px)]">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all ${
-                    isActive
-                      ? item.isAi
-                        ? 'bg-emerald-950/60 text-emerald-300 border-l-4 border-emerald-400 shadow-sm'
-                        : 'bg-slate-800 text-emerald-400 border-l-4 border-emerald-500 shadow-sm'
-                      : item.isAi
-                        ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30 border-l-4 border-emerald-500/20'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-l-4 border-transparent'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? (item.isAi ? 'text-emerald-300 animate-pulse' : 'text-emerald-400') : (item.isAi ? 'text-emerald-400' : 'text-slate-400')}`} />
-                  <span className="flex-1 text-left flex items-center justify-between">
-                    {item.label}
-                    {item.isAi && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-widest font-mono">
-                        NEW
-                      </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })}
+          {/* Categorized Navigation Groups */}
+          <nav className="p-3 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+            {navSections.map((section) => (
+              <div key={section.category} className="space-y-1">
+                <div className="px-2.5 py-1 text-[10px] font-mono font-bold tracking-widest text-slate-300 uppercase">
+                  {section.category}
+                </div>
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                          isActive
+                            ? item.isAi
+                              ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-950/40'
+                              : 'bg-cyan-950/60 text-cyan-200 border border-cyan-500/40 shadow-lg shadow-cyan-950/40 font-bold'
+                            : item.isAi
+                            ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent'
+                        }`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 shrink-0 ${
+                            isActive
+                              ? item.isAi
+                                ? 'text-emerald-300 animate-pulse'
+                                : 'text-cyan-400'
+                              : item.isAi
+                              ? 'text-emerald-400'
+                              : 'text-slate-500'
+                          }`}
+                        />
+                        <span className="flex-1 text-left truncate">{item.label}</span>
+                        {item.badge && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold">
+                            {item.badge}
+                          </span>
+                        )}
+                        {item.isAi && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-widest font-mono font-bold">
+                            AI
+                          </span>
+                        )}
+                        {item.alert && (
+                          <span className="w-2 h-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]"></span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
-        </div>
 
-        {/* Defense Status & Bottom Info */}
-        <div className="p-3.5 border-t border-slate-800 bg-slate-950/80 space-y-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 font-mono">
-            <span className="flex items-center gap-1.5 font-medium text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              Ledger Active
-            </span>
-            <span className="text-[10px] text-slate-500">SHA-256 Valid</span>
+          {/* Defense Status & Bottom Info */}
+          <div className="p-3 border-t border-slate-800/80 bg-[#000000]/80 space-y-2 shrink-0">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 font-mono">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                SHA-256 Locked
+              </span>
+              <span className="text-slate-400">NODE: DEL-01</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsDemoGuideOpen(true)}
+                className="flex-1 px-2 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-[10px] font-mono text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors flex items-center justify-center gap-1"
+                title="Open platform roadmap guide"
+              >
+                <Sparkles className="w-3 h-3 text-cyan-400" />
+                <span>Roadmap</span>
+              </button>
+
+              <button
+                onClick={logout}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-red-950/40 text-[10px] font-mono text-slate-400 hover:text-red-300 border border-slate-800 hover:border-red-500/40 transition-colors flex items-center justify-center gap-1"
+                title="Sign out officer session"
+              >
+                <LogOut className="w-3 h-3" />
+                <span>Exit</span>
+              </button>
+            </div>
           </div>
-
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-800 hover:border-red-500/30 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out Officer
-          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="h-16 bg-slate-900/85 backdrop-blur-md border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0 z-30">
+        {/* Top Bar - AMOLED Developer Console */}
+        <header className="h-16 bg-[#000000]/95 backdrop-blur-xl border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0 z-30">
           {/* Left section: Global Search & Current Title */}
           <div className="flex items-center gap-4 flex-1 max-w-xl">
             <div className="relative w-full">
               <div className="relative flex items-center">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+                <Search className="w-4 h-4 text-cyan-400 absolute left-3 pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Global Search (Case ID, FIR, Evidence, Hash, Officer)... [Ctrl+K]"
+                  placeholder="Console Query (Case ID, FIR, SHA-256 Hash, Officer, Evidence)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => {
                     if (searchQuery.trim().length >= 2) setShowSearchDropdown(true);
                   }}
-                  className="w-full bg-slate-950/70 border border-slate-800 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 rounded-xl pl-9 pr-8 py-1.5 text-xs text-slate-200 placeholder-slate-500 transition-all outline-none"
+                  className="w-full bg-[#050811] border border-slate-800 focus:border-cyan-400/80 focus:ring-1 focus:ring-cyan-400/50 rounded-xl pl-9 pr-14 py-2 text-xs font-mono text-slate-200 placeholder-slate-500 transition-all outline-none"
                 />
+                <div className="absolute right-2.5 flex items-center gap-1 pointer-events-none">
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-slate-800 text-slate-400 border border-slate-700 rounded shadow-sm">
+                    ⌘K
+                  </kbd>
+                </div>
                 {searchQuery && (
                   <button
                     onClick={() => {
                       setSearchQuery('');
                       setShowSearchDropdown(false);
                     }}
-                    className="absolute right-2.5 text-slate-400 hover:text-slate-200"
+                    className="absolute right-10 text-slate-400 hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -588,8 +668,8 @@ export const Layout: React.FC<LayoutProps> = ({
           </div>
         )}
 
-        {/* Main Content Render Area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-950/40">{children}</main>
+        {/* Main Content Render Area - AMOLED Developer Console */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-black text-slate-100 bg-cyber-grid relative selection:bg-cyan-500/30 selection:text-cyan-200">{children}</main>
       </div>
 
       {/* 17-Step Demo Guide Modal */}

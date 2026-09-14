@@ -3,23 +3,31 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-amoled-bg: #000000;
+    --color-console-surface: #050811;
+    --color-console-panel: #0a0e1a;
+    --color-console-border: rgba(56, 189, 248, 0.12);
+  }
+
   body {
-    @apply bg-slate-950 text-slate-100 antialiased font-sans selection:bg-cyan-500/30 selection:text-cyan-200;
+    @apply bg-black text-slate-100 antialiased font-sans selection:bg-cyan-500/30 selection:text-cyan-200;
+    background-color: #000000;
   }
 }
 
-/* Custom sleek scrollbar for forensic interfaces */
+/* Custom sleek scrollbar for forensic & developer interfaces */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #060913;
+  background: #020408;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #151f32;
   border-radius: 4px;
 }
 
@@ -29,22 +37,33 @@
 
 /* Forensic cyber grid background */
 .bg-cyber-grid {
-  background-size: 32px 32px;
+  background-size: 28px 28px;
   background-image: 
-    linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(14, 165, 233, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.035) 1px, transparent 1px);
 }
 
 .bg-radial-vignette {
-  background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.10) 0%, transparent 75%);
 }
 
-/* Glassmorphism panels */
+.bg-amoled-radial {
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.12), rgba(0, 0, 0, 0));
+}
+
+/* AMOLED Glassmorphism & Developer Console panels */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(8, 13, 23, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.14);
+}
+
+.glass-panel-amoled {
+  background: rgba(5, 8, 16, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.12);
 }
 
 .glass-panel-hover {
@@ -53,25 +72,29 @@
 
 .glass-panel-hover:hover {
   border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.15);
+  box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.2);
   transform: translateY(-2px);
 }
 
 /* Glowing text and borders */
 .glow-cyan {
-  box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 25px -4px rgba(6, 182, 212, 0.45);
 }
 
 .glow-emerald {
-  box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 25px -4px rgba(16, 185, 129, 0.45);
 }
 
 .glow-amber {
-  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.45);
 }
 
 .glow-red {
-  box-shadow: 0 0 20px -3px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.45);
+}
+
+.glow-indigo {
+  box-shadow: 0 0 25px -4px rgba(99, 102, 241, 0.45);
 }
 
 /* Official Watermark for Document View */
@@ -98,20 +121,36 @@
 @keyframes scanline {
   0% {
     top: 0%;
-    opacity: 0.8;
   }
   50% {
-    top: 95%;
-    opacity: 1;
+    top: 100%;
   }
   100% {
     top: 0%;
-    opacity: 0.8;
   }
 }
 
 .animate-scanline {
   animation: scanline 2.5s ease-in-out infinite;
+}
+
+@keyframes radarPing {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.animate-radarPing {
+  animation: radarPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @keyframes radarSpin {
@@ -142,10 +181,10 @@
 
 @keyframes pulseLaser {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(6, 182, 212, 0.6), inset 0 0 15px rgba(6, 182, 212, 0.3);
+    opacity: 0.3;
   }
   50% {
-    box-shadow: 0 0 30px rgba(6, 182, 212, 0.9), inset 0 0 25px rgba(6, 182, 212, 0.5);
+    opacity: 0.9;
   }
 }
 
@@ -166,6 +205,85 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =========================================================
+   BIOMETRIC SENSOR HUD & CAMERA ISOLATION
+   Ensures camera feeds, HUD overlays, retinal reticles, and 
+   biometric telemetry remain strictly high-contrast dark console
+   even when the outer app is toggled into Light Mode.
+   ========================================================= */
+.biometric-sensor-isolated,
+.biometric-sensor-isolated * {
+  box-sizing: border-box;
+}
+
+.biometric-sensor-isolated {
+  background-color: #030712 !important;
+  color: #f8fafc !important;
+}
+
+.theme-light .biometric-sensor-isolated,
+.theme-light .biometric-sensor-isolated .bg-slate-900,
+.theme-light .biometric-sensor-isolated .bg-slate-950,
+.theme-light .biometric-sensor-isolated .bg-slate-950\/90,
+.theme-light .biometric-sensor-isolated .bg-slate-950\/95,
+.theme-light .biometric-sensor-isolated .bg-slate-900\/90,
+.theme-light .biometric-sensor-isolated .bg-slate-900\/60 {
+  background-color: #050813 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-white {
+  color: #ffffff !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-cyan-300,
+.theme-light .biometric-sensor-isolated .text-cyan-400 {
+  color: #38bdf8 !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-emerald-300,
+.theme-light .biometric-sensor-isolated .text-emerald-400 {
+  color: #34d399 !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-amber-300,
+.theme-light .biometric-sensor-isolated .text-amber-400 {
+  color: #fbbf24 !important;
+}
+
+.theme-light .biometric-sensor-isolated .text-red-300,
+.theme-light .biometric-sensor-isolated .text-red-400 {
+  color: #f87171 !important;
+}
+
+.theme-light .biometric-sensor-isolated .bg-emerald-950,
+.theme-light .biometric-sensor-isolated .bg-emerald-950\/90,
+.theme-light .biometric-sensor-isolated .bg-emerald-950\/95 {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+
+.theme-light .biometric-sensor-isolated .bg-red-950,
+.theme-light .biometric-sensor-isolated .bg-red-950\/90 {
+  background-color: #7f1d1d !important;
+  color: #fecaca !important;
+}
+
+.theme-light .biometric-sensor-isolated .bg-amber-950,
+.theme-light .biometric-sensor-isolated .bg-amber-950\/90 {
+  background-color: #78350f !important;
+  color: #fde68a !important;
 }
 
 /* =========================================================
@@ -193,148 +311,150 @@ body.theme-light,
 }
 
 /* Sidebar in Light Mode */
-.theme-light aside {
+.theme-light aside:not(.biometric-sensor-isolated) {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
-.theme-light aside .bg-slate-950\/80,
-.theme-light aside .bg-slate-950 {
+.theme-light aside:not(.biometric-sensor-isolated) .bg-slate-950\/80,
+.theme-light aside:not(.biometric-sensor-isolated) .bg-slate-950,
+.theme-light aside:not(.biometric-sensor-isolated) .bg-black {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
 
-.theme-light aside nav button {
+.theme-light aside:not(.biometric-sensor-isolated) nav button {
   color: #475569 !important;
 }
 
-.theme-light aside nav button:hover {
+.theme-light aside:not(.biometric-sensor-isolated) nav button:hover {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-.theme-light aside nav button.bg-slate-800,
-.theme-light aside nav button.bg-emerald-950\/60 {
+.theme-light aside:not(.biometric-sensor-isolated) nav button.bg-slate-800,
+.theme-light aside:not(.biometric-sensor-isolated) nav button.bg-emerald-950\/60 {
   background-color: #ecfdf5 !important;
   color: #047857 !important;
   border-color: #059669 !important;
 }
 
 /* Header in Light Mode */
-.theme-light header {
+.theme-light header:not(.biometric-sensor-isolated) {
   background-color: rgba(255, 255, 255, 0.95) !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
 }
 
-.theme-light header input {
+.theme-light header:not(.biometric-sensor-isolated) input {
   background-color: #f8fafc !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-.theme-light header input::placeholder {
+.theme-light header:not(.biometric-sensor-isolated) input::placeholder {
   color: #94a3b8 !important;
 }
 
-/* General Card and Container Overrides */
-.theme-light .bg-slate-900,
-.theme-light .bg-slate-900\/90,
-.theme-light .bg-slate-900\/80,
-.theme-light .bg-slate-900\/60 {
+/* General Card and Container Overrides (Light Mode) */
+.theme-light .bg-slate-900:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-900\/90:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-900\/80:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-900\/60:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
 }
 
-.theme-light .bg-slate-950,
-.theme-light .bg-slate-950\/80,
-.theme-light .bg-slate-950\/70,
-.theme-light .bg-slate-950\/60,
-.theme-light .bg-slate-950\/50,
-.theme-light .bg-slate-950\/40,
-.theme-light .bg-slate-950\/30 {
+.theme-light .bg-slate-950:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/80:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/70:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/60:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/50:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/40:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .bg-slate-950\/30:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
-.theme-light .border-slate-800,
-.theme-light .border-slate-800\/80,
-.theme-light .border-slate-800\/60,
-.theme-light .border-slate-700,
-.theme-light .border-slate-700\/80 {
+.theme-light .border-slate-800:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .border-slate-800\/80:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .border-slate-800\/60:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .border-slate-700:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .border-slate-700\/80:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   border-color: #e2e8f0 !important;
 }
 
-/* Typography & Contrast */
-.theme-light .text-white {
+/* Typography & Contrast (Light Mode) */
+.theme-light .text-white:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #0f172a !important;
 }
 
-.theme-light .text-slate-100,
-.theme-light .text-slate-200 {
+.theme-light .text-slate-100:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .text-slate-200:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #1e293b !important;
 }
 
-.theme-light .text-slate-300 {
+.theme-light .text-slate-300:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #334155 !important;
 }
 
-.theme-light .text-slate-400 {
+.theme-light .text-slate-400:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #475569 !important;
 }
 
-.theme-light .text-slate-500 {
+.theme-light .text-slate-500:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #64748b !important;
 }
 
-.theme-light .text-cyan-400,
-.theme-light .text-cyan-300 {
+.theme-light .text-cyan-400:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .text-cyan-300:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #0284c7 !important;
 }
 
-.theme-light .text-emerald-400,
-.theme-light .text-emerald-300 {
+.theme-light .text-emerald-400:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .text-emerald-300:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #059669 !important;
 }
 
-.theme-light .text-amber-400,
-.theme-light .text-amber-300 {
+.theme-light .text-amber-400:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .text-amber-300:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #d97706 !important;
 }
 
-.theme-light .text-red-400,
-.theme-light .text-red-300 {
+.theme-light .text-red-400:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .text-red-300:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   color: #dc2626 !important;
 }
 
 /* Form Controls in Light Mode */
-.theme-light input:not([type="checkbox"]):not([type="radio"]),
-.theme-light select,
-.theme-light textarea {
+.theme-light input:not([type="checkbox"]):not([type="radio"]):not(.biometric-sensor-isolated *),
+.theme-light select:not(.biometric-sensor-isolated *),
+.theme-light textarea:not(.biometric-sensor-isolated *) {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
 
-.theme-light input:focus,
-.theme-light select:focus,
-.theme-light textarea:focus {
+.theme-light input:focus:not(.biometric-sensor-isolated *),
+.theme-light select:focus:not(.biometric-sensor-isolated *),
+.theme-light textarea:focus:not(.biometric-sensor-isolated *) {
   border-color: #0284c7 !important;
   background-color: #ffffff !important;
 }
 
 /* Glass Panels in Light Mode */
-.theme-light .glass-panel {
+.theme-light .glass-panel:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated),
+.theme-light .glass-panel-amoled:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   background: rgba(255, 255, 255, 0.92) !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
-.theme-light .glass-panel-hover:hover {
+.theme-light .glass-panel-hover:hover:not(.biometric-sensor-isolated *):not(.biometric-sensor-isolated) {
   border-color: #cbd5e1 !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
 }
@@ -351,91 +471,130 @@ body.theme-light,
 }
 
 /* Status & Notification Badges in Light Mode */
-.theme-light .bg-emerald-950\/60,
-.theme-light .bg-emerald-950\/50,
-.theme-light .bg-emerald-950\/40,
-.theme-light .bg-emerald-950\/30,
-.theme-light .bg-emerald-950\/20 {
+.theme-light .bg-emerald-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-emerald-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-emerald-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-emerald-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-emerald-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #ecfdf5 !important;
   color: #047857 !important;
   border-color: #a7f3d0 !important;
 }
 
-.theme-light .bg-cyan-950\/60,
-.theme-light .bg-cyan-950\/50,
-.theme-light .bg-cyan-950\/40,
-.theme-light .bg-cyan-950\/30,
-.theme-light .bg-cyan-950\/20 {
+.theme-light .bg-cyan-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-cyan-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-cyan-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-cyan-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-cyan-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #ecfeff !important;
   color: #0e7490 !important;
   border-color: #a5f3fc !important;
 }
 
-.theme-light .bg-amber-950\/60,
-.theme-light .bg-amber-950\/50,
-.theme-light .bg-amber-950\/40,
-.theme-light .bg-amber-950\/30,
-.theme-light .bg-amber-950\/20 {
+.theme-light .bg-amber-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-amber-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-amber-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-amber-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-amber-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #fffbeb !important;
   color: #b45309 !important;
   border-color: #fde68a !important;
 }
 
-.theme-light .bg-red-950\/60,
-.theme-light .bg-red-950\/50,
-.theme-light .bg-red-950\/40,
-.theme-light .bg-red-950\/30,
-.theme-light .bg-red-950\/20 {
+.theme-light .bg-red-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-red-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-red-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-red-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-red-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #fef2f2 !important;
   color: #b91c1c !important;
   border-color: #fecaca !important;
 }
 
-.theme-light .bg-blue-950\/60,
-.theme-light .bg-blue-950\/50,
-.theme-light .bg-blue-950\/40,
-.theme-light .bg-blue-950\/30,
-.theme-light .bg-blue-950\/20 {
+.theme-light .bg-blue-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-blue-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-blue-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-blue-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-blue-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #eff6ff !important;
   color: #1d4ed8 !important;
   border-color: #bfdbfe !important;
 }
 
-.theme-light .bg-purple-950\/60,
-.theme-light .bg-purple-950\/50,
-.theme-light .bg-purple-950\/40,
-.theme-light .bg-purple-950\/30,
-.theme-light .bg-purple-950\/20 {
+.theme-light .bg-purple-950\/60:not(.biometric-sensor-isolated *),
+.theme-light .bg-purple-950\/50:not(.biometric-sensor-isolated *),
+.theme-light .bg-purple-950\/40:not(.biometric-sensor-isolated *),
+.theme-light .bg-purple-950\/30:not(.biometric-sensor-isolated *),
+.theme-light .bg-purple-950\/20:not(.biometric-sensor-isolated *) {
   background-color: #faf5ff !important;
   color: #7e22ce !important;
   border-color: #e9d5ff !important;
 }
 
 /* Modals & Popovers in Light Mode */
-.theme-light .fixed.inset-0 .bg-slate-900,
-.theme-light .fixed.inset-0 .bg-slate-900\/95 {
+.theme-light .fixed.inset-0 .bg-slate-900:not(.biometric-sensor-isolated *),
+.theme-light .fixed.inset-0 .bg-slate-900\/95:not(.biometric-sensor-isolated *) {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.theme-light .fixed.inset-0 .bg-slate-950\/80,
-.theme-light .fixed.inset-0 .bg-slate-950\/60 {
+.theme-light .fixed.inset-0 .bg-slate-950\/80:not(.biometric-sensor-isolated *),
+.theme-light .fixed.inset-0 .bg-slate-950\/60:not(.biometric-sensor-isolated *) {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
 
 /* Tables in Light Mode */
-.theme-light table thead tr {
+.theme-light table thead tr:not(.biometric-sensor-isolated *) {
   background-color: #f1f5f9 !important;
   color: #475569 !important;
 }
 
-.theme-light table tbody tr {
+.theme-light table tbody tr:not(.biometric-sensor-isolated *) {
   border-color: #f1f5f9 !important;
 }
 
-.theme-light table tbody tr:hover {
+.theme-light table tbody tr:hover:not(.biometric-sensor-isolated *) {
   background-color: #f8fafc !important;
+}
+
+/* =========================================================
+   ULTRA-SPECIFIC BIOMETRIC HUD ENFORCEMENT
+   Guarantees that biometric verification HUD is ALWAYS dark AMOLED 
+   console regardless of any parent theme class.
+   ========================================================= */
+html body .biometric-sensor-isolated,
+html body.theme-light .biometric-sensor-isolated,
+html .theme-light .biometric-sensor-isolated {
+  background-color: #030712 !important;
+  color: #f8fafc !important;
+}
+
+html body .biometric-sensor-isolated .text-white,
+html body.theme-light .biometric-sensor-isolated .text-white {
+  color: #ffffff !important;
+}
+
+html body .biometric-sensor-isolated .text-slate-300,
+html body.theme-light .biometric-sensor-isolated .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+html body .biometric-sensor-isolated .text-slate-400,
+html body.theme-light .biometric-sensor-isolated .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html body .biometric-sensor-isolated .bg-slate-900,
+html body.theme-light .biometric-sensor-isolated .bg-slate-900 {
+  background-color: #0a0f1d !important;
+  border-color: #1e293b !important;
+}
+
+html body .biometric-sensor-isolated .bg-slate-950,
+html body.theme-light .biometric-sensor-isolated .bg-slate-950 {
+  background-color: #030712 !important;
+  border-color: #1e293b !important;
 }
 

@@ -8,8 +8,8 @@ export const securityRouter = Router();
 
 securityRouter.use(requireAuth);
 
-// GET /api/security/overview - Real-time security posture indicators & metric counts
-securityRouter.get('/overview', async (req: Request, res: Response) => {
+// GET /api/security/overview & /api/security/stats - Real-time security posture indicators & metric counts
+securityRouter.get(['/overview', '/stats'], async (req: Request, res: Response) => {
   try {
     const [auditCount, securityCount, unresolvedAlerts, reportsCount, evidenceCount] = await Promise.all([
       prisma.auditEvent.count(),

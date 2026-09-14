@@ -100,7 +100,7 @@ export const SecurityCenterPage: React.FC = () => {
       )}
 
       {/* Defense Posture Indicators */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="bg-[#050811] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
@@ -123,7 +123,7 @@ export const SecurityCenterPage: React.FC = () => {
           ].map((item) => (
             <div
               key={item.label}
-              className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30 text-center space-y-1"
+              className="bg-black p-3 rounded-xl border border-emerald-500/30 text-center space-y-1"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
               <span className="text-xs font-semibold text-slate-200 block">{item.label}</span>
@@ -134,7 +134,7 @@ export const SecurityCenterPage: React.FC = () => {
       </div>
 
       {/* Anomaly Detection Alerts Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden space-y-3 p-6">
+      <div className="bg-[#050811] border border-slate-800 rounded-2xl shadow-xl overflow-hidden space-y-3 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div>
             <h3 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
