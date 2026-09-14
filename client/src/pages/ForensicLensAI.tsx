@@ -12,19 +12,15 @@ import {
   VolumeX,
   ShieldCheck,
   Briefcase,
-  FileText,
-  Search,
-  Maximize2,
-  RefreshCw,
-  ExternalLink,
   Layers,
   ZoomIn,
   ZoomOut,
   Crosshair,
-  AlertCircle,
   X,
-  Cpu,
   CheckCircle2,
+  Sliders,
+  RefreshCw,
+  Waves,
 } from 'lucide-react';
 
 interface BoundingBox {
@@ -67,6 +63,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
   const [imageSrc, setImageSrc] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
+  const [scanStatusMessage, setScanStatusMessage] = useState('Google Lens Scanning...');
 
   // Optical OCR Result State
   const [verbatimText, setVerbatimText] = useState('');
@@ -83,14 +80,26 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
 
+  // Soft Voice Engine State
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('');
+  const [voicePitch, setVoicePitch] = useState<number>(0.86); // Soft warm mellow pitch
+  const [voiceRate, setVoiceRate] = useState<number>(0.82);   // Calm gentle relaxed tempo
+  const [isSoftVoiceActive, setIsSoftVoiceActive] = useState<boolean>(true);
+  const [showVoiceSettings, setShowVoiceSettings] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   // Actions State
   const [copied, setCopied] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [availableCases, setAvailableCases] = useState<Array<{ id: string; firNumber: string; title: string }>>([]);
   const [selectedCaseId, setSelectedCaseId] = useState<string>('');
   const [isAttaching, setIsAttaching] = useState(false);
   const [attachMessage, setAttachMessage] = useState<string | null>(null);
+
+  // Optional Gemini Vision Key State
+  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => localStorage.getItem('foris_gemini_key') || '');
+  const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false);
 
   // Camera Capture Modal State
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -104,6 +113,48 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
   useEffect(() => {
     fetchSamples();
     fetchCases();
+  }, []);
+
+  // Enumerate & Configure Soft Natural Voice Engine
+  useEffect(() => {
+    const loadVoices = () => {
+      if (typeof window === 'undefined' || !window.speechSynthesis) return;
+      const available = window.speechSynthesis.getVoices();
+      if (available && available.length > 0) {
+        setVoices(available);
+        // Priority to soft, soothing, natural female or gentle voices
+        const softVoice =
+          available.find(
+            (v) =>
+              (v.name.includes('Natural') || v.name.includes('Online')) &&
+              (v.name.includes('Jenny') || v.name.includes('Aria') || v.name.includes('Female'))
+          ) ||
+          available.find(
+            (v) =>
+              v.name.includes('Zira') ||
+              v.name.includes('Samantha') ||
+              v.name.includes('Google UK English Female') ||
+              v.name.includes('Victoria') ||
+              v.name.includes('Karen')
+          ) ||
+          available.find(
+            (v) =>
+              v.lang.startsWith('en') &&
+              (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('soft'))
+          ) ||
+          available.find((v) => v.lang.startsWith('en')) ||
+          available[0];
+
+        if (softVoice) {
+          setSelectedVoiceName(softVoice.name);
+        }
+      }
+    };
+
+    loadVoices();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
   }, []);
 
   const fetchCases = async () => {
@@ -154,6 +205,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
     setActiveSampleId(sample.id);
     setImageSrc(sample.imageUrl);
     setSelectedWord(null);
+    setScanStatusMessage('Loading Questioned Specimen...');
     runScanningAnimation(() => {
       setVerbatimText(sample.verbatimText);
       setConfidence(sample.confidence);
@@ -183,28 +235,33 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
           callback();
           return 100;
         }
-        return prev + 12;
+        return prev + 10;
       });
-    }, 60);
+    }, 55);
   };
 
-  // Custom User File Upload
+  // Custom User File Upload: Actually OCRs whatever is in the uploaded photo!
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setActiveSampleId(null);
     setSelectedWord(null);
+    setScanStatusMessage('Reading Document Pixels with Neural OCR...');
+    setIsScanning(true);
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       const base64 = event.target?.result as string;
       setImageSrc(base64);
 
-      setIsScanning(true);
       try {
         const token = localStorage.getItem('foris_token');
         const formData = new FormData();
         formData.append('image', file);
+        if (geminiApiKey) {
+          formData.append('apiKey', geminiApiKey);
+        }
 
         const res = await fetch('/api/lens/transcribe', {
           method: 'POST',
@@ -222,10 +279,11 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
           setWords(data.words || []);
           setMetadata(data.metadata);
         } else {
-          alert('Optical transcription failed.');
+          alert('Optical transcription failed on uploaded image.');
         }
       } catch (err) {
         console.error('OCR transcription error:', err);
+        alert('OCR error processing image.');
       } finally {
         setIsScanning(false);
       }
@@ -273,7 +331,10 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
       setActiveSampleId(null);
       stopCamera();
 
-      // Submit base64 to transcribe endpoint
+      setScanStatusMessage('Transcribing Camera Snapshot with Neural OCR...');
+      setIsScanning(true);
+
+      // Submit base64 to transcribe endpoint for real pixel OCR
       runScanningAnimation(async () => {
         try {
           const token = localStorage.getItem('foris_token');
@@ -283,7 +344,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ imageBase64: dataUrl }),
+            body: JSON.stringify({ imageBase64: dataUrl, apiKey: geminiApiKey || undefined }),
           });
           if (res.ok) {
             const data = await res.json();
@@ -297,6 +358,8 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
           }
         } catch (err) {
           console.error('Camera transcription failed:', err);
+        } finally {
+          setIsScanning(false);
         }
       });
     }
@@ -310,7 +373,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Voice Readout (TTS)
+  // SOFT VOICE READOUT (Calm, gentle, warm, soothing TTS)
   const toggleSpeech = () => {
     if (!verbatimText) return;
     if (isSpeaking) {
@@ -319,8 +382,26 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(verbatimText.replace(/~~/g, ' '));
-    utterance.rate = 0.95;
+    // Clean formatting for gentle speech
+    const speechContent = verbatimText.replace(/~~/g, ' ');
+    const utterance = new SpeechSynthesisUtterance(speechContent);
+
+    if (isSoftVoiceActive) {
+      // Find configured soft natural voice
+      const selected = voices.find((v) => v.name === selectedVoiceName);
+      if (selected) {
+        utterance.voice = selected;
+      }
+      // Soft, mellow pitch and relaxed, gentle tempo
+      utterance.pitch = voicePitch;
+      utterance.rate = voiceRate;
+      utterance.volume = 0.75; // Softer, pleasant volume
+    } else {
+      utterance.pitch = 1.0;
+      utterance.rate = 1.0;
+      utterance.volume = 1.0;
+    }
+
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
     setIsSpeaking(true);
@@ -385,7 +466,6 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
       });
 
       if (res.ok) {
-        const data = await res.json();
         setAttachMessage(`✓ Document attached to Case ${selectedCaseId} with SHA-256 seal.`);
         setTimeout(() => {
           setIsExportModalOpen(false);
@@ -401,6 +481,12 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
     } finally {
       setIsAttaching(false);
     }
+  };
+
+  const saveGeminiKey = (key: string) => {
+    setGeminiApiKey(key);
+    localStorage.setItem('foris_gemini_key', key.trim());
+    setShowApiKeyModal(false);
   };
 
   return (
@@ -419,12 +505,12 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
               <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 tracking-wider shadow-[0_0_10px_rgba(217,70,239,0.25)]">
                 GOOGLE LENS OCR
               </span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-600/40">
-                ZERO LETTER ALTERATION
+              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 font-bold">
+                REAL PIXEL EXTRACTION
               </span>
             </div>
             <p className="text-[11px] text-purple-300/70">
-              High-Fidelity Neural Holograph Transcription • Preserves Exact Letters, Numerals, Casing & Strike-throughs
+              High-Fidelity Neural Holograph Transcription • Whatever is in the photo converts exactly to text
             </p>
           </div>
         </div>
@@ -445,7 +531,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-200 hover:text-white border border-purple-500/40 hover:border-fuchsia-400 text-xs font-semibold transition-all shadow-sm"
           >
             <UploadCloud className="w-3.5 h-3.5 text-fuchsia-400" />
-            Upload Document
+            Upload Any Photo
           </button>
 
           <button
@@ -455,8 +541,90 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
             <Camera className="w-3.5 h-3.5 text-white" />
             Live Camera Lens
           </button>
+
+          {/* Soft Voice Settings Pill Button */}
+          <button
+            onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+              isSoftVoiceActive
+                ? 'bg-fuchsia-950/70 border-fuchsia-500/50 text-fuchsia-300 shadow-[0_0_8px_rgba(217,70,239,0.25)]'
+                : 'bg-slate-900 border-slate-800 text-slate-400'
+            }`}
+            title="Configure Soft Voice Model"
+          >
+            <Waves className="w-3.5 h-3.5 text-fuchsia-400 animate-pulse" />
+            <span>Soft Voice Model</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400" />
+          </button>
         </div>
       </div>
+
+      {/* SOFT VOICE SETTINGS DROPDOWN POPUP */}
+      {showVoiceSettings && (
+        <div className="mx-6 mt-2 p-4 rounded-2xl bg-slate-900/95 border border-fuchsia-500/40 shadow-2xl backdrop-blur-md z-40 space-y-3 max-w-xl self-end animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center justify-between border-b border-purple-500/20 pb-2">
+            <div className="flex items-center gap-2">
+              <Waves className="w-4 h-4 text-fuchsia-400" />
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                Soft Voice Model Tuning (Calm & Gentle)
+              </h4>
+            </div>
+            <button onClick={() => setShowVoiceSettings(false)} className="text-slate-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-[10px] font-mono text-purple-300 block mb-1">Select Natural Voice:</label>
+              <select
+                value={selectedVoiceName}
+                onChange={(e) => setSelectedVoiceName(e.target.value)}
+                className="w-full bg-slate-950 border border-purple-500/30 rounded-lg p-1.5 text-xs text-slate-200 outline-none"
+              >
+                {voices.map((v) => (
+                  <option key={v.name} value={v.name}>
+                    {v.name.slice(0, 30)} ({v.lang})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-mono text-purple-300 block mb-1">
+                Soft Pitch: <span className="text-fuchsia-300 font-bold">{voicePitch} (Warm & Mellow)</span>
+              </label>
+              <input
+                type="range"
+                min="0.7"
+                max="1.1"
+                step="0.02"
+                value={voicePitch}
+                onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1 text-[11px] text-purple-300/80">
+            <span>Calm Speed: <strong>{voiceRate}x</strong></span>
+            <button
+              onClick={() => {
+                const testUtt = new SpeechSynthesisUtterance("This is a soft, gentle, and calm voice readout.");
+                const voice = voices.find(v => v.name === selectedVoiceName);
+                if (voice) testUtt.voice = voice;
+                testUtt.pitch = voicePitch;
+                testUtt.rate = voiceRate;
+                testUtt.volume = 0.75;
+                window.speechSynthesis.speak(testUtt);
+              }}
+              className="px-2.5 py-1 rounded bg-purple-900/60 hover:bg-purple-800 text-fuchsia-200 font-semibold border border-purple-500/30"
+            >
+              ▶ Test Voice Softness
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace Body */}
       <div className="flex-1 flex overflow-hidden">
@@ -510,11 +678,11 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
                 {/* GOOGLE LENS SWEEPING LASER SCAN BEAM */}
                 {isScanning && (
                   <div
-                    className="absolute left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-fuchsia-400 to-transparent shadow-[0_0_20px_#d946ef,0_0_10px_#a855f7] z-30 transition-all duration-75 pointer-events-none"
+                    className="absolute left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-fuchsia-400 to-transparent shadow-[0_0_25px_#d946ef,0_0_12px_#a855f7] z-30 transition-all duration-75 pointer-events-none"
                     style={{ top: `${scanProgress}%` }}
                   >
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-fuchsia-600/90 text-[9px] font-mono font-bold text-white shadow-lg">
-                      GOOGLE LENS OCR SCANNING {scanProgress}%
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-fuchsia-600/90 text-[9px] font-mono font-bold text-white shadow-lg whitespace-nowrap">
+                      {scanStatusMessage} {scanProgress}%
                     </div>
                   </div>
                 )}
@@ -524,7 +692,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
                   <div className="absolute inset-0 bg-fuchsia-500/10 pointer-events-none backdrop-blur-[1px] animate-pulse" />
                 )}
 
-                {/* INTERACTIVE WORD BOUNDING BOXES OVERLAY */}
+                {/* INTERACTIVE WORD BOUNDING BOXES OVERLAY (Plotted on the real words) */}
                 {showBoundingBoxes &&
                   !isScanning &&
                   words.map((w) => {
@@ -566,7 +734,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
             ) : (
               <div className="text-center p-12 text-slate-500 space-y-3">
                 <ScanText className="w-12 h-12 text-purple-500/40 mx-auto" />
-                <p className="text-sm">Select a forensic evidence specimen above or upload a document to begin.</p>
+                <p className="text-sm">Select a forensic evidence specimen above or upload an image to begin.</p>
               </div>
             )}
 
@@ -695,7 +863,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
               <div className="mt-6 pt-4 border-t border-purple-500/20 text-[10px] text-purple-400/70 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-purple-300">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  VERBATIM CERTIFICATION • NO LETTERS ALTERED
+                  VERBATIM GROUND-TRUTH • NO LETTERS ALTERED
                 </div>
                 <p className="text-[10px] text-slate-400">
                   Preserved verbatim under Section 45/47 Indian Evidence Act & Section 39 Bharatiya Sakshya Adhiniyam.
@@ -729,23 +897,30 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
                 )}
               </button>
 
+              {/* SOFT VOICE READOUT BUTTON */}
               <button
                 onClick={toggleSpeech}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all active:scale-95 ${
                   isSpeaking
-                    ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500'
+                    ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500 animate-pulse'
                     : 'bg-purple-950/80 hover:bg-purple-900 border-purple-500/40 text-purple-200'
                 }`}
               >
                 {isSpeaking ? (
                   <>
                     <VolumeX className="w-3.5 h-3.5 text-fuchsia-400" />
-                    Stop Voice
+                    <span>Stop Voice</span>
+                    <span className="flex items-center gap-0.5 ml-1">
+                      <span className="w-1 h-3 bg-fuchsia-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-4 bg-fuchsia-300 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-2 bg-fuchsia-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
                   </>
                 ) : (
                   <>
                     <Volume2 className="w-3.5 h-3.5 text-fuchsia-400" />
-                    Voice Readout
+                    <span>Soft Voice Readout</span>
+                    <span className="text-[9px] px-1 rounded bg-fuchsia-500/20 text-fuchsia-300">CALM</span>
                   </>
                 )}
               </button>
@@ -880,7 +1055,7 @@ export const ForensicLensAI: React.FC<ForensicLensProps> = ({ setActiveTab }) =>
 
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-slate-400">
-                Hold document steady under adequate illumination.
+                Hold document steady under adequate illumination. Real-time OCR will process all visible words.
               </p>
               <div className="flex items-center gap-2">
                 <button
