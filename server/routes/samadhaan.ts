@@ -10,14 +10,14 @@ samadhaanRouter.get('/welcome', requireAuth, async (req: Request, res: Response)
   const user = req.user!;
   const officerName = user.name || 'Forensic Officer';
 
-  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nWelcome to **FORIS SAMADHAAN (फॉरेंसिक समाधान)** — State Forensic Science Laboratory (SFSL) AI Legal & Technical Intelligence Core.\n\nMain aapki forensic investigation, digital evidence hashing (SHA-256), Section 65B/45 Indian Evidence Act compliance, Chain of Custody tracking, ya FORIS platform ke kisi bhi issue ka 100% accurate aur practical solution dene ke liye ready hoon.\n\nAap mujhse kisi bhi case, evidence item, lab report, legal procedure, ya system tool ke baare me pooch sakte hain!`;
+  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka official Voice Intelligence Core.\n\nMain aapki forensic investigation, case dossiers, SHA-256 evidence vault, Section 65B legal certificates, Forensic Lens AI, ya website ke kisi bhi feature ka **fraction of a second** me instant answer dene ke liye ready hoon.\n\n🎙️ **Talkative Voice Mode active hai** — aap mujhse seedhe bolkar baat kar sakte hain!`;
 
   const suggestedQuestions = [
-    '📜 Section 65B Certificate kaise generate aur sign karein?',
-    '🔬 Encrypted NVMe SSD / Mobile Dump seize karte waqt best practices?',
-    '⚖️ Chain of Custody me Dual-Sign transfer procedure kya hai?',
-    '🛡️ SHA-256 Hash Mismatch ya Evidence Tampering alert ko kaise resolve karein?',
-    '📂 Currently active high-priority forensic cases ka summary batao.',
+    '🎙️ "Jarvis, active cases ka status batao"',
+    '🔍 "Forensic Lens AI me 500% zoom aur loupe kaise use karein?"',
+    '🛡️ "Evidence vault me SHA-256 hash sealing procedure kya hai?"',
+    '📜 "Section 65B Evidence Act Certificate kaise generate karein?"',
+    '⚡ "Open Evidence Vault" ya "Open Case Dossiers" (Voice Command)',
   ];
 
   res.json({
@@ -35,6 +35,7 @@ samadhaanRouter.get('/welcome', requireAuth, async (req: Request, res: Response)
 
 // Process query with domain intelligence & live database grounding
 samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) => {
+  const startTime = Date.now();
   try {
     const user = req.user!;
     const rawMsg = req.body.message || req.body.query || req.body.question;
@@ -73,6 +74,7 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
     let responseText = '';
     let spokenText = '';
     let category = 'GENERAL_FORENSIC';
+    let navigateTab: string | undefined = undefined;
     let relatedActions: { label: string; tab: string }[] = [];
 
     // Helper to sanitize spoken text
@@ -84,16 +86,148 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
         .replace(/[-•👉💡⚖️📜🔬🛡️📂👁️🎯⚡🧬💻📱🧪🔍]/g, '')
         .replace(/https?:\/\/\S+/g, '')
         .replace(/\n+/g, '. ')
+        .replace(/\s+/g, ' ')
         .trim();
     };
 
-    // 1. CONVERSATIONAL / GREETINGS / IDENTITY
+    // 0. DIRECT VOICE NAVIGATION COMMANDS (JARVIS Executive Control)
     if (
+      query.includes('open dashboard') ||
+      query.includes('show dashboard') ||
+      query.includes('dashboard dikhao') ||
+      query.includes('dashboard kholo') ||
+      query.includes('home page') ||
+      query.includes('main screen')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'dashboard';
+      responseText = `### 🚀 Navigating to Dashboard\n\nSir, taking you to the primary **FORIS Executive Command Dashboard**. Live 3D Hologram, SHA-256 Ledger status, and active telemetry are online.`;
+      spokenText = `Right away, Sir. Opening the FORIS Command Dashboard for you now.`;
+      relatedActions = [{ label: 'Dashboard', tab: 'dashboard' }];
+    } else if (
+      query.includes('open case') ||
+      query.includes('show case') ||
+      query.includes('case dikhao') ||
+      query.includes('cases kholo') ||
+      query.includes('dossier kholo') ||
+      query.includes('fir list') ||
+      query.includes('cases page')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'cases';
+      responseText = `### 📂 Navigating to Case Dossiers\n\nOpening the **Case Dossiers Directory**. Showing ${cases.length} active forensic cases registered under State FSL jurisdiction.`;
+      spokenText = `At your command, Officer. Switching to Case Dossiers directory now. All ${cases.length} case files are loaded.`;
+      relatedActions = [{ label: 'Case Dossiers', tab: 'cases' }];
+    } else if (
+      query.includes('open evidence') ||
+      query.includes('show evidence') ||
+      query.includes('evidence vault') ||
+      query.includes('evidence dikhao') ||
+      query.includes('evidence kholo') ||
+      query.includes('evidence register')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'evidence';
+      responseText = `### 🛡️ Navigating to Evidence Register & Vault\n\nOpening the **Evidence Vault**. Displaying ${evidenceCount} cryptographically sealed artifacts with verified SHA-256 checksums.`;
+      spokenText = `Accessing the Evidence Vault, Sir. All ${evidenceCount} items are sealed with tamper-proof SHA-256 verification.`;
+      relatedActions = [{ label: 'Evidence Vault', tab: 'evidence' }];
+    } else if (
+      query.includes('open report') ||
+      query.includes('show report') ||
+      query.includes('reports dikhao') ||
+      query.includes('reports kholo') ||
+      query.includes('lab reports') ||
+      query.includes('65b certificate')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'reports';
+      responseText = `### 📜 Navigating to Forensic Lab Reports\n\nOpening **Forensic Reports**. ${reportCount} legal reports and Section 65B Indian Evidence Act certificates are attested and available for export.`;
+      spokenText = `Right away, Officer. Navigating to Forensic Reports. You can inspect digitally signed Section 65B certificates here.`;
+      relatedActions = [{ label: 'Forensic Reports', tab: 'reports' }];
+    } else if (
+      query.includes('open lens') ||
+      query.includes('show lens') ||
+      query.includes('forensic lens') ||
+      query.includes('lens ai') ||
+      query.includes('handwriting') ||
+      query.includes('lens kholo') ||
+      query.includes('lens dikhao') ||
+      query.includes('optical lens')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'lens';
+      responseText = `### 🔬 Navigating to Forensic Lens AI\n\nOpening **Forensic Lens AI** with 500% continuous zoom, 3.5x optical loupe with millimeter crosshairs, optical contrast filters, and Section 45 verbatim OCR preservation.`;
+      spokenText = `Launching Forensic Lens AI for you, Sir. High-power 500% zoom and optical loupe inspection are ready.`;
+      relatedActions = [{ label: 'Forensic Lens AI', tab: 'lens' }];
+    } else if (
+      query.includes('open custody') ||
+      query.includes('chain of custody') ||
+      query.includes('custody log') ||
+      query.includes('custody dikhao') ||
+      query.includes('custody kholo')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'custody';
+      responseText = `### ⚖️ Navigating to Chain of Custody Ledger\n\nOpening **Chain of Custody Ledger**. Viewing dual-key cryptographic transfer records, timestamps, and officer handover logs.`;
+      spokenText = `Opening the Chain of Custody ledger now, Sir. Every physical and digital transfer is verified.`;
+      relatedActions = [{ label: 'Chain of Custody', tab: 'custody' }];
+    } else if (
+      query.includes('open audit') ||
+      query.includes('audit trail') ||
+      query.includes('audit logs') ||
+      query.includes('audit dikhao') ||
+      query.includes('history logs')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'audit';
+      responseText = `### 📜 Navigating to Immutable Audit Trail\n\nOpening **Audit Trail**. Viewing cryptographically chained, immutable system activity logs.`;
+      spokenText = `Navigating to the Audit Trail. All tamper-evident officer logs and security events are ready for review.`;
+      relatedActions = [{ label: 'Audit Trail', tab: 'audit' }];
+    } else if (
+      query.includes('open security') ||
+      query.includes('security center') ||
+      query.includes('security status') ||
+      query.includes('threat monitor') ||
+      query.includes('security dikhao')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'security';
+      responseText = `### 🛡️ Navigating to Security Center\n\nOpening **Security Center**. Live anomaly detection, unauthorized mutation guards, and brute-force defenses are active.`;
+      spokenText = `Opening Security Center, Sir. Defense-in-depth posture is optimal with zero security breaches.`;
+      relatedActions = [{ label: 'Security Center', tab: 'security' }];
+    } else if (
+      query.includes('open users') ||
+      query.includes('show users') ||
+      query.includes('officers list') ||
+      query.includes('users and roles') ||
+      query.includes('users kholo')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'users';
+      responseText = `### 👥 Navigating to Users & Roles Directory\n\nOpening **Users & Roles**. Reviewing active forensic examiners, investigating officers, and judicial credentials.`;
+      spokenText = `Displaying the Users and Roles directory for you, Officer.`;
+      relatedActions = [{ label: 'Users & Roles', tab: 'users' }];
+    } else if (
+      query.includes('open analytics') ||
+      query.includes('show analytics') ||
+      query.includes('analytics dikhao') ||
+      query.includes('stats dikhao')
+    ) {
+      category = 'VOICE_NAVIGATION';
+      navigateTab = 'analytics';
+      responseText = `### 📊 Navigating to Forensic Analytics\n\nOpening **Analytics Dashboard**. Real-time clearance rates, case turnaround metrics, and evidence category breakdown.`;
+      spokenText = `Opening Analytics Dashboard now, Sir.`;
+      relatedActions = [{ label: 'Analytics', tab: 'analytics' }];
+    }
+
+    // 1. CONVERSATIONAL / GREETINGS / IDENTITY (JARVIS Persona)
+    else if (
       query === 'hi' ||
       query === 'hello' ||
       query === 'hey' ||
       query === 'namaste' ||
       query === 'namaskar' ||
+      query.includes('jarvis') ||
       query.includes('kaise ho') ||
       query.includes('kya haal') ||
       query.includes('who are you') ||
@@ -104,30 +238,25 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
       query.includes('madad')
     ) {
       category = 'CONVERSATION';
-      responseText = `### 🙏 नमस्ते ऑफिसर ${user.name || 'Dr. Abhiraj Singh'}!
+      responseText = `### 🤖 Namaste Officer ${user.name || 'Dr. Abhiraj Singh'}!
 
-Main **FORIS SAMADHAAN (फॉरेंसिक समाधान)** hoon — State Forensic Science Laboratory (SFSL) ka official **AI Forensic, Legal & Case Intelligence Core**.
+Main **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka dedicated **Defense & Legal Intelligence Assistant**.
 
-**Main aapki in sabhi cheezon me turant madad kar sakta hoon:**
-1. **Case Dossier & Evidence Retrieval:** Database me registered kisi bhi case, FIR, seized weapon, mobile dump ya report ki exact scientific findings batana.
-2. **Legal & Court Compliance:** Section 65B Indian Evidence Act / Section 63 BSA 2023 certificates, Section 45 expert testimony, aur CrPC/BNSS panchnama rules.
-3. **Forensic Disciplines Expertise:**
-   - 💻 **Digital & Cyber:** NVMe SSD, Bit-stream image, RAM dump, SHA-256 validation.
-   - 🎯 **Ballistics:** Comparison microscopy, 9mm Beretta striation match, SEM-EDX GSR analysis.
-   - 🧪 **Toxicology:** Potassium Cyanide, Viscera saturated NaCl preservation, GC-MS spectrum.
-   - 🧬 **DNA / Serology:** 24-Locus STR matching, Capillary Electrophoresis, bloodstain analysis.
-   - 📜 **Questioned Documents:** Simulated forgery, ESDA scan, TLC ink ageing.
-   - 📱 **Mobile Forensics:** UFED physical dump, encrypted Signal/WhatsApp chat recovery.
-4. **Platform Assistance:** Case registration with crime scene photos, evidence custody handover, tamper-proof audit trail verify karna.
+**Aap mujhse natural voice me baat kar sakte hain. Main ye sabhi kaam instant speed me kar sakta hoon:**
+1. 📂 **Live Case & FIR Retrieval:** Database me registered kisi bhi case, FIR, seized weapon, mobile dump ya report ki exact scientific findings batana.
+2. 🛡️ **Evidence & Cryptographic Integrity:** SHA-256 hash verify karna, tamper alerts check karna.
+3. 🔬 **Forensic Lens AI:** 500% zoom, 3.5x optical loupe, aur handwritten notes transcription.
+4. 📜 **Legal Attestation:** Section 65B/45 IEA aur Section 39/63 BSA 2023 certificates.
+5. 🚀 **Voice Navigation:** Seedhe bolkar website ke kisi bhi tab par jump karna (jaise *"Open Evidence Vault"*, *"Show Case 0482"*).
 
-👉 **Aap mujhse bolkar ya type karke koi bhi forensic question pooch sakte hain!**`;
+👉 *Sir, aap mujhse koi bhi question poochiye ya voice command dijiye — main fraction of second me answer dene ke liye ready hoon!*`;
 
-      spokenText = `Namaste Officer ${user.name || 'Abhiraj Singh'}. Main hoon FORIS SAMADHAAN AI. Main aapki forensic investigation, case files, legal Section 65B certificates, ballistics, toxicology aur DNA profiling me 100% accurate solution dene ke liye ready hoon. Boliye main aapki kya madad karoon?`;
+      spokenText = `Namaste Officer ${user.name || 'Abhiraj Singh'}! JARVIS at your service, Sir. State Forensic Laboratory ke sabhi systems 100% operational hain. Aap kisi bhi case, evidence hash, ya website navigation ke baare me pooch sakte hain. Boliye main aapki kya madad karoon?`;
 
       relatedActions = [
         { label: 'View Case Dossiers', tab: 'cases' },
         { label: 'Evidence Vault', tab: 'evidence' },
-        { label: 'Lab Reports', tab: 'reports' },
+        { label: 'Forensic Lens AI', tab: 'lens' },
       ];
     }
 
@@ -464,12 +593,16 @@ Aapke prashn **"${rawMsg}"** ke liye official forensic and legal analysis:
       ];
     }
 
+    const executionTimeMs = Date.now() - startTime;
+
     res.json({
       success: true,
       answer: responseText,
       spokenAnswer: spokenText || cleanSpoken(responseText),
       category,
+      navigateTab,
       relatedActions,
+      executionTimeMs,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
@@ -478,6 +611,7 @@ Aapke prashn **"${rawMsg}"** ke liye official forensic and legal analysis:
       success: false,
       error: 'FORIS Samadhaan resolution engine encountered an internal processing failure.',
       spokenAnswer: 'Sorry, FORIS Samadhaan server encountered a temporary delay. Please retry.',
+      executionTimeMs: Date.now() - startTime,
     });
   }
 });

@@ -37,6 +37,8 @@ interface Message {
   text: string;
   spokenAnswer?: string;
   category?: string;
+  navigateTab?: string;
+  executionTimeMs?: number;
   relatedActions?: { label: string; tab: string }[];
   timestamp: string;
 }
@@ -118,7 +120,60 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   const [speechSupported, setSpeechSupported] = useState(true);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
 
+  // JARVIS Talkative Mode & Auto-Navigation
+  const [isTalkativeMode, setIsTalkativeMode] = useState(true);
+  const [navigationToast, setNavigationToast] = useState<string | null>(null);
+  const isTalkativeModeRef = useRef(isTalkativeMode);
+  isTalkativeModeRef.current = isTalkativeMode;
+
   const recognitionRef = useRef<any>(null);
+
+  // Web Audio API High-Tech Sound Synthesis (JARVIS chimes)
+  const playJarvisChime = (type: 'listening' | 'execute' | 'wake' | 'stop') => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      if (type === 'listening') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.23);
+      } else if (type === 'execute') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.09, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } else if (type === 'stop') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.07, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.22);
+      }
+    } catch {}
+  };
 
   // Initialize Speech Recognition & Synthesis
   useEffect(() => {
@@ -139,6 +194,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     recognition.onstart = () => {
       setIsListening(true);
       setLiveTranscript('');
+      playJarvisChime('listening');
     };
 
     recognition.onresult = (event: any) => {
@@ -195,7 +251,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     }
   }, [voiceLang]);
 
-  // Natural Voice Text-to-Speech Speak Function
+  // Natural Voice Text-to-Speech Speak Function with Continuous Talkative Loop
   const speakText = (text: string, messageId?: string) => {
     if (!('speechSynthesis' in window)) return;
 
@@ -205,17 +261,18 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = voiceLang;
-    utterance.rate = 1.05; // natural swift tempo without dragging
-    utterance.pitch = 1.0;
+    utterance.rate = 1.06; // crisp swift JARVIS tempo
+    utterance.pitch = 0.98; // confident resonant pitch
 
-    // Try finding Indian English or Hindi voice
+    // Try finding smooth Indian English or Hindi voice
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(
       (v) =>
         v.lang === voiceLang ||
         v.lang.startsWith(voiceLang.split('-')[0]) ||
         v.name.includes('India') ||
-        v.name.includes('Hindi')
+        v.name.includes('Hindi') ||
+        v.name.includes('Natural')
     );
     if (preferredVoice) {
       utterance.voice = preferredVoice;
@@ -229,6 +286,17 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     utterance.onend = () => {
       setIsSpeaking(false);
       setCurrentlyPlayingId(null);
+
+      // JARVIS TALKATIVE MODE: When speaking finishes, auto re-open mic for fluid conversation!
+      if (isTalkativeModeRef.current && recognitionRef.current) {
+        setTimeout(() => {
+          try {
+            recognitionRef.current.start();
+          } catch (e) {
+            // mic already active or blocked
+          }
+        }, 650);
+      }
     };
 
     utterance.onerror = () => {
@@ -254,6 +322,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     }
 
     if (isListening) {
+      playJarvisChime('stop');
       try {
         recognitionRef.current.stop();
       } catch {}
@@ -284,7 +353,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 id: 'welcome-1',
                 sender: 'ai',
                 text: data.greeting,
-                spokenAnswer: `Namaste Officer ${user?.name || 'Abhiraj Singh'}. Main hoon FORIS SAMADHAAN. Aap mujhse kisi bhi forensic case, Section 65B certificate, ballistics, toxicology ya evidence issue ka instant solution pooch sakte hain.`,
+                spokenAnswer: `Namaste Officer ${user?.name || 'Abhiraj Singh'}. JARVIS Voice Core is online. Boliye Sir, main aapki kya madad karoon?`,
                 category: 'SYSTEM_GREETING',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               },
@@ -300,8 +369,8 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           {
             id: 'welcome-fallback',
             sender: 'ai',
-            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nWelcome to **FORIS SAMADHAAN (फॉरेंसिक समाधान)** — State Forensic Science Laboratory (SFSL) AI Legal & Technical Intelligence Core.\n\nMain aapki forensic investigation, digital evidence hashing (SHA-256), Section 65B/45 Indian Evidence Act compliance, Chain of Custody tracking, ya FORIS platform ke kisi bhi issue ka 100% accurate solution dene ke liye ready hoon. How can I assist you?`,
-            spokenAnswer: `Namaste Officer. Welcome to FORIS SAMADHAAN AI. Main aapki forensic investigation aur legal compliance me help ke liye ready hoon.`,
+            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon. State Forensic Science Laboratory ke sabhi systems online hain. How can I assist you today, Sir?`,
+            spokenAnswer: `Namaste Officer. Welcome to FORIS JARVIS Voice Assistant. Systems are fully operational.`,
             category: 'SYSTEM_GREETING',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
@@ -361,10 +430,22 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           text: data.answer || 'Samadhaan resolution completed.',
           spokenAnswer: data.spokenAnswer,
           category: data.category,
+          navigateTab: data.navigateTab,
+          executionTimeMs: data.executionTimeMs,
           relatedActions: data.relatedActions,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, aiMsg]);
+
+        // Auto-navigate if voice command requested tab switch
+        if (data.navigateTab && setActiveTab) {
+          playJarvisChime('execute');
+          setNavigationToast(`⚡ JARVIS ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
+          setTimeout(() => {
+            setActiveTab(data.navigateTab);
+            setNavigationToast(null);
+          }, 1400);
+        }
 
         // Auto-speak reply immediately with zero delay
         if (autoSpeak) {
@@ -436,6 +517,26 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
           {/* Voice Talk Action Station */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Talkative Mode Toggle */}
+            <button
+              onClick={() => {
+                const next = !isTalkativeMode;
+                setIsTalkativeMode(next);
+                if (next) {
+                  playJarvisChime('wake');
+                }
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95 ${
+                isTalkativeMode
+                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-emerald-500/30 ring-2 ring-emerald-400/50'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700'
+              }`}
+              title="Toggle JARVIS Continuous Talkative Mode"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isTalkativeMode ? 'text-amber-300 animate-spin' : ''}`} />
+              <span>{isTalkativeMode ? '🎙️ Talkative Mode: ON' : 'Talkative Mode: OFF'}</span>
+            </button>
+
             {/* Toggle Fullscreen Voice Talk HUD */}
             <button
               onClick={() => setIsVoiceMode(!isVoiceMode)}
@@ -446,7 +547,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
               }`}
             >
               <Radio className={`w-4 h-4 ${isVoiceMode ? 'animate-pulse' : ''}`} />
-              <span>{isVoiceMode ? 'Exit Voice HUD' : '🎙️ Open Voice Talk HUD'}</span>
+              <span>{isVoiceMode ? 'Exit Voice HUD' : '🎙️ Open Voice HUD'}</span>
             </button>
 
             {/* Language Selector */}
@@ -478,6 +579,19 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           </div>
         </div>
       </div>
+
+      {/* Real-Time Auto-Navigation Toast Alert */}
+      {navigationToast && (
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-950 via-indigo-950 to-emerald-950 border-2 border-cyan-400 text-cyan-200 text-xs font-mono font-bold flex items-center justify-between shadow-2xl shadow-cyan-950/90 animate-pulse">
+          <div className="flex items-center gap-2.5">
+            <Zap className="w-4 h-4 text-cyan-400 animate-bounce" />
+            <span className="tracking-wide">{navigationToast}</span>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 uppercase">
+            ⚡ SUB-SECOND EXECUTION
+          </span>
+        </div>
+      )}
 
       {/* 2. INTERACTIVE HANDS-FREE VOICE TALK HUD (WHEN EXPANDED) */}
       {isVoiceMode && (
@@ -567,15 +681,32 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
               )}
             </div>
 
-            {/* Quick Stop Audio Button */}
+            {/* Quick Stop Audio Button & Equalizer */}
             {isSpeaking && (
-              <button
-                onClick={stopSpeaking}
-                className="px-4 py-1.5 rounded-full bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 text-xs font-mono font-bold transition-all flex items-center gap-1.5"
-              >
-                <VolumeX className="w-3.5 h-3.5" />
-                <span>Stop Speaking</span>
-              </button>
+              <div className="flex flex-col items-center gap-3">
+                {/* JARVIS Acoustic Equalizer Wave */}
+                <div className="flex items-center justify-center gap-1.5 h-8 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30">
+                  <span className="text-[10px] font-mono text-cyan-400 mr-2 uppercase tracking-wider flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                    Voice Modulation
+                  </span>
+                  <span className="w-1 bg-cyan-400 rounded-full animate-[pulse_0.35s_ease-in-out_infinite] h-4"></span>
+                  <span className="w-1 bg-teal-400 rounded-full animate-[pulse_0.55s_ease-in-out_infinite] h-6"></span>
+                  <span className="w-1 bg-cyan-300 rounded-full animate-[pulse_0.28s_ease-in-out_infinite] h-3"></span>
+                  <span className="w-1 bg-blue-400 rounded-full animate-[pulse_0.48s_ease-in-out_infinite] h-7"></span>
+                  <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.38s_ease-in-out_infinite] h-5"></span>
+                  <span className="w-1 bg-cyan-400 rounded-full animate-[pulse_0.3s_ease-in-out_infinite] h-6"></span>
+                  <span className="w-1 bg-teal-300 rounded-full animate-[pulse_0.45s_ease-in-out_infinite] h-3"></span>
+                </div>
+
+                <button
+                  onClick={stopSpeaking}
+                  className="px-4 py-1.5 rounded-full bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 text-xs font-mono font-bold transition-all flex items-center gap-1.5 shadow-lg"
+                >
+                  <VolumeX className="w-3.5 h-3.5" />
+                  <span>Stop Speaking</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -616,9 +747,21 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 }`}
               >
                 <div className="flex items-center justify-between gap-3 text-[10px] text-slate-400 font-mono pb-1 border-b border-slate-800/60">
-                  <span className="font-bold text-white">
-                    {msg.sender === 'user' ? user?.name || 'Forensic Officer' : 'FORIS SAMADHAAN AI'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white flex items-center gap-1.5">
+                      {msg.sender === 'user' ? (
+                        user?.name || 'Forensic Officer'
+                      ) : (
+                        <>
+                          <span className="text-cyan-300">JARVIS FORENSIC AI</span>
+                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[9px] font-mono flex items-center gap-1">
+                            <Zap className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
+                            {msg.executionTimeMs ? `${msg.executionTimeMs}ms` : '<10ms'}
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {/* Read Aloud Button for AI Messages */}
                     {msg.sender === 'ai' && (
@@ -658,6 +801,16 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 <div className="space-y-1.5 font-sans text-xs">
                   {renderFormattedText(msg.text)}
                 </div>
+
+                {/* Voice Navigation Executed Pill */}
+                {msg.navigateTab && (
+                  <div className="pt-2 flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 text-[11px] font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Executed Voice Command: <strong className="uppercase text-cyan-200">{msg.navigateTab}</strong> Screen</span>
+                    </span>
+                  </div>
+                )}
 
                 {/* Action Navigation Buttons */}
                 {msg.relatedActions && msg.relatedActions.length > 0 && (
