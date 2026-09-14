@@ -1,17 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { StatusBadge } from '../components/StatusBadge';
 import {
   Briefcase,
   Shield,
-  ShieldAlert,
-  Activity,
+  FileText,
+  Clock,
+  ShieldCheck,
+  History,
+  FolderOpen,
+  ChevronRight,
+  Fingerprint,
+  Building2,
+  Calendar,
+  AlertCircle,
+  FileSignature,
+  Search,
+  HardDrive,
+  PlusCircle,
   ArrowUpRight,
-  ChevronDown,
-  ExternalLink,
-  Lock,
+  Activity,
+  CheckCircle2,
   Sparkles,
+  Award,
   Zap,
+  Lock,
+  Cpu,
+  Bot,
+  UserCheck,
 } from 'lucide-react';
+import officerPhoto from '../assets/rajesh_varma.jpg';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -30,6 +48,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [recentAudits, setRecentAudits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [rightTab, setRightTab] = useState<'audit' | 'reports'>('audit');
+  const [photoError, setPhotoError] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -71,462 +99,522 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadDashboard();
   }, []);
 
+  const getTimeAgo = (dateStr: string) => {
+    if (!dateStr) return 'Just now';
+    try {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      return `${Math.floor(hours / 24)}d ago`;
+    } catch {
+      return 'Recently';
+    }
+  };
+
+  const categories = [
+    { id: 'ALL', label: 'All Cases' },
+    { id: 'CYBER', label: 'Cyber' },
+    { id: 'BALLISTICS', label: 'Ballistics' },
+    { id: 'TOXICOLOGY', label: 'Toxicology' },
+    { id: 'DOCUMENTS', label: 'Documents' },
+    { id: 'DNA', label: 'DNA / Serology' },
+  ];
+
+  const filteredCases = recentCases.filter((c) => {
+    const matchesCategory =
+      selectedCategory === 'ALL' ||
+      (selectedCategory === 'CYBER' && (c.category?.toLowerCase().includes('cyber') || c.category?.toLowerCase().includes('digital'))) ||
+      (selectedCategory === 'BALLISTICS' && (c.category?.toLowerCase().includes('ballistic') || c.category?.toLowerCase().includes('physical'))) ||
+      (selectedCategory === 'TOXICOLOGY' && (c.category?.toLowerCase().includes('toxic') || c.category?.toLowerCase().includes('chemical'))) ||
+      (selectedCategory === 'DOCUMENTS' && (c.category?.toLowerCase().includes('document') || c.category?.toLowerCase().includes('handwriting'))) ||
+      (selectedCategory === 'DNA' && (c.category?.toLowerCase().includes('dna') || c.category?.toLowerCase().includes('biological')));
+
+    const matchesSearch =
+      !searchQuery ||
+      c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.firNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.id?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[450px] text-slate-400 gap-3">
-        <div className="w-10 h-10 border-3 border-[#d4f938] border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-xs font-mono tracking-wider text-slate-400">
-          Loading Cryptographic Telemetry...
-        </span>
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-400 gap-3">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-xs font-mono tracking-wider text-slate-400">Loading Forensic Dashboard...</span>
       </div>
     );
   }
 
-  // Monthly bar chart data
-  const monthlyData = [
-    { month: 'Jun', height: 42 },
-    { month: 'Jul', height: 58 },
-    { month: 'Aug', height: 48 },
-    { month: 'Sep', height: 72 },
-    { month: 'Oct', height: 96, isPeak: true, badge: '+80%' },
-    { month: 'Nov', height: 64 },
-    { month: 'Dec', height: 82 },
-  ];
-
-  // Operations step histogram heights (24 bars)
-  const operationStepHeights = [
-    32, 45, 28, 55, 68, 42, 50, 62, // First 8 (35% regular)
-    75, 88, 70, 92, 84, 98, 86, 94, 78, 85, 90, 76, 88, 95, 72, 82, // Next 16 (65% crypto)
-  ];
-
-  // Live alert queue records built from real cases & security telemetry
-  const queueRecords = recentCases.slice(0, 5).map((c, idx) => {
-    const times = ['10:42 AM', '09:15 AM', '08:30 AM', '07:45 AM', '06:12 AM'];
-    const severities = ['Cyber Forensics', 'Physical Evidence', 'Document Analysis', 'Ballistics Unit', 'Toxicology'];
-    const statuses = ['High', 'Critical', 'Moderate', 'High', 'Low'];
-    return {
-      time: times[idx] || '09:00 AM',
-      id: c.id,
-      title: c.title,
-      dept: severities[idx] || c.category,
-      status: statuses[idx] || (c.status === 'ACTIVE' ? 'High' : 'Moderate'),
-      rawCase: c,
-    };
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 
-  // Fallback records if cases are empty
-  const displayQueue = queueRecords.length > 0 ? queueRecords : [
-    { time: '10:42 AM', id: 'MP-FOR-2026-00125', title: 'State Cyber Exfiltration & Ransomware', dept: 'Cyber Forensics', status: 'High', rawCase: null },
-    { time: '09:15 AM', id: 'MP-FOR-2026-00126', title: 'Homicide Ballistics & Shell Casing Hash', dept: 'Ballistics Unit', status: 'Critical', rawCase: null },
-    { time: '08:30 AM', id: 'MP-FOR-2026-00127', title: 'Forged Property Deed Signature Analysis', dept: 'Document Analysis', status: 'Moderate', rawCase: null },
-    { time: '07:45 AM', id: 'MP-FOR-2026-00128', title: 'Suspicious Poisoning Chemical Analysis', dept: 'Toxicology', status: 'High', rawCase: null },
-  ];
-
   return (
-    <div className="space-y-7 max-w-7xl mx-auto pb-10">
-      {/* 1. Greeting Hero Section (Matching Reference 1:1) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-light text-white tracking-tight">
-            Hello <span className="font-extrabold text-[#d4f938]">Dr. Abhiraj</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Welcome to State Forensic Science Laboratory • Cryptographic Evidence Subsystem
-          </p>
-        </div>
+    <div className="space-y-6 pb-12 max-w-7xl mx-auto font-sans">
+      {/* 1. GRAND EXECUTIVE HERO BANNER & PERMANENT OFFICER PHOTO */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 border-2 border-emerald-500/30 p-6 sm:p-8 lg:p-9 shadow-2xl shadow-emerald-950/20">
+        {/* Futuristic Background Accents */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(#10b98115_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40"></div>
 
-        <button
-          onClick={() => setActiveTab('security')}
-          className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#d4f938] hover:brightness-110 text-black font-extrabold text-sm shadow-[0_0_25px_rgba(212,249,56,0.3)] transition-all active:scale-95 cursor-pointer"
-        >
-          <Zap className="w-4 h-4 fill-black stroke-black" />
-          Check Alerts
-        </button>
-      </div>
-
-      {/* 2. Top 3 Lime Metric KPI Cards (Matching Reference 1:1) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Card 1: Total Active Cases */}
-        <div className="bg-[#d4f938] text-black rounded-3xl p-6 relative overflow-hidden shadow-[0_10px_30px_rgba(212,249,56,0.12)] flex flex-col justify-between h-44 group hover:scale-[1.01] transition-transform">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-2xl bg-black/10 flex items-center justify-center text-black">
-              <Briefcase className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-black text-[#d4f938] text-xs font-bold font-mono shadow-sm">
-              <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              +14.2%
-            </div>
-          </div>
-
-          <div>
-            <div className="text-4xl font-extrabold tracking-tight text-black font-mono">
-              {stats?.totalActiveCases || (recentCases.length > 0 ? recentCases.length : '4,372')}
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-black/80">
-                Total Active Cases
-              </span>
-              <span className="text-[11px] font-medium text-black/60 hidden sm:inline">
-                Active Dossiers
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Sealed Evidence Items */}
-        <div className="bg-[#d4f938] text-black rounded-3xl p-6 relative overflow-hidden shadow-[0_10px_30px_rgba(212,249,56,0.12)] flex flex-col justify-between h-44 group hover:scale-[1.01] transition-transform">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-2xl bg-black/10 flex items-center justify-center text-black">
-              <Shield className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-black text-[#d4f938] text-xs font-bold font-mono shadow-sm">
-              <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              +25%
-            </div>
-          </div>
-
-          <div>
-            <div className="text-4xl font-extrabold tracking-tight text-black font-mono">
-              {stats?.totalEvidenceSealed ? stats.totalEvidenceSealed.toLocaleString() : '3,568'}
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-black/80">
-                Sealed Evidence Items
-              </span>
-              <span className="text-[11px] font-medium text-black/60 hidden sm:inline">
-                SHA-256 On-Chain
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Cryptographic Consensus */}
-        <div className="bg-[#d4f938] text-black rounded-3xl p-6 relative overflow-hidden shadow-[0_10px_30px_rgba(212,249,56,0.12)] flex flex-col justify-between h-44 group hover:scale-[1.01] transition-transform">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-2xl bg-black/10 flex items-center justify-center text-black">
-              <Activity className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-black text-[#d4f938] text-xs font-bold font-mono shadow-sm">
-              <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              +15%
-            </div>
-          </div>
-
-          <div>
-            <div className="text-4xl font-extrabold tracking-tight text-black font-mono">
-              100%
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-black/80">
-                Consensus & Health
-              </span>
-              <span className="text-[11px] font-medium text-black/60 hidden sm:inline">
-                {stats?.totalAuditEvents ? `${stats.totalAuditEvents} Verified Blocks` : '5,120 Verified Blocks'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Middle Telemetry Row (3 Cards Matching Reference 1:1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Card 1: Firewall Activity (Semi-circular Radial Gauge) */}
-        <div className="bg-[#12141c] border border-[#1f2331] rounded-3xl p-6 flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-white tracking-wide">Firewall Activity</span>
-            <span className="text-[10px] font-mono font-bold text-[#d4f938] px-2.5 py-0.5 rounded-full bg-[#d4f938]/10 border border-[#d4f938]/30">
-              Active WAF
+        {/* Top Attestation Bar */}
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-slate-800/80">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              SFSL CENTRAL COMMAND • LIVE
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono text-cyan-300 bg-cyan-950/40 border border-cyan-800/40">
+              <ShieldCheck className="w-3 h-3 text-cyan-400" />
+              SEC 65B & 45 IEA ACTIVE
             </span>
           </div>
 
-          <div>
-            <div className="text-3xl font-extrabold text-white mt-3 font-mono">12,340</div>
-            <div className="text-xs text-slate-400">Total requests inspected today</div>
-          </div>
-
-          {/* SVG Semi-circular Gauge Chart */}
-          <div className="relative flex flex-col items-center justify-center my-4">
-            <svg width="220" height="110" viewBox="0 0 220 110" className="overflow-visible">
-              {/* Background Arc */}
-              <path
-                d="M 20 100 A 90 90 0 0 1 200 100"
-                fill="none"
-                stroke="#222736"
-                strokeWidth="16"
-                strokeLinecap="round"
-              />
-              {/* Foreground White Arc (70% fill) */}
-              <path
-                d="M 20 100 A 90 90 0 0 1 200 100"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="16"
-                strokeLinecap="round"
-                strokeDasharray="283"
-                strokeDashoffset="85"
-                className="transition-all duration-1000"
-              />
-            </svg>
-
-            {/* Lime Pill Badge Centered in Arc */}
-            <div className="absolute bottom-2 flex items-center justify-center">
-              <span className="px-3 py-1 rounded-full bg-[#d4f938] text-black font-extrabold text-xs shadow-lg shadow-[#d4f938]/20 flex items-center gap-1">
-                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                +65%
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-3 border-t border-[#1a1d28]">
-            <span>0% Latency</span>
-            <span className="text-[#d4f938] font-semibold">99.4% Biometric Auth</span>
-            <span>100% Pass</span>
+          <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
+            <span className="flex items-center gap-1.5 bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800">
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{currentDate}</span>
+            </span>
+            <span className="hidden md:flex items-center gap-1.5 bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800 text-cyan-300 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{currentTime.toLocaleTimeString()} IST</span>
+            </span>
           </div>
         </div>
 
-        {/* Card 2: Alert & Evidence Volume (7-Month Bar Chart with Peak Pill) */}
-        <div className="bg-[#12141c] border border-[#1f2331] rounded-3xl p-6 flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-white tracking-wide">Alert & Case Volume</span>
-            <span className="text-xs text-slate-400 font-mono">Jun – Dec</span>
-          </div>
-
-          <div>
-            <div className="text-3xl font-extrabold text-white mt-3 font-mono">8,940</div>
-            <div className="text-xs text-slate-400">Total forensic items processed</div>
-          </div>
-
-          {/* Bar Chart Container */}
-          <div className="h-32 flex items-end justify-between gap-2 pt-8 pb-2 px-1">
-            {monthlyData.map((item) => (
-              <div key={item.month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <div className="w-full relative flex flex-col justify-end" style={{ height: `${item.height}%` }}>
-                  {item.isPeak && (
-                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-[#d4f938] text-black font-extrabold text-[10px] whitespace-nowrap shadow-md shadow-[#d4f938]/30">
-                      {item.badge}
+        {/* Hero Main Content */}
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+          {/* Left Column: Officer Permanent Photo & Credentials */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            {/* Grand Officer Photo Frame */}
+            <div className="relative group shrink-0">
+              {/* Outer Glowing Holographic Ring */}
+              <div className="p-1 rounded-3xl bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500 shadow-xl shadow-emerald-500/25 transition-transform group-hover:scale-105 duration-300">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[22px] bg-slate-950 overflow-hidden flex items-center justify-center relative">
+                  {!photoError ? (
+                    <img
+                      src={officerPhoto || '/rajesh_varma.jpg'}
+                      alt={user?.name || 'Dr. Abhiraj Singh'}
+                      className="w-full h-full object-cover object-center transform hover:scale-110 transition-transform duration-500"
+                      onError={() => setPhotoError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-emerald-950 text-emerald-400 p-2 text-center">
+                      <UserCheck className="w-10 h-10 mb-1" />
+                      <span className="text-[10px] font-mono font-bold">OFFICER ENROLLED</span>
                     </div>
                   )}
-                  {/* Bar Pillar with Gradient and White Cap Line */}
-                  <div className="w-full h-full rounded-t-md bg-gradient-to-t from-[#1b1f2e] via-[#2a3044] to-[#4b546e] relative overflow-hidden">
-                    <div className="w-full h-[2px] bg-white absolute top-0 left-0"></div>
-                  </div>
+                  {/* Subtle Scanline Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent pointer-events-none"></div>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">{item.month}</span>
               </div>
-            ))}
-          </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-3 border-t border-[#1a1d28]">
-            <span>Avg: 1,277 / mo</span>
-            <span className="text-[#d4f938] font-semibold">Peak in October</span>
-          </div>
-        </div>
+              {/* Permanent Live Verification Badge */}
+              <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-mono font-black flex items-center gap-1 shadow-lg shadow-emerald-500/50 border-2 border-slate-900">
+                <CheckCircle2 className="w-3 h-3 stroke-[3]" />
+                <span>VERIFIED</span>
+              </div>
 
-        {/* Card 3: Forensic Breakdown (Smooth Dual-Wave Bezier Chart) */}
-        <div className="bg-[#12141c] border border-[#1f2331] rounded-3xl p-6 flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-white tracking-wide">Breakdown</span>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181b26] border border-[#252a3d] text-xs font-medium text-slate-300">
-              <span>Week</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              {/* Top Security Stamp */}
+              <div className="absolute -top-2 -left-2 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-400 text-[9px] font-mono font-bold border border-cyan-500/40 shadow">
+                ID-BIO
+              </div>
+            </div>
+
+            {/* Officer Information & Badges */}
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-emerald-400 uppercase">
+                    CHIEF FORENSIC INVESTIGATOR
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="text-[11px] font-mono text-slate-400">SESSION AUTHENTICATED</span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-none">
+                  Welcome back,{' '}
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-300">
+                    {user?.name || 'Dr. Abhiraj Singh'}
+                  </span>
+                </h1>
+
+                <p className="text-sm text-slate-300 font-medium mt-1.5 flex items-center gap-2">
+                  <span className="text-emerald-400 font-semibold">{user?.designation || 'Senior Forensic Specialist'}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-400">{user?.department || 'State Forensic Science Laboratory (SFSL)'}</span>
+                </p>
+              </div>
+
+              {/* High-Tech Credential Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold">
+                  <Fingerprint className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>BADGE: {user?.badgeId || 'FEX-1024'}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-semibold">
+                  <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>LEVEL-4 CLEARANCE</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-purple-500/30 text-purple-300 text-xs font-mono font-semibold">
+                  <Building2 className="w-3.5 h-3.5 text-purple-400" />
+                  <span>CENTRAL SFSL HQ</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-500/30 text-amber-300 text-xs font-mono font-semibold">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>HSM TOKEN LINKED</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <div className="text-3xl font-extrabold text-white mt-3 font-mono">3,892</div>
-            <div className="text-xs text-slate-400">Cryptographic verifications</div>
-          </div>
+          {/* Right Column: High-Impact Quick Command Actions */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 justify-center">
+            <button
+              onClick={() => setActiveTab('cases')}
+              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2.5 active:scale-95 group"
+            >
+              <PlusCircle className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+              <span>+ Register Forensic Case</span>
+            </button>
 
-          {/* Smooth Dual Wave SVG */}
-          <div className="relative h-32 my-2">
-            <svg width="100%" height="100%" viewBox="0 0 300 120" preserveAspectRatio="none" className="overflow-visible">
-              <defs>
-                <linearGradient id="limeWaveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#d4f938" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#d4f938" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Area Fill Under Lime Wave */}
-              <path
-                d="M 0 90 C 50 110, 80 40, 140 50 C 200 60, 240 20, 300 35 L 300 120 L 0 120 Z"
-                fill="url(#limeWaveGrad)"
-              />
-
-              {/* White Curve (Mitigations) */}
-              <path
-                d="M 0 100 C 60 85, 90 70, 150 75 C 210 80, 250 45, 300 55"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-
-              {/* Lime Curve (Evidence Ingested) */}
-              <path
-                d="M 0 90 C 50 110, 80 40, 140 50 C 200 60, 240 20, 300 35"
-                fill="none"
-                stroke="#d4f938"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            {/* Floating Peak Badge */}
-            <div className="absolute top-1 right-12 px-2.5 py-0.5 rounded-full bg-[#d4f938] text-black font-extrabold text-[10px] flex items-center gap-1 shadow-lg shadow-[#d4f938]/30">
-              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-              +35%
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setActiveTab('evidence')}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700/80 hover:border-cyan-500/50 transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Shield className="w-4 h-4 text-cyan-400" />
+                <span>Evidence Vault</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('reports')}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700/80 hover:border-amber-500/50 transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <FileSignature className="w-4 h-4 text-amber-400" />
+                <span>Lab Reports</span>
+              </button>
             </div>
-          </div>
 
-          {/* Legend */}
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-3 border-t border-[#1a1d28]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#d4f938]"></span>
-              <span>Evidence Ingestion</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span>Anomalies Mitigated</span>
-            </div>
+            <button
+              onClick={() => setActiveTab('samadhaan')}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-950/80 to-purple-950/80 hover:from-indigo-900/90 hover:to-purple-900/90 text-purple-200 font-bold text-xs border border-purple-500/40 hover:border-purple-400 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md shadow-purple-950/30"
+            >
+              <Sparkles className="w-4 h-4 text-purple-400 animate-spin-slow" />
+              <span>FORIS SAMADHAAN AI</span>
+              <span className="text-[9px] bg-purple-500/30 px-1.5 py-0.5 rounded text-purple-200 uppercase font-mono">24/7</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 4. Bottom Row: Operations Equalizer & Live Alert Queue Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Card 1: Operations (Equalizer Step Histogram) */}
-        <div className="bg-[#12141c] border border-[#1f2331] rounded-3xl p-6 flex flex-col justify-between shadow-xl">
-          <div>
-            <span className="text-sm font-bold text-white tracking-wide">Operations</span>
-            <div className="text-xs text-slate-400 mt-1">750 Total Operations Today</div>
-          </div>
-
-          {/* Equalizer Step Histogram */}
-          <div className="my-6">
-            <div className="h-28 flex items-end justify-between gap-1 px-1">
-              {operationStepHeights.map((h, i) => {
-                const isCrypto = i >= 8;
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t-sm transition-all duration-300"
-                    style={{
-                      height: `${h}%`,
-                      backgroundColor: isCrypto ? '#d4f938' : '#ffffff',
-                      boxShadow: isCrypto ? '0 0 8px rgba(212,249,56,0.3)' : 'none',
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Percentage Bar Indicator */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#1a1d28] text-xs font-mono">
-              <div className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2 h-2 rounded-full bg-white"></span>
-                <span className="font-bold">35%</span>
-                <span className="text-[11px] text-slate-500">Regular Transfers</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[#d4f938]">
-                <span className="w-2 h-2 rounded-full bg-[#d4f938]"></span>
-                <span className="font-bold">65%</span>
-                <span className="text-[11px] text-slate-400">Crypto Seals</span>
-              </div>
+      {/* 2. FOUR CLEAN STATS CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Active Cases */}
+        <div
+          onClick={() => setActiveTab('cases')}
+          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-cyan-500/40 hover:bg-slate-900 transition-all shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Cases</span>
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Briefcase className="w-4 h-4" />
             </div>
           </div>
-
-          <div className="text-[11px] text-slate-500 font-mono">
-            Zero integrity failures detected across all operational nodes.
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-white font-mono">{recentCases.length}</span>
+            <span className="text-xs text-slate-400">Under Inquest</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-cyan-400 font-medium pt-2 border-t border-slate-800/60">
+            <span>View All Dossiers</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* Card 2: Alert Queue & Active Dossiers (Live Connected Data Table) */}
-        <div className="lg:col-span-2 bg-[#12141c] border border-[#1f2331] rounded-3xl p-6 flex flex-col justify-between shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <span className="text-sm font-bold text-white tracking-wide">Alert Queue</span>
-              <div className="text-xs text-slate-400 mt-0.5">
-                Total Alerts (Today) • Live Evidence & Case Registry
+        {/* Card 2: Sealed Evidence */}
+        <div
+          onClick={() => setActiveTab('evidence')}
+          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-emerald-500/40 hover:bg-slate-900 transition-all shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sealed Evidence</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <HardDrive className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-white font-mono">{stats?.totalEvidence ?? 12}</span>
+            <span className="text-xs text-slate-400">Physical & Digital</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-emerald-400 font-medium pt-2 border-t border-slate-800/60">
+            <span>SHA-256 Verified</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* Card 3: Forensic Reports */}
+        <div
+          onClick={() => setActiveTab('reports')}
+          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-amber-500/40 hover:bg-slate-900 transition-all shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Signed Reports</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-white font-mono">{recentReports.length}</span>
+            <span className="text-xs text-slate-400">Sec 65B Certified</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-amber-400 font-medium pt-2 border-t border-slate-800/60">
+            <span>Digital Attestations</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* Card 4: Audit Integrity */}
+        <div
+          onClick={() => setActiveTab('audit')}
+          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-teal-500/40 hover:bg-slate-900 transition-all shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audit Integrity</span>
+            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-emerald-400 font-mono">100%</span>
+            <span className="text-xs text-slate-400">Tamper-Proof</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-teal-400 font-medium pt-2 border-t border-slate-800/60">
+            <span>Cryptographic Chain</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. MAIN WORKBENCH: 2-COLUMN GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* LEFT COLUMN: ACTIVE CASES (7 COLS) */}
+        <div className="lg:col-span-7 rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Header + Search Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-emerald-400" />
+                <h2 className="text-sm font-bold text-white">Active Forensic Cases</h2>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                  {filteredCases.length}
+                </span>
+              </div>
+
+              {/* Clean Search Input */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search FIR or Case..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full sm:w-48 bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                />
               </div>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181b26] border border-[#252a3d] text-xs font-medium text-slate-300">
-              <span>Week</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+
+            {/* Category Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                    selectedCategory === cat.id
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border border-slate-800/80'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Case List Cards */}
+            <div className="space-y-3">
+              {filteredCases.length === 0 ? (
+                <div className="py-12 text-center text-slate-500 text-xs font-mono">
+                  No forensic cases match your search criteria.
+                </div>
+              ) : (
+                filteredCases.map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={() => {
+                      if (onSelectCase) onSelectCase(c.id);
+                      setActiveTab('cases');
+                    }}
+                    className="group cursor-pointer rounded-xl bg-slate-950/70 border border-slate-800/80 p-4 hover:border-emerald-500/40 hover:bg-slate-950 transition-all shadow-sm space-y-2.5"
+                  >
+                    {/* Top Row: Case ID, FIR, Status */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/30 px-2 py-0.5 rounded border border-emerald-800/50">
+                          {c.id}
+                        </span>
+                        <span className="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                          {c.firNumber}
+                        </span>
+                        <StatusBadge type="priority" value={c.priority} />
+                      </div>
+                      <StatusBadge type="case" value={c.status} />
+                    </div>
+
+                    {/* Title */}
+                    <div className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                      {c.title}
+                    </div>
+
+                    {/* Meta details */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2 border-t border-slate-900">
+                      <span className="text-slate-400 text-[11px] truncate max-w-[240px]">
+                        {c.category}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">{getTimeAgo(c.updatedAt)}</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="text-[10px] font-mono uppercase text-slate-500 border-b border-[#1f2331]">
-                  <th className="pb-3 font-semibold">Time</th>
-                  <th className="pb-3 font-semibold">Alert / Case ID</th>
-                  <th className="pb-3 font-semibold">Severity / Unit</th>
-                  <th className="pb-3 font-semibold">Status</th>
-                  <th className="pb-3 font-semibold text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#181b26]">
-                {displayQueue.map((item, idx) => (
-                  <tr key={idx} className="group hover:bg-[#161924] transition-colors">
-                    <td className="py-3 font-mono text-slate-400 text-[11px] whitespace-nowrap">
-                      {item.time}
-                    </td>
-                    <td className="py-3 pr-2">
-                      <div className="font-mono font-bold text-white group-hover:text-[#d4f938] transition-colors">
-                        {item.id}
-                      </div>
-                      <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
-                        {item.title}
-                      </div>
-                    </td>
-                    <td className="py-3 text-slate-300 text-[11px]">
-                      {item.dept}
-                    </td>
-                    <td className="py-3">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase ${
-                          item.status === 'Critical'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : item.status === 'High'
-                            ? 'bg-[#d4f938]/20 text-[#d4f938] border border-[#d4f938]/40'
-                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right">
-                      <button
-                        onClick={() => {
-                          if (item.rawCase && onSelectCase) {
-                            onSelectCase(item.rawCase.id);
-                          } else {
-                            setActiveTab('cases');
-                          }
-                        }}
-                        className="px-3.5 py-1 rounded-full bg-[#181b26] hover:bg-[#d4f938] hover:text-black text-slate-300 text-xs font-semibold border border-[#252a3d] hover:border-transparent transition-all active:scale-95"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between pt-3 mt-2 border-t border-[#1a1d28] text-xs">
-            <span className="text-slate-500 font-mono text-[11px]">
-              Showing {displayQueue.length} active forensic alerts
-            </span>
+          {/* Footer Action */}
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span className="font-mono text-[11px]">Total {recentCases.length} Registered Cases</span>
             <button
               onClick={() => setActiveTab('cases')}
-              className="text-[#d4f938] hover:underline font-semibold text-xs flex items-center gap-1"
+              className="text-emerald-400 hover:text-emerald-300 font-semibold inline-flex items-center gap-1 transition-colors"
             >
-              View Full Case Dossiers →
+              Open Full Case Registry →
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: ACTIVITY FEED & LAB REPORTS (5 COLS) */}
+        <div className="lg:col-span-5 rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Header Tabs */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full">
+                <button
+                  onClick={() => setRightTab('audit')}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    rightTab === 'audit'
+                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Audit Stream</span>
+                </button>
+                <button
+                  onClick={() => setRightTab('reports')}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    rightTab === 'reports'
+                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Recent Reports</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Content: Audit Stream */}
+            {rightTab === 'audit' && (
+              <div className="space-y-2.5">
+                {recentAudits.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs font-mono">No audit logs recorded yet.</div>
+                ) : (
+                  recentAudits.map((ev, idx) => (
+                    <div
+                      key={ev.id || idx}
+                      className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs space-y-1 hover:border-slate-700 transition-colors"
+                    >
+                      <div className="flex items-center justify-between text-[11px] font-mono">
+                        <span className="text-emerald-400 font-semibold">
+                          {ev.action?.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-slate-500">{getTimeAgo(ev.timestamp)}</span>
+                      </div>
+                      <div className="text-slate-300 text-xs truncate">
+                        {ev.reason || 'Verified forensic transaction'}
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
+                        <span>Badge: {ev.userBadge || 'SYSTEM'}</span>
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Chained
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Content: Recent Reports */}
+            {rightTab === 'reports' && (
+              <div className="space-y-2.5">
+                {recentReports.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs font-mono">No reports generated yet.</div>
+                ) : (
+                  recentReports.map((r) => (
+                    <div
+                      key={r.id}
+                      onClick={() => {
+                        if (onSelectReport) onSelectReport(r.id);
+                        setActiveTab('reports');
+                      }}
+                      className="group cursor-pointer p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs space-y-1.5 hover:border-amber-500/40 hover:bg-slate-950 transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-amber-400">{r.id}</span>
+                        <StatusBadge type="report" value={r.status} />
+                      </div>
+                      <div className="text-xs font-semibold text-white group-hover:text-amber-300 transition-colors truncate">
+                        {r.title}
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                        <span>Version {r.currentVersion || 1}.0</span>
+                        <span>{getTimeAgo(r.updatedAt)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column Footer */}
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span className="font-mono text-[11px]">ISO/IEC 27037 Compliant</span>
+            <button
+              onClick={() => setActiveTab(rightTab === 'audit' ? 'audit' : 'reports')}
+              className="text-emerald-400 hover:text-emerald-300 font-semibold inline-flex items-center gap-1 transition-colors"
+            >
+              View Full History →
             </button>
           </div>
         </div>
@@ -534,3 +622,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
+
+export default Dashboard;
+
