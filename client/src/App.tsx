@@ -14,6 +14,7 @@ import { SecurityCenterPage } from './pages/SecurityCenter';
 import { UsersPage } from './pages/Users';
 import { AnalyticsPage } from './pages/Analytics';
 import { ForisSamadhaan } from './pages/ForisSamadhaan';
+import { ForensicLensAI } from './pages/ForensicLensAI';
 
 const AppContent: React.FC = () => {
   const { user, isLoading, faceVerified, phoneOtpVerified } = useAuth();
@@ -85,6 +86,8 @@ const AppContent: React.FC = () => {
         return <AnalyticsPage />;
       case 'samadhaan':
         return <ForisSamadhaan setActiveTab={setActiveTab} />;
+      case 'lens':
+        return <ForensicLensAI setActiveTab={setActiveTab} />;
       default:
         return <Dashboard setActiveTab={setActiveTab} />;
     }

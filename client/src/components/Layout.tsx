@@ -28,6 +28,7 @@ import {
   Zap,
   Sun,
   Moon,
+  ScanText,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -122,6 +123,7 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: 'users', label: 'Users & Roles', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'samadhaan', label: 'FORIS SAMADHAAN (AI)', icon: Sparkles, isAi: true },
+    { id: 'lens', label: 'FORENSIC LENS AI', icon: ScanText, isLens: true },
   ];
 
   const handleTestJudgeViolation = async () => {
@@ -203,22 +205,44 @@ export const Layout: React.FC<LayoutProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                     isActive
-                      ? item.isAi
-                        ? 'bg-emerald-950/60 text-emerald-300 border-l-4 border-emerald-400 shadow-sm'
-                        : 'bg-slate-800 text-emerald-400 border-l-4 border-emerald-500 shadow-sm'
-                      : item.isAi
-                        ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30 border-l-4 border-emerald-500/20'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-l-4 border-transparent'
+                      ? (item as any).isLens
+                        ? 'bg-gradient-to-r from-purple-950/90 to-fuchsia-950/70 text-fuchsia-200 border-l-4 border-fuchsia-400 shadow-md shadow-purple-900/40'
+                        : item.isAi
+                          ? 'bg-emerald-950/60 text-emerald-300 border-l-4 border-emerald-400 shadow-sm'
+                          : 'bg-slate-800 text-emerald-400 border-l-4 border-emerald-500 shadow-sm'
+                      : (item as any).isLens
+                        ? 'text-fuchsia-300/80 hover:text-fuchsia-200 hover:bg-purple-950/40 border-l-4 border-purple-500/30'
+                        : item.isAi
+                          ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30 border-l-4 border-emerald-500/20'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-l-4 border-transparent'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? (item.isAi ? 'text-emerald-300 animate-pulse' : 'text-emerald-400') : (item.isAi ? 'text-emerald-400' : 'text-slate-400')}`} />
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive
+                        ? (item as any).isLens
+                          ? 'text-fuchsia-400 animate-pulse'
+                          : item.isAi
+                            ? 'text-emerald-300 animate-pulse'
+                            : 'text-emerald-400'
+                        : (item as any).isLens
+                          ? 'text-purple-400'
+                          : item.isAi
+                            ? 'text-emerald-400'
+                            : 'text-slate-400'
+                    }`}
+                  />
                   <span className="flex-1 text-left flex items-center justify-between">
                     {item.label}
-                    {item.isAi && (
+                    {(item as any).isLens ? (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 uppercase tracking-widest font-mono shadow-[0_0_8px_rgba(217,70,239,0.3)]">
+                        AI LENS
+                      </span>
+                    ) : item.isAi ? (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-widest font-mono">
                         NEW
                       </span>
-                    )}
+                    ) : null}
                   </span>
                 </button>
               );

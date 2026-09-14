@@ -13,6 +13,7 @@ import { securityRouter } from './routes/security';
 import { documentsRouter } from './routes/documents';
 import { searchRouter } from './routes/search';
 import { samadhaanRouter } from './routes/samadhaan';
+import { lensRouter } from './routes/lens';
 import { errorHandler } from './middleware/errorHandler';
 
 const isTestEnv = process.env.NODE_ENV === 'test' || process.argv.some((a) => a.includes('test'));
@@ -82,6 +83,7 @@ app.use(['/api/security', '/security'], securityRouter);
 app.use(['/api/documents', '/documents'], documentsRouter);
 app.use(['/api/search', '/search'], searchRouter);
 app.use(['/api/ai/samadhaan', '/ai/samadhaan'], samadhaanRouter);
+app.use(['/api/lens', '/lens'], lensRouter);
 
 // Serve static frontend build if present
 const distPath = path.resolve(process.cwd(), 'dist');
