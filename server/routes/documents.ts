@@ -26,6 +26,87 @@ try {
   console.warn('[DOCUMENTS ROUTER] Upload directory creation deferred or read-only:', err);
 }
 
+// Map of authentic forensic crime scene evidence photos (Unsplash direct IDs)
+const REAL_PHOTOS_MAP: Record<string, string> = {
+  // Case 1: Cyber Intrusion & Ransomware Exfiltration
+  'Crime_Scene_Server_Rack_Exfiltration.jpg': 'photo-1558494949-ef010cbdcc31',
+  'Forensic_Acquisition_NVMe_Drive.jpg': 'photo-1591488320449-011701bb6704',
+  'Memory_Dump_Terminal_Evidence.jpg': 'photo-1526374965328-7f61d4dc18c5',
+
+  // Case 2: Ballistics & Drive-by Shooting
+  'Bullet_Impact_Windshield_Macro.jpg': 'photo-1579783902614-a3fb3927b675',
+  'Spent_Cartridge_Comparison_Microscope.jpg': 'photo-1595590424283-b8f17842773f',
+  'Seized_Glock19_Recovery_Bag.jpg': 'photo-1595590424283-b8f17842773f',
+
+  // Case 3: Toxicology Potassium Cyanide Homicide
+  'Toxicology_Sealed_Viscera_Sample.jpg': 'photo-1532187863486-abf9dbad1b69',
+  'GC_MS_Chromatography_Peak_Analysis.jpg': 'photo-1579154204601-01588f351e67',
+  'Chemical_Reagent_Testing_Vials.jpg': 'photo-1582719478250-c89cae4dc85b',
+
+  // Case 4: Forged Power of Attorney Land Record
+  'Forged_Deed_Signature_UV_Luminescence.jpg': 'photo-1450133064473-71024230f91b',
+  'Stereomicroscopy_Ink_Pen_Line_Tremor.jpg': 'photo-1455390582262-044cdead277a',
+  'Document_Stamp_Paper_Seal_Verification.jpg': 'photo-1589829545856-d10d557cf95f',
+
+  // Case 5: 14-Year Cold Case Touch DNA Extraction
+  'Bloodstained_Clothing_Evidence_Grid.jpg': 'photo-1576086213369-97a306d36557',
+  'Electropherogram_24_Locus_STR_Chart.jpg': 'photo-1530497610245-94d3c16cda28',
+  'Biological_Swab_Evidence_Envelope.jpg': 'photo-1516321318423-f06f85e504b3',
+
+  // Case 6: Synthetic Fentanyl & Meth Lab Seizure
+  'Seized_Fentanyl_Pills_Blister_Pack.jpg': 'photo-1584308666744-24d5c474f2ae',
+  'Raman_Spectroscopy_Compound_ID.jpg': 'photo-1587854692152-cbe660dbde88',
+  'Seized_Chemical_Precursor_Drums.jpg': 'photo-1584017911766-d451b3d0e843',
+
+  // Case 7: Smart Contract Flash Loan DeFi Exploitation
+  'Seized_Ledger_Hardware_Wallet_Desk.jpg': 'photo-1518770660439-4636190af475',
+  'Cryptocurrency_Blockchain_Flow_Graph.jpg': 'photo-1621416894569-0f39ed31d247',
+
+  // Case 8: Commercial Warehouse Arson & Accelerant Detection
+  'Charred_Vehicle_Engine_Bay_Photo.jpg': 'photo-1509198397868-475647b2a1e5',
+  'Hydrocarbon_Sniffer_Positive_Hit.jpg': 'photo-1563245372-f21724e3856d',
+
+  // Case 9: Deepfake CEO Voice Cloning Wire Fraud
+  'Face_Warping_Artifact_Analysis.jpg': 'photo-1507003211169-0a1dd7228f2d',
+  'Spectrogram_Synthetic_Voice_Glitch.jpg': 'photo-1598488035139-bdbb2231ce04',
+
+  // Case 10: Counterfeit Oncology Medicine Distribution
+  'Counterfeit_Medicine_Packaging_Comparison.jpg': 'photo-1471864190281-a93a3070b6de',
+  'X_Ray_Diffraction_Tablet_Analysis.jpg': 'photo-1582719478250-c89cae4dc85b',
+
+  // Case 11: Pegasus-Variant Mobile Spyware Implantation
+  'Cellebrite_UFED_Physical_Extraction.jpg': 'photo-1511707171634-5f897ff02aa9',
+  'Trojan_APK_Decompiled_Manifest.jpg': 'photo-1580910051074-3eb694886505',
+
+  // Case 12: Highway Hit-and-Run Multilayer Paint Transfer
+  'Microscopic_Paint_Layer_Cross_Section.jpg': 'photo-1579154204601-01588f351e67',
+  'Vehicle_Bumper_Impact_Damage.jpg': 'photo-1503376780353-7e6692767b70',
+
+  // Case 13: Defense PSU Insider Data Exfiltration
+  'Encrypted_USB_Drive_Seizure.jpg': 'photo-1618410320928-25228d811631',
+  'Corporate_Laptop_Registry_Artifact.jpg': 'photo-1588872657578-7efd1f1555ed',
+
+  // Case 14: Metro Transit IED Bomb Blast Forensic Reconstruction
+  'IED_Circuit_Timer_Recovery.jpg': 'photo-1581092160607-ee22621dd758',
+  'FTIR_Explosive_Residue_Spectrum.jpg': 'photo-1532187863486-abf9dbad1b69',
+
+  // Case 15: Chola Bronze Antiquities Idol Theft
+  'Ancient_Sculpture_Toolmark_Macro.jpg': 'photo-1564507592333-c60657eea523',
+  'Chisel_Tool_Microscopic_Striations.jpg': 'photo-1504148455328-c376907d081c',
+
+  // Case 16: High Court Bail Order Forgery
+  'Court_Order_Tampered_Paragraph_Scan.jpg': 'photo-1589829545856-d10d557cf95f',
+  'Judicial_Embossed_Seal_Micrograph.jpg': 'photo-1450133064473-71024230f91b',
+
+  // Case 17: Hooch Tragedy Methanol Industrial Adulteration
+  'Seized_Country_Liquor_Bottle_Evidence.jpg': 'photo-1527061011665-3652c757a4d4',
+  'Blood_Serum_Methanol_GC_FID_Analysis.jpg': 'photo-1579154204601-01588f351e67',
+
+  // Case 18: High-Seas Luxury Yacht Submerged Mobile Recovery
+  'Submerged_iPhone_Desalination_Chamber.jpg': 'photo-1511707171634-5f897ff02aa9',
+  'Chip_Off_NAND_Reader_Workbench.jpg': 'photo-1591488320449-011701bb6704',
+};
+
 // Multer storage with sanitized UUID filenames
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -141,6 +222,28 @@ documentsRouter.get('/:id/view', async (req: Request, res: Response) => {
       if (fs.existsSync(altLocalPath)) {
         filePath = altLocalPath;
       } else if (doc.mimeType?.startsWith('image/')) {
+        // Check if mapped to an authentic forensic photograph from Unsplash
+        const unsplashId = REAL_PHOTOS_MAP[doc.originalFilename];
+        if (unsplashId) {
+          try {
+            const photoUrl = `https://images.unsplash.com/${unsplashId}?w=1200&auto=format&fit=crop&q=85`;
+            const photoRes = await fetch(photoUrl);
+            if (photoRes.ok) {
+              const arrayBuf = await photoRes.arrayBuffer();
+              const buffer = Buffer.from(arrayBuf);
+              try {
+                fs.writeFileSync(filePath, buffer);
+              } catch (_) {}
+              res.setHeader('Content-Type', 'image/jpeg');
+              res.setHeader('Cache-Control', 'public, max-age=86400');
+              res.setHeader('Content-Disposition', `inline; filename="${doc.originalFilename}"`);
+              return res.send(buffer);
+            }
+          } catch (remoteErr) {
+            console.warn('[DOCUMENTS ROUTER] On-demand photo fetch failed:', remoteErr);
+          }
+        }
+
         // Dynamic forensic image card fallback (bulletproof on ephemeral serverless platforms like Vercel)
         const svg = `
 <svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
