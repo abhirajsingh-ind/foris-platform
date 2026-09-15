@@ -90,6 +90,20 @@ export const Login: React.FC = () => {
     }
   };
 
+  const getGlowColor = () => {
+    switch (accent) {
+      case 'cobalt':
+        return 'rgba(59, 130, 246, 0.35)';
+      case 'amber':
+        return 'rgba(245, 158, 11, 0.35)';
+      case 'violet':
+        return 'rgba(139, 92, 246, 0.35)';
+      case 'emerald':
+      default:
+        return 'rgba(16, 185, 129, 0.35)';
+    }
+  };
+
   const paletteOptions: { id: AccentColor; label: string; color: string }[] = [
     { id: 'emerald', label: 'Emerald', color: 'bg-emerald-500' },
     { id: 'cobalt', label: 'Cobalt', color: 'bg-blue-500' },
@@ -105,11 +119,37 @@ export const Login: React.FC = () => {
           : 'bg-slate-950 text-slate-100 bg-cyber-grid selection:bg-cyan-500/30 selection:text-cyan-200'
       }`}
     >
-      {/* 3D WebGL Forensic Canvas Background (in dark mode) */}
-      {!isLight && <ThreeForensicCanvas intensity={1.2} />}
+      {/* 3D WebGL Futuristic Quantum Forensic Canvas Background */}
+      <ThreeForensicCanvas intensity={isLight ? 0.35 : 1.25} accent={accent} />
 
       {/* Radial Glow Overlay */}
       <div className="absolute inset-0 bg-radial-vignette pointer-events-none"></div>
+
+      {/* TOP-LEFT HOLOGRAPHIC TELEMETRY HUD */}
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 hidden md:flex flex-col gap-1 pointer-events-none animate-fadeIn">
+        <div className="flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider text-cyan-400">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span>SFSL // SECURE GATEWAY v3.2</span>
+        </div>
+        <div className="text-[9px] font-mono text-slate-400">
+          QUANTUM EVIDENCE VAULT • 256-BIT ENCRYPTION
+        </div>
+      </div>
+
+      {/* BOTTOM-LEFT INTEGRITY STATUS */}
+      <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20 hidden md:flex items-center gap-2 text-[10px] font-mono text-slate-400 pointer-events-none">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>INTEGRITY MESH: ONLINE</span>
+        <span className="text-slate-600">|</span>
+        <span>NEURAL PLEXUS: 85 NODES</span>
+      </div>
+
+      {/* BOTTOM-RIGHT SENSOR TELEMETRY */}
+      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 hidden md:flex items-center gap-2 text-[10px] font-mono text-slate-400 pointer-events-none">
+        <span>LASER SCANNER: 60 FPS</span>
+        <span className="text-slate-600">|</span>
+        <span className="text-cyan-400 font-semibold">LATENCY: &lt;5MS</span>
+      </div>
 
       {/* TOP FLOATING THEME BAR ON LOGIN SCREEN */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-slate-800 shadow-xl">
@@ -186,14 +226,23 @@ export const Login: React.FC = () => {
         </div>
 
         {/* 3D Tilt Login Card */}
-        <ThreeDCard maxTilt={6} glowColor="rgba(16, 185, 129, 0.25)">
+        <ThreeDCard maxTilt={6} glowColor={getGlowColor()}>
           <div
-            className={`rounded-3xl p-6 sm:p-8 shadow-2xl border backdrop-blur-2xl space-y-5 transition-colors ${
+            className={`rounded-3xl p-6 sm:p-8 shadow-2xl border backdrop-blur-2xl space-y-5 transition-colors relative overflow-hidden ${
               isLight
                 ? 'bg-white/95 border-slate-200/90 shadow-slate-300 text-slate-900'
-                : 'glass-panel border-slate-800/90 bg-slate-900/85 text-slate-100'
+                : 'glass-panel border-cyan-500/30 bg-slate-900/85 text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.12)]'
             }`}
           >
+            {/* Cyber Corner Brackets */}
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-cyan-400/70 rounded-tl-sm pointer-events-none"></div>
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-cyan-400/70 rounded-tr-sm pointer-events-none"></div>
+            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-cyan-400/70 rounded-bl-sm pointer-events-none"></div>
+            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-cyan-400/70 rounded-br-sm pointer-events-none"></div>
+
+            {/* Glowing Scanline on the Card */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanline opacity-75 pointer-events-none"></div>
+
             {/* Card Header */}
             <div className={`flex items-center justify-between pb-3 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <span
