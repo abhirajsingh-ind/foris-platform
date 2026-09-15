@@ -163,6 +163,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
   const [navigationToast, setNavigationToast] = useState<string | null>(null);
 
   const isTalkativeModeRef = useRef(true);
+  const lastTopicRef = useRef<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -229,6 +230,15 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'hi-IN';
     utterance.rate = 1.05;
+
+    try {
+      const storedVoiceUri = localStorage.getItem('foris_selected_voice_uri');
+      const voices = window.speechSynthesis.getVoices();
+      if (storedVoiceUri && voices && voices.length > 0) {
+        const found = voices.find((v) => v.voiceURI === storedVoiceUri);
+        if (found) utterance.voice = found;
+      }
+    } catch {}
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => {
@@ -330,11 +340,22 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
           Authorization: `Bearer ${token}`,
           ...(storedKey ? { 'x-ai-key': storedKey } : {}),
         },
-        body: JSON.stringify({ message: text, apiKey: storedKey }),
+        body: JSON.stringify({
+          message: text,
+          apiKey: storedKey,
+          previousTopic: lastTopicRef.current,
+          conversationHistory: messages.slice(-4).map((m) => ({
+            role: m.sender === 'user' ? 'user' : 'assistant',
+            text: m.text,
+          })),
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
+        if (data.topic) {
+          lastTopicRef.current = data.topic;
+        }
         const latency = data.executionTimeMs || Math.round(performance.now() - startTime);
 
         // Instant Voice Navigation Execution

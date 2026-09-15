@@ -80,11 +80,14 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
     let relatedActions: { label: string; tab: string }[] = [];
     let modelUsed = 'SFSL Grounded Database';
     let provider = 'internal';
+    let topic: string | undefined = undefined;
 
-    // Extract Open-Source provider preferences from request body or headers
+    // Extract Open-Source provider preferences & conversational context from request body or headers
     const preferredProvider = req.body.provider || (req.headers['x-ai-provider'] as any) || 'auto';
     const apiKey = req.body.apiKey || (req.headers['x-ai-key'] as string);
     const ollamaUrl = req.body.ollamaUrl || 'http://127.0.0.1:11434';
+    const previousTopic = req.body.previousTopic as string | undefined;
+    const conversationHistory = req.body.conversationHistory as Array<{ role: 'user' | 'assistant'; text: string }> | undefined;
 
     // Helper to sanitize spoken text
     const cleanSpoken = (str: string) => {
@@ -345,15 +348,12 @@ ${evList}
 
     // 4. BALLISTICS & FIREARMS EXAMINATION
     else if (
-      query.includes('ballistics') ||
-      query.includes('bullet') ||
-      query.includes('gun') ||
-      query.includes('pistol') ||
-      query.includes('beretta') ||
+      query.includes('highway ambush') ||
       query.includes('0891') ||
-      query.includes('striation') ||
-      query.includes('gsr') ||
-      query.includes('cartridge')
+      query.includes('beretta 92fs') ||
+      query.includes('ballistics report') ||
+      query.includes('striation match') ||
+      query.includes('gsr analysis')
     ) {
       category = 'BALLISTICS_PHYSICAL';
       responseText = `### 🎯 Case Dossier: State v. Highway Ambush & Armed Robbery (FIR-2026/0891)
@@ -375,12 +375,11 @@ ${evList}
     // 5. TOXICOLOGY & POISONING
     else if (
       query.includes('cyanide') ||
-      query.includes('toxicology') ||
-      query.includes('poison') ||
-      query.includes('chemical') ||
-      query.includes('viscera') ||
+      query.includes('toxicology report') ||
+      query.includes('viscera sample') ||
       query.includes('0312') ||
-      query.includes('gc-ms')
+      query.includes('industrialist case') ||
+      query.includes('gc-ms analysis')
     ) {
       category = 'TOXICOLOGY_CHEMICAL';
       responseText = `### 🧪 Case Dossier: State v. Chemical Industrialist Unnatural Death (FIR-2026/0312)
@@ -404,12 +403,11 @@ ${evList}
       query.includes('will forgery') ||
       query.includes('disputed will') ||
       query.includes('wasiyat') ||
-      query.includes('forgery') ||
-      query.includes('questioned document') ||
-      query.includes('handwriting analysis') ||
-      query.includes('fake signature') ||
+      query.includes('forged signature') ||
+      query.includes('questioned document case') ||
+      query.includes('fake signature case') ||
       query.includes('0654') ||
-      query.includes('esda')
+      query.includes('esda scan')
     ) {
       category = 'QUESTIONED_DOCUMENTS';
       responseText = `### 📜 Case Dossier: State v. Disputed Heritage Trust Will Forgery (FIR-2026/0654)
@@ -430,14 +428,12 @@ ${evList}
 
     // 7. DNA & SEROLOGY
     else if (
-      query.includes('dna') ||
-      query.includes('str profiling') ||
-      query.includes('str loci') ||
-      query.includes('str multiplex') ||
-      query.includes('blood spatter') ||
-      query.includes('blood sample') ||
+      query.includes('dna case') ||
+      query.includes('dna profiling case') ||
+      query.includes('dna report') ||
+      query.includes('double homicide') ||
       query.includes('0993') ||
-      query.includes('serology')
+      query.includes('str match')
     ) {
       category = 'DNA_SEROLOGY';
       responseText = `### 🧬 Case Dossier: State v. Double Homicide DNA Profiling (FIR-2026/0993)
@@ -458,13 +454,10 @@ ${evList}
 
     // 8. MOBILE PHONE FORENSICS & NARCOTICS
     else if (
-      query.includes('mobile') ||
-      query.includes('phone') ||
-      query.includes('oneplus') ||
-      query.includes('narcotics') ||
+      query.includes('narcotics case') ||
+      query.includes('drug cartel') ||
       query.includes('0547') ||
-      query.includes('whatsapp') ||
-      query.includes('signal')
+      query.includes('mobile extraction case')
     ) {
       category = 'MOBILE_EXTRACTION';
       responseText = `### 📱 Case Dossier: State v. Cross-Border Narcotics Syndicate (FIR-2026/0547)
@@ -586,6 +579,8 @@ ${caseListStr}
           apiKey,
           ollamaUrl,
           officerName: user.name,
+          previousTopic,
+          conversationHistory,
         });
 
         category = aiResult.category;
@@ -593,6 +588,7 @@ ${caseListStr}
         spokenText = aiResult.spokenAnswer;
         modelUsed = aiResult.modelUsed;
         provider = aiResult.provider;
+        topic = aiResult.topic;
 
         relatedActions = [
           { label: 'Voice Command: Active Cases', tab: 'cases' },
@@ -617,6 +613,7 @@ ${caseListStr}
       relatedActions,
       modelUsed,
       provider,
+      topic,
       executionTimeMs,
       timestamp: new Date().toISOString(),
     });

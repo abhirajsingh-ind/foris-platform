@@ -30,6 +30,8 @@ export interface QueryOptions {
   apiKey?: string;
   ollamaUrl?: string;
   officerName?: string;
+  previousTopic?: string;
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; text: string }>;
 }
 
 // 1. CLEAN TEXT HELPER FOR NATURAL SPEECH SYNTHESIS
@@ -48,7 +50,72 @@ export function sanitizeForVoice(text: string): string {
     .trim();
 }
 
-// 2. EXTRACT CORE SEARCH TOPIC FROM CONVERSATIONAL HINGLISH / ENGLISH
+// 2. MULTI-TURN CONVERSATIONAL PRONOUN & TOPIC RESOLVER
+export function resolveContextualQuery(rawQuery: string, previousTopic?: string): { resolvedQuery: string; isFollowUp: boolean } {
+  if (!previousTopic || !previousTopic.trim()) {
+    return { resolvedQuery: rawQuery, isFollowUp: false };
+  }
+
+  const trimmed = rawQuery.trim();
+  const lower = trimmed.toLowerCase();
+  const cleanPrev = previousTopic.replace(/[#*`_]/g, '').trim();
+
+  // Pronoun indicators for Person ("unka", "unki", "unke", "unhone", "unse", "who was he/she")
+  const personFollowUps = [
+    /\b(unka|unki|unke|unhone|unse|unhe|unpar)\b/i,
+    /\b(who was he|who was she|who is he|who is she|his|her)\b/i,
+    /\b(janam|birth|career|records|score|family|achievements|death|age)\b/i,
+  ];
+
+  // Pronoun indicators for Concept / Object ("iska", "iski", "iske", "isko", "what about it", "how it works")
+  const conceptFollowUps = [
+    /\b(iska|iski|iske|isko|isme|isse|ispar)\b/i,
+    /\b(how does it work|how it works|what is it|what does it do|its formula|its meaning)\b/i,
+    /\b(matlab|khoj|discovery|formula|use|uses|definition|theory|concept|mechanism)\b/i,
+  ];
+
+  // Continuation indicators ("aur batao", "more details", "aage batao")
+  const moreFollowUps = [
+    /\b(aur batao|aur detail me|aur samjhao|kuch aur batao|aage batao|detail me samjhao|more details|tell me more|explain more|explain further)\b/i,
+  ];
+
+  // Code continuation indicators ("recursive version", "time complexity", "python version")
+  const codeFollowUps = [
+    /\b(recursive|recursion|recursive version|iterative|complexity|time complexity|space complexity)\b/i,
+    /\b(python version|python me|javascript me|js me|c\+\+ me|cpp version|java version|code dikhao|code do)\b/i,
+  ];
+
+  const matchesPerson = personFollowUps.some((rx) => rx.test(lower));
+  const matchesConcept = conceptFollowUps.some((rx) => rx.test(lower));
+  const matchesMore = moreFollowUps.some((rx) => rx.test(lower));
+  const matchesCode = codeFollowUps.some((rx) => rx.test(lower));
+
+  if (matchesPerson || matchesConcept || matchesMore || matchesCode) {
+    let resolved = trimmed;
+
+    // Substitute pronouns with the explicit previous topic
+    resolved = resolved.replace(/\b(unka|unki|unke|unhone|unhe|unse)\b/gi, cleanPrev);
+    resolved = resolved.replace(/\b(iska|iski|iske|isko|isme|isse)\b/gi, cleanPrev);
+    resolved = resolved.replace(/\b(his|her|its)\b/gi, `${cleanPrev}'s`);
+    resolved = resolved.replace(/\b(he|she|it)\b/gi, cleanPrev);
+
+    // If query was just a short continuation like "aur batao", expand it
+    if (matchesMore && lower.length < 35) {
+      resolved = `${cleanPrev} comprehensive overview facts history`;
+    }
+
+    // If query is about code/recursion/complexity without explicitly repeating the topic
+    if ((matchesCode || lower.includes('recursive')) && !lower.includes(cleanPrev.toLowerCase())) {
+      resolved = `${cleanPrev} ${trimmed}`;
+    }
+
+    return { resolvedQuery: resolved, isFollowUp: true };
+  }
+
+  return { resolvedQuery: rawQuery, isFollowUp: false };
+}
+
+// 3. EXTRACT CORE SEARCH TOPIC FROM CONVERSATIONAL HINGLISH / ENGLISH
 export function extractCoreTopic(query: string): string {
   let cleaned = query.trim().toLowerCase();
 
@@ -69,7 +136,7 @@ export function extractCoreTopic(query: string): string {
   return cleaned || query.trim();
 }
 
-// 3. FAST MATHEMATICAL EVALUATOR
+// 4. FAST MATHEMATICAL EVALUATOR
 function tryEvaluateMath(query: string): OpenSourceAIResult | null {
   const lower = query.toLowerCase();
 
@@ -153,7 +220,7 @@ function tryEvaluateMath(query: string): OpenSourceAIResult | null {
   return null;
 }
 
-// 4. DEEP PROGRAMMING & CODING REASONER
+// 5. DEEP PROGRAMMING & CODING REASONER
 function tryGenerateCodingSolution(query: string): OpenSourceAIResult | null {
   const lower = query.toLowerCase();
 
@@ -171,14 +238,72 @@ function tryGenerateCodingSolution(query: string): OpenSourceAIResult | null {
     lower.includes('fibonacci') ||
     lower.includes('linked list') ||
     lower.includes('two sum') ||
+    lower.includes('palindrome') ||
+    lower.includes('reverse string') ||
+    lower.includes('sql') ||
+    lower.includes('join') ||
     lower.includes('async await') ||
-    lower.includes('sql query');
+    lower.includes('closure');
 
   if (!isCoding) return null;
 
-  // Case: Binary Search
-  if (lower.includes('binary search')) {
+  // Case 1: Binary Search (Iterative & Recursive)
+  if (lower.includes('binary search') || lower.includes('binarysearch')) {
+    const isRecursive = lower.includes('recursive') || lower.includes('recursion');
     const isPython = !lower.includes('javascript') && !lower.includes('js');
+
+    if (isRecursive) {
+      return {
+        category: 'PROGRAMMING_AI',
+        modelUsed: 'JARVIS Open Code Core',
+        provider: 'internal-neural',
+        topic: 'Recursive Binary Search (Python & JS)',
+        answer: `### 💻 Recursive Binary Search Algorithm
+
+Recursive Binary Search base condition ($left > right$) aur recursive calls ka use karke divide-and-conquer strategy implement karta hai.
+
+\`\`\`python
+# Python 3: Recursive Binary Search
+def binary_search_recursive(arr, left, right, target):
+    if left > right:
+        return -1  # Base Case: Element not found
+    
+    mid = (left + right) // 2
+    
+    if arr[mid] == target:
+        return mid  # Element found
+    elif arr[mid] < target:
+        return binary_search_recursive(arr, mid + 1, right, target)  # Search right half
+    else:
+        return binary_search_recursive(arr, left, mid - 1, target)   # Search left half
+
+# Example Usage:
+nums = [3, 9, 14, 19, 25, 31, 42, 58, 69, 88]
+target = 31
+result = binary_search_recursive(nums, 0, len(nums) - 1, target)
+print(f"Target {target} found at index: {result}")
+\`\`\`
+
+**JavaScript / TypeScript Version:**
+\`\`\`javascript
+function binarySearchRecursive(arr, left, right, target) {
+  if (left > right) return -1;
+  const mid = Math.floor((left + right) / 2);
+
+  if (arr[mid] === target) return mid;
+  if (arr[mid] < target) return binarySearchRecursive(arr, mid + 1, right, target);
+  return binarySearchRecursive(arr, left, mid - 1, target);
+}
+\`\`\`
+
+**Complexity Analysis:**
+- ⏱️ **Time Complexity:** $O(\\log n)$
+- 💾 **Space Complexity:** $O(\\log n)$ (Call stack memory due to recursion)
+- 💡 **Iterative vs Recursive:** Iterative version $O(1)$ space use karta hai, jabki recursive version call stack frames consume karta hai.`,
+        spokenAnswer: `Recursive Binary Search ka Python aur JavaScript implementation generate ho gaya hai. Iski time complexity Big O of log n hai aur recursion call stack ke kaaran space complexity bhi Big O of log n hoti hai.`,
+      };
+    }
+
     if (isPython) {
       return {
         category: 'PROGRAMMING_AI',
@@ -191,10 +316,10 @@ Binary Search ek **Divide and Conquer** algorithm hai jo sorted array me target 
 
 \`\`\`python
 def binary_search(arr, target):
-    \"\"\"
+    """
     Searches for 'target' in a sorted list 'arr'.
     Returns index if found, else -1.
-    \"\"\"
+    """
     left, right = 0, len(arr) - 1
 
     while left <= right:
@@ -271,7 +396,193 @@ console.log("Index:", binarySearch(list, 40)); // Output: 3
     }
   }
 
-  // Case: QuickSort
+  // Case 2: Two Sum Problem (LeetCode #1)
+  if (lower.includes('two sum') || (lower.includes('two') && lower.includes('sum'))) {
+    return {
+      category: 'PROGRAMMING_AI',
+      modelUsed: 'JARVIS Open Code Core',
+      provider: 'internal-neural',
+      topic: 'Two Sum Algorithm (Hash Map O(n))',
+      answer: `### ⚡ Two Sum Problem (Optimal $O(n)$ Hash Map Solution)
+
+Given an array of integers \`nums\` and an integer \`target\`, return *indices of the two numbers such that they add up to \`target\`*.
+
+\`\`\`python
+# Python 3: Hash Map (Dictionary) Approach - O(n)
+def two_sum(nums: list[int], target: int) -> list[int]:
+    seen = {}  # Map number value -> its index
+    
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+        
+    return []
+
+# Example:
+nums = [2, 7, 11, 15]
+target = 9
+print("Indices:", two_sum(nums, target))  # Output: [0, 1] (2 + 7 = 9)
+\`\`\`
+
+**JavaScript / TypeScript Version:**
+\`\`\`javascript
+function twoSum(nums, target) {
+  const map = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    const complement = target - nums[i];
+    if (map.has(complement)) {
+      return [map.get(complement), i];
+    }
+    map.set(nums[i], i);
+  }
+  return [];
+}
+\`\`\`
+
+**Complexity Analysis:**
+- ⏱️ **Time Complexity:** $O(n)$ — Single pass through the array.
+- 💾 **Space Complexity:** $O(n)$ — Hash map stores at most $n$ elements.
+- 🚀 **Brute Force vs Optimal:** Brute force nested loops $O(n^2)$ leti hain, jabki Hash Map $O(n)$ me solve kar deta hai.`,
+      spokenAnswer: `Two Sum problem ka optimal hash map solution screen par display ho gaya hai. Yeh O of n single pass me target complement check karta hai.`,
+    };
+  }
+
+  // Case 3: Palindrome & String Reversal
+  if (lower.includes('palindrome') || lower.includes('reverse string') || lower.includes('reverse a string') || lower.includes('ulta string')) {
+    return {
+      category: 'PROGRAMMING_AI',
+      modelUsed: 'JARVIS Open Code Core',
+      provider: 'internal-neural',
+      topic: 'Palindrome & String Reversal Algorithms',
+      answer: `### 🔁 Palindrome Checker & String Reversal
+
+Ek string **Palindrome** tab kehlati hai jab aage aur peeche dono taraf se read karne par wo bilkul barabar ho (jaise: *"madam"*, *"racecar"*).
+
+\`\`\`python
+# Python 3: Two-Pointer Palindrome Verification
+def is_palindrome(s: str) -> bool:
+    # Clean alphanumeric characters and convert to lowercase
+    cleaned = ''.join(c.lower() for c in s if c.isalnum())
+    
+    left, right = 0, len(cleaned) - 1
+    while left < right:
+        if cleaned[left] != cleaned[right]:
+            return False
+        left += 1
+        right -= 1
+    return True
+
+# Pythonic One-Liner (Slicing):
+def is_palindrome_slice(s: str) -> bool:
+    clean = ''.join(c.lower() for c in s if c.isalnum())
+    return clean == clean[::-1]
+
+print(is_palindrome("A man, a plan, a canal: Panama"))  # True
+print(is_palindrome("race a car"))                      # False
+\`\`\`
+
+**JavaScript Two-Pointer Implementation:**
+\`\`\`javascript
+function isPalindrome(s) {
+  const clean = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let left = 0, right = clean.length - 1;
+  while (left < right) {
+    if (clean[left] !== clean[right]) return false;
+    left++;
+    right--;
+  }
+  return true;
+}
+\`\`\`
+
+**Complexity:** Time: $O(n)$ | Space: $O(1)$ two-pointer approach me.`,
+      spokenAnswer: `Palindrome aur string reversal ka code ready hai Sir. Two pointer approach use karne par time complexity O of n aur space complexity constant O of 1 rehti hai.`,
+    };
+  }
+
+  // Case 4: SQL Queries & JOINs
+  if (lower.includes('sql') || lower.includes('join')) {
+    return {
+      category: 'PROGRAMMING_AI',
+      modelUsed: 'JARVIS Open Code Core',
+      provider: 'internal-neural',
+      topic: 'SQL Queries & Relational JOINs',
+      answer: `### 🗄️ SQL Queries & Table JOINs Explained
+
+Relational databases me tables ko connect karne ke liye SQL **JOINs** ka use hota hai.
+
+\`\`\`sql
+-- 1. INNER JOIN: Returns matching records from both tables
+SELECT e.id AS evidence_id, e.barcode, c.firNumber, c.title
+FROM "Evidence" e
+INNER JOIN "Case" c ON e.caseId = c.id
+WHERE c.status = 'ACTIVE';
+
+-- 2. LEFT JOIN: Returns all rows from left table, and matched rows from right
+SELECT c.firNumber, c.title, COUNT(e.id) AS total_evidence
+FROM "Case" c
+LEFT JOIN "Evidence" e ON c.id = e.caseId
+GROUP BY c.id, c.firNumber, c.title
+ORDER BY total_evidence DESC;
+
+-- 3. Complex Aggregation with HAVING and Filter
+SELECT c.department, COUNT(c.id) AS case_count
+FROM "Case" c
+WHERE c.createdAt >= NOW() - INTERVAL '30 days'
+GROUP BY c.department
+HAVING COUNT(c.id) > 5
+ORDER BY case_count DESC;
+\`\`\`
+
+**Summary of JOIN Types:**
+1. **INNER JOIN:** Sirf wahi rows aate hain jo dono tables me match karti hain.
+2. **LEFT JOIN:** Left table ke saare rows + right table ke matching rows (non-matching me NULL).
+3. **RIGHT JOIN:** Right table ke saare rows + left table ke matching rows.
+4. **FULL OUTER JOIN:** Dono tables ke saare rows jab bhi kisi ek me match ho.`,
+      spokenAnswer: `SQL queries aur Inner Join, Left Join ka syntax aur architecture ready hai. Database relational queries ke liye JOINs primary tool hain.`,
+    };
+  }
+
+  // Case 5: Reverse Linked List
+  if (lower.includes('linked list') || lower.includes('reverse list')) {
+    return {
+      category: 'PROGRAMMING_AI',
+      modelUsed: 'JARVIS Open Code Core',
+      provider: 'internal-neural',
+      topic: 'Reverse Linked List Algorithm (Python & JS)',
+      answer: `### 🔗 Reverse a Singly Linked List (Iterative $O(n)$)
+
+\`\`\`python
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def reverse_linked_list(head: ListNode) -> ListNode:
+    """
+    Reverses singly linked list in-place.
+    Time: O(n), Space: O(1)
+    """
+    prev = None
+    curr = head
+    
+    while curr:
+        nxt = curr.next    # 1. Save next node
+        curr.next = prev   # 2. Reverse current pointer
+        prev = curr        # 3. Move prev forward
+        curr = nxt         # 4. Move curr forward
+        
+    return prev  # New head of reversed list
+\`\`\`
+
+**Complexity:** Time: $O(n)$ | Space: $O(1)$ constant memory pointer manipulation.`,
+      spokenAnswer: `Singly Linked List ko reverse karne ka O of n time aur O of 1 space algorithm generate ho chuka hai.`,
+    };
+  }
+
+  // Case 6: QuickSort
   if (lower.includes('quicksort') || lower.includes('quick sort')) {
     return {
       category: 'PROGRAMMING_AI',
@@ -308,7 +619,7 @@ print("Sorted Array:", sorted_array)
     };
   }
 
-  // Case: Fibonacci
+  // Case 7: Fibonacci
   if (lower.includes('fibonacci')) {
     return {
       category: 'PROGRAMMING_AI',
@@ -321,7 +632,7 @@ print("Sorted Array:", sorted_array)
 
 \`\`\`python
 def fibonacci_iterative(n):
-    \"\"\"Generate first n Fibonacci numbers with O(n) time and O(1) space\"\"\"
+    """Generate first n Fibonacci numbers with O(n) time and O(1) space"""
     if n <= 0: return []
     if n == 1: return [0]
     
@@ -337,7 +648,7 @@ print(fibonacci_iterative(10))
     };
   }
 
-  // Case: Async/Await / Promises
+  // Case 8: Async/Await / Promises
   if (lower.includes('async') || lower.includes('promise') || lower.includes('await')) {
     return {
       category: 'PROGRAMMING_AI',
@@ -377,7 +688,7 @@ async function fetchForensicData(caseId) {
     };
   }
 
-  // Case: JavaScript Closure
+  // Case 9: JavaScript Closure
   if (lower.includes('closure')) {
     return {
       category: 'PROGRAMMING_AI',
@@ -431,9 +742,9 @@ import sys
 import json
 
 def process_data(payload: dict) -> dict:
-    \"\"\"
+    """
     Processes and validates input dictionary data cleanly.
-    \"\"\"
+    """
     result = {
         "status": "SUCCESS",
         "processed_keys": list(payload.keys()),
@@ -599,6 +910,148 @@ Quantum Computing classical physics ki jagah **Quantum Mechanics** ke principles
     };
   }
 
+  // General Relativity & Einstein's E = mc^2
+  if (lower.includes('relativity') || lower.includes('einstein') || lower.includes('e=mc') || lower.includes('e = mc')) {
+    return {
+      category: 'THEORETICAL_PHYSICS',
+      modelUsed: 'JARVIS Relativistic Physics Matrix',
+      provider: 'open-knowledge',
+      topic: 'Theory of Relativity & E = mc²',
+      answer: `### 🌌 Albert Einstein's Theory of Relativity & $E=mc^2$
+
+Albert Einstein ne 1905 aur 1915 me Physics ki duniya ko badal diya jab unhone Special aur General Relativity propose ki.
+
+**1. Mass-Energy Equivalence ($E = mc^2$):**
+- $E$ = Energy, $m$ = Mass, $c$ = Speed of Light ($3 \\times 10^8\\text{ m/s}$)
+- Yeh equation batati hai ki mass aur energy ek hi cheez ke do roop hain. Thoda sa mass bhi colossal energy me convert ho sakta hai (Nuclear fusion & fission ka foundation).
+
+**2. General Relativity (Spacetime Curvature):**
+- Gravity koi invisible force nahi hai, balki **Spacetime ka curvature** hai jo massive objects (jaise Stars aur Planets) create karte hain.
+- *"Matter tells spacetime how to curve, and spacetime tells matter how to move."* — John Wheeler
+- **Proven Phenomena:** Gravitational Time Dilation (bhari gravity me time slow chalta hai) aur Gravitational Lensing.`,
+      spokenAnswer: `Albert Einstein ki theory of relativity batati hai ki gravity spacetime ka curvature hai aur E equals m c square prove karta hai ki mass aur energy ek doosre me convert ho sakte hain.`,
+    };
+  }
+
+  // Speed of Light
+  if (lower.includes('speed of light') || lower.includes('light ki speed') || lower.includes('prakash ki chaal')) {
+    return {
+      category: 'PHYSICS_CONSTANTS',
+      modelUsed: 'JARVIS Physical Constants Matrix',
+      provider: 'open-knowledge',
+      topic: 'Speed of Light (c)',
+      answer: `### ⚡ Speed of Light in Vacuum ($c$)
+
+Vacuum me light ki speed universe ki fundamental speed limit hai:
+
+$$\\mathbf{c = 299{,}792{,}458 \\text{ m/s}} \\quad (\\approx 3 \\times 10^8 \\text{ m/s} \\text{ ya } 300{,}000 \\text{ km/s})$$
+
+**Remarkable Facts:**
+1. **Cosmic Speed Limit:** Special Relativity ke anusar koi bhi information ya mass-bearing particle speed of light se fast travel nahi kar sakta.
+2. **Time to Earth:** Surya ki roshni ko Dharti tak aane me lagbhag **8 minute 20 seconds** lagte hain.
+3. **Photon Masslessness:** Photons ka rest mass zero hota hai, isliye wo hamesha speed of light par travel karte hain.`,
+      spokenAnswer: `Light ki speed vacuum me 2 lakh 99 hazaar 792 kilometer per second hoti hai, jo universe ki ultimate speed limit hai. Sun se Earth tak light aane me 8 minute 20 second lagte hain.`,
+    };
+  }
+
+  // DNA Structure & Forensic Genetics
+  if (lower.includes('dna') || lower.includes('double helix') || lower.includes('genetic')) {
+    return {
+      category: 'FORENSIC_GENETICS',
+      modelUsed: 'SFSL Forensic Genetics Matrix',
+      provider: 'open-knowledge',
+      topic: 'DNA Double Helix & Forensic STR Profiling',
+      answer: `### 🧬 DNA (Deoxyribonucleic Acid) & Forensic STR Profiling
+
+DNA har jeev ka biological blueprint hai, jise 1953 me **James Watson aur Francis Crick** ne Double Helix structure ke roop me identify kiya tha.
+
+**Core Molecular Architecture:**
+- **Double Helix Backbone:** Sugar (Deoxyribose) aur Phosphate molecules se bana hota hai.
+- **Nitrogenous Base Pairs:**
+  - **Adenine (A)** hamesha **Thymine (T)** se judta hai ($A = T$, 2 Hydrogen bonds).
+  - **Guanine (G)** hamesha **Cytosine (C)** se judta hai ($G \\equiv C$, 3 Hydrogen bonds).
+
+**Forensic Science & Investigation Applications:**
+1. **STR Profiling (Short Tandem Repeats):** 99.9% human DNA identical hota hai, par non-coding regions me repeated patterns har insaan ke unique hote hain (except identical twins).
+2. **CODIS Loci:** Forensic laboratories standard 20 core STR loci analyze karti hain paternity aur criminal identification ke liye.
+3. **PCR Amplification:** Chhote se biological sample (blood spot, hair root) ko millions of copies me amplify karke DNA profile extract kiya jata hai.`,
+      spokenAnswer: `DNA double helix structure Adenine, Thymine, Guanine aur Cytosine base pairs se banta hai. Forensic science me Short Tandem Repeats yaani STR profiling se har individual ka unique genetic fingerprint banaya jata hai.`,
+    };
+  }
+
+  // Solar System
+  if (lower.includes('solar system') || lower.includes('saur mandal') || lower.includes('planets') || lower.includes('suraj')) {
+    return {
+      category: 'ASTRONOMY',
+      modelUsed: 'JARVIS Planetary Matrix',
+      provider: 'open-knowledge',
+      topic: 'Solar System & Planetary Mechanics',
+      answer: `### ☀️ Our Solar System (सौरमंडल)
+
+Hamara Solar System Milky Way galaxy ke Orion Arm me situated hai, jiska age lagbhag **4.6 billion years** hai.
+
+**The Sun & 8 Planets (Order from Sun):**
+1. 🪐 **Mercury (बुध):** Smallest planet, closest to Sun, no atmosphere.
+2. 🌕 **Venus (शुक्र):** Hottest planet ($465^\\circ\\text{C}$) due to runaway greenhouse effect ($CO_2$).
+3. 🌍 **Earth (पृथ्वी):** Only known world supporting life, liquid water oceans.
+4. 🔴 **Mars (मंगल):** Red planet, home to Olympus Mons (largest volcano in solar system).
+5. ⚡ **Jupiter (बृहस्पति):** Largest planet, gas giant with iconic Great Red Spot storm.
+6. 🪐 **Saturn (शनि):** Famous for stunning planetary ring system made of ice and rock.
+7. ❄️ **Uranus (अरुण):** Ice giant rotating on its side (98° axial tilt).
+8. 🌊 **Neptune (वरुण):** Farthest planet, supersonic winds exceeding 2,000 km/h.`,
+      spokenAnswer: `Hamare solar system me Sun ke saath 8 planets hain. Mercury sabse chhota hai, Venus sabse garm, Jupiter sabse bada gas giant hai, aur Saturn ke paas spectacular rings hain.`,
+    };
+  }
+
+  // Human Brain & Neuroscience
+  if (lower.includes('brain') || lower.includes('dimag') || lower.includes('neuron') || lower.includes('neuroscience')) {
+    return {
+      category: 'NEUROSCIENCE',
+      modelUsed: 'JARVIS Neuro-Cognitive Matrix',
+      provider: 'open-knowledge',
+      topic: 'Human Brain & Neural Architecture',
+      answer: `### 🧠 Human Brain & Neural Network Architecture
+
+Human brain universe ka sabse complex known biological computing system hai.
+
+**Key Anatomical & Computational Stats:**
+- **Neuron Count:** Lagbhag **86 billion neurons** aur 100 trillion synaptic connections.
+- **Energy Consumption:** Body mass ka sirf 2% weight hote hue bhi, brain body ki **20% glucose aur oxygen** consume karta hai.
+- **Primary Lobes:**
+  - **Frontal Lobe:** Decision making, reasoning, motor control, personality.
+  - **Parietal Lobe:** Sensory processing (touch, temperature, spatial awareness).
+  - **Temporal Lobe:** Memory (Hippocampus) aur auditory language processing.
+  - **Occipital Lobe:** Visual processing core.
+- **Neurotransmitters:** Dopamine (reward), Serotonin (mood), Acetylcholine (memory).`,
+      spokenAnswer: `Human brain me lagbhag 86 billion neurons aur 100 trillion synapses hote hain jo electrical aur chemical signals ke zariye information transmit karte hain.`,
+    };
+  }
+
+  // Cricket Records & Rules (Sachin, Virat, LBW)
+  if (lower.includes('cricket') || lower.includes('sachin') || lower.includes('virat') || lower.includes('lbw')) {
+    return {
+      category: 'SPORTS_CRICKET',
+      modelUsed: 'JARVIS Sports Dossier',
+      provider: 'open-knowledge',
+      topic: 'Cricket Insights, Legends & Rules',
+      answer: `### 🏏 Cricket Intelligence: Legends & Rules
+
+Cricket duniya ka second most popular sport hai, jise ICC govern karta hai.
+
+**1. Legendary Milestones:**
+- **Sachin Tendulkar (Master Blaster):** 100 international centuries (51 Test, 49 ODI), 34,357 international runs — highest run scorer in history.
+- **Virat Kohli:** Record 50 ODI centuries, highest run-scorer in a single World Cup edition (765 runs in 2023).
+
+**2. LBW (Leg Before Wicket - Rule 36):**
+LBW umpire dwara tab diya jata hai jab:
+1. Ball legal ho (No-ball na ho).
+2. Ball stumps ki line me ya off-side pitch hui ho (leg-side pitching is not out).
+3. Ball pehle batsman ke pad/body par hit hui ho (bat se touch na hui ho).
+4. Ball stumps ko hit karne ki trajectory me ho.`,
+      spokenAnswer: `Cricket me Sachin Tendulkar ne 100 international centuries ka all time record banaya hai, aur Virat Kohli ke paas 50 ODI centuries ka record hai. LBW rule tab apply hota hai jab ball legal ho aur pad pe lagkar stumps ko hit kar rahi ho.`,
+    };
+  }
+
   return null;
 }
 
@@ -665,7 +1118,11 @@ async function fetchOpenKnowledge(topic: string): Promise<{ title: string; descr
 }
 
 // 8. OLLAMA LOCAL RUNNER QUERY (Local Open Source LLM)
-async function tryOllama(query: string, ollamaUrl = 'http://127.0.0.1:11434'): Promise<OpenSourceAIResult | null> {
+async function tryOllama(
+  query: string,
+  ollamaUrl = 'http://127.0.0.1:11434',
+  history?: Array<{ role: 'user' | 'assistant'; text: string }>
+): Promise<OpenSourceAIResult | null> {
   try {
     const pingRes = await fetch(`${ollamaUrl}/api/tags`, {
       signal: AbortSignal.timeout(400),
@@ -681,15 +1138,21 @@ You speak fluently in natural conversational Hinglish or English matching the us
 Answer directly on the exact topic the user asks about (science, coding, cricket, sports, history, philosophy, life, general knowledge).
 Provide concise, structured Markdown answers.`;
 
+    const chatMessages: Array<{ role: string; content: string }> = [{ role: 'system', content: systemPrompt }];
+
+    if (history && history.length > 0) {
+      for (const turn of history.slice(-4)) {
+        chatMessages.push({ role: turn.role, content: turn.text });
+      }
+    }
+    chatMessages.push({ role: 'user', content: query });
+
     const chatRes = await fetch(`${ollamaUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: modelName,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query },
-        ],
+        messages: chatMessages,
         stream: false,
       }),
       signal: AbortSignal.timeout(12000),
@@ -716,11 +1179,32 @@ Provide concise, structured Markdown answers.`;
 }
 
 // 9. GROQ OPEN-SOURCE LLM QUERY (Llama 3.3 70B Versatile / Llama 3.1 8B Instant)
-async function tryGroq(query: string, apiKey?: string): Promise<OpenSourceAIResult | null> {
+async function tryGroq(
+  query: string,
+  apiKey?: string,
+  history?: Array<{ role: 'user' | 'assistant'; text: string }>
+): Promise<OpenSourceAIResult | null> {
   const key = apiKey || process.env.GROQ_API_KEY;
   if (!key) return null;
 
   try {
+    const groqMessages: Array<{ role: string; content: string }> = [
+      {
+        role: 'system',
+        content: `You are J.A.R.V.I.S. (FORIS SAMADHAAN AI), an intelligent, conversational, charismatic AI assistant.
+Speak in natural, engaging Hinglish or English matching the user's inquiry.
+Converse on ANY topic the user brings up: science, sports, programming, history, math, philosophy, daily life.
+Format response with clear headings, bullet points, and code blocks where applicable.`,
+      },
+    ];
+
+    if (history && history.length > 0) {
+      for (const turn of history.slice(-4)) {
+        groqMessages.push({ role: turn.role, content: turn.text });
+      }
+    }
+    groqMessages.push({ role: 'user', content: query });
+
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -729,16 +1213,7 @@ async function tryGroq(query: string, apiKey?: string): Promise<OpenSourceAIResu
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content: `You are J.A.R.V.I.S. (FORIS SAMADHAAN AI), an intelligent, conversational, charismatic AI assistant.
-Speak in natural, engaging Hinglish or English matching the user's inquiry.
-Converse on ANY topic the user brings up: science, sports, programming, history, math, philosophy, daily life.
-Format response with clear headings, bullet points, and code blocks where applicable.`,
-          },
-          { role: 'user', content: query },
-        ],
+        messages: groqMessages,
         temperature: 0.7,
         max_tokens: 1024,
       }),
@@ -770,7 +1245,9 @@ export async function queryOpenSourceAI(
   rawQuery: string,
   options: QueryOptions = {}
 ): Promise<OpenSourceAIResult> {
-  const query = rawQuery.trim();
+  // Step 1: Contextual Resolution (handles pronouns like "unka", "iska", "aur batao", "recursive version")
+  const { resolvedQuery, isFollowUp } = resolveContextualQuery(rawQuery, options.previousTopic);
+  const query = resolvedQuery.trim();
 
   // A. Check Math & Calculations First (Instant Sub-millisecond)
   const mathResult = tryEvaluateMath(query);
@@ -790,13 +1267,13 @@ export async function queryOpenSourceAI(
 
   // E. Try Groq if key is available or preferred
   if (options.preferredProvider === 'groq' || options.apiKey || process.env.GROQ_API_KEY) {
-    const groqRes = await tryGroq(query, options.apiKey);
+    const groqRes = await tryGroq(query, options.apiKey, options.conversationHistory);
     if (groqRes) return groqRes;
   }
 
   // F. Try Local Ollama if running
   if (options.preferredProvider === 'ollama' || options.preferredProvider === 'auto' || !options.preferredProvider) {
-    const ollamaRes = await tryOllama(query, options.ollamaUrl);
+    const ollamaRes = await tryOllama(query, options.ollamaUrl, options.conversationHistory);
     if (ollamaRes) return ollamaRes;
   }
 
