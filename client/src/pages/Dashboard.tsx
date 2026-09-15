@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from '../components/StatusBadge';
 import {
@@ -35,7 +35,7 @@ import {
   Radio,
   FileCheck2,
 } from 'lucide-react';
-import officerPhoto from '../assets/rajesh_varma.jpg';
+import officerPhotoDefault from '../assets/officer_abhiraj.jpg';
 import { BorderBeam } from '../components/BorderBeam';
 import { CyberDecryptText } from '../components/CyberDecryptText';
 import { ThreeDInteractiveHologram } from '../components/ThreeDInteractiveHologram';
@@ -52,6 +52,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onSelectReport,
 }) => {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(() => localStorage.getItem('foris_custom_officer_photo'));
+  const activeOfficerPhoto = customPhoto || officerPhotoDefault || '/officer_abhiraj.jpg';
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const result = uploadEvent.target?.result as string;
+        if (result) {
+          setCustomPhoto(result);
+          localStorage.setItem('foris_custom_officer_photo', result);
+          setPhotoError(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const [stats, setStats] = useState<any>(null);
   const [recentCases, setRecentCases] = useState<any[]>([]);
   const [recentReports, setRecentReports] = useState<any[]>([]);
@@ -280,14 +300,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             {/* Grand Officer Photo Frame */}
             <div className="relative group shrink-0">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/*"
+                className="hidden"
+              />
               {/* Outer Glowing Holographic Ring */}
-              <div className="p-1 rounded-3xl bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500 shadow-xl shadow-emerald-500/25 transition-transform group-hover:scale-105 duration-300">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                title="Click to change officer photo"
+                className="cursor-pointer p-1 rounded-3xl bg-gradient-to-tr from-emerald-400 via-cyan-400 to-indigo-500 shadow-xl shadow-emerald-500/25 transition-transform group-hover:scale-105 duration-300 relative"
+              >
                 <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[22px] bg-slate-950 overflow-hidden flex items-center justify-center relative">
                   {!photoError ? (
                     <img
-                      src={officerPhoto || '/rajesh_varma.jpg'}
+                      src={activeOfficerPhoto}
                       alt={user?.name || 'Dr. Abhiraj Singh'}
-                      className="w-full h-full object-cover object-center transform hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-500"
                       onError={() => setPhotoError(true)}
                     />
                   ) : (
@@ -296,19 +327,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className="text-[10px] font-mono font-bold">OFFICER ENROLLED</span>
                     </div>
                   )}
+                  {/* Hover Change Photo Overlay */}
+                  <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-cyan-300 gap-1 z-20">
+                    <Camera className="w-6 h-6" />
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider">Change Photo</span>
+                  </div>
                   {/* Subtle Scanline Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent pointer-events-none"></div>
                 </div>
               </div>
 
               {/* Permanent Live Verification Badge */}
-              <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-mono font-black flex items-center gap-1 shadow-lg shadow-emerald-500/50 border-2 border-slate-900">
+              <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-mono font-black flex items-center gap-1 shadow-lg shadow-emerald-500/50 border-2 border-slate-900 z-10 pointer-events-none">
                 <CheckCircle2 className="w-3 h-3 stroke-[3]" />
                 <span>VERIFIED</span>
               </div>
 
               {/* Top Security Stamp */}
-              <div className="absolute -top-2 -left-2 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-400 text-[9px] font-mono font-bold border border-cyan-500/40 shadow">
+              <div className="absolute -top-2 -left-2 px-2 py-0.5 rounded-full bg-slate-900 text-cyan-400 text-[9px] font-mono font-bold border border-cyan-500/40 shadow z-10 pointer-events-none">
                 ID-BIO
               </div>
             </div>
