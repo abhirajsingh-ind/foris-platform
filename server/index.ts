@@ -15,6 +15,7 @@ import { searchRouter } from './routes/search';
 import { samadhaanRouter } from './routes/samadhaan';
 import { lensRouter } from './routes/lens';
 import { errorHandler } from './middleware/errorHandler';
+import { renderBackendCommandCenter } from './views/backendCommandCenter';
 
 const isTestEnv = process.env.NODE_ENV === 'test' || process.argv.some((a) => a.includes('test'));
 dotenv.config();
@@ -70,6 +71,25 @@ app.get(['/api/health', '/health'], (_req, res) => {
     system: 'FORIS — Forensic Integrity & Evidence System',
     timestamp: new Date(),
     architecture: 'Defense-in-Depth Government-Grade Forensic Core',
+  });
+});
+
+// Backend Command Matrix UI (renders full futuristic HTML dashboard when accessing /backend, /api or /server-status)
+app.get(['/backend', '/server-status', '/api/command-center'], (_req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(renderBackendCommandCenter());
+});
+
+app.get('/api', (req, res) => {
+  const acceptsHtml = req.accepts('html');
+  if (acceptsHtml) {
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(renderBackendCommandCenter());
+  }
+  res.json({
+    status: 'ONLINE',
+    message: 'FORIS Forensic API Server Running. Navigate to /backend for the interactive Command Center.',
+    version: '2.4.0',
   });
 });
 

@@ -41,10 +41,24 @@ const renderInlineMarkdown = (content: string) => {
   const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
   return parts.map((part, pIdx) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={pIdx} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+      return (
+        <strong
+          key={pIdx}
+          className="font-black text-white px-1 py-0.5 rounded bg-slate-800/80 border border-slate-700/80 text-cyan-200 tracking-wide inline-block"
+        >
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={pIdx} className="px-1 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800 font-mono text-[10px]">{part.slice(1, -1)}</code>;
+      return (
+        <code
+          key={pIdx}
+          className="px-1 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800 font-mono text-[10px]"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
     }
     return part;
   });
@@ -75,6 +89,36 @@ const MiniCodeBlock: React.FC<{ code: string; language: string }> = ({ code, lan
   );
 };
 
+const renderMiniTextChunk = (text: string, keyPrefix: string) => {
+  const lines = text.split('\n');
+  return lines.map((line, idx) => {
+    const k = `${keyPrefix}-${idx}`;
+    if (line.startsWith('### ')) {
+      const topicText = line.replace('### ', '');
+      return (
+        <div
+          key={k}
+          className="my-2 p-2 rounded-lg bg-gradient-to-r from-cyan-950/70 to-slate-900 border border-cyan-500/40 shadow-sm"
+        >
+          <span className="text-[8px] font-mono font-bold text-cyan-400 uppercase tracking-widest block">
+            TOPIC //
+          </span>
+          <h4 className="text-xs font-black text-white uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+            <span>⚡</span>
+            <span>{topicText}</span>
+          </h4>
+        </div>
+      );
+    }
+    if (line.trim() === '') return <div key={k} className="h-1" />;
+    return (
+      <div key={k} className="leading-relaxed">
+        {renderInlineMarkdown(line)}
+      </div>
+    );
+  });
+};
+
 const renderMiniFormattedText = (text: string) => {
   const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
   const parts: React.ReactNode[] = [];
@@ -84,8 +128,8 @@ const renderMiniFormattedText = (text: string) => {
   while ((match = codeBlockRegex.exec(text)) !== null) {
     if (match.index > lastIdx) {
       parts.push(
-        <div key={`txt-${lastIdx}`} className="whitespace-pre-wrap">
-          {renderInlineMarkdown(text.slice(lastIdx, match.index))}
+        <div key={`txt-${lastIdx}`}>
+          {renderMiniTextChunk(text.slice(lastIdx, match.index), `pre-${lastIdx}`)}
         </div>
       );
     }
@@ -97,8 +141,8 @@ const renderMiniFormattedText = (text: string) => {
 
   if (lastIdx < text.length) {
     parts.push(
-      <div key={`txt-${lastIdx}`} className="whitespace-pre-wrap">
-        {renderInlineMarkdown(text.slice(lastIdx))}
+      <div key={`txt-${lastIdx}`}>
+        {renderMiniTextChunk(text.slice(lastIdx), `post-${lastIdx}`)}
       </div>
     );
   }

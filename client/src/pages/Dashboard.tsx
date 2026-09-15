@@ -30,6 +30,10 @@ import {
   UserCheck,
   Camera,
   Image as ImageIcon,
+  Database,
+  Layers,
+  Radio,
+  FileCheck2,
 } from 'lucide-react';
 import officerPhoto from '../assets/rajesh_varma.jpg';
 import { BorderBeam } from '../components/BorderBeam';
@@ -128,6 +132,78 @@ export const Dashboard: React.FC<DashboardProps> = ({
     { id: 'DOCUMENTS', label: 'Documents' },
     { id: 'DNA', label: 'DNA / Serology' },
   ];
+
+  const getCategoryStyle = (cat?: string) => {
+    const c = (cat || '').toLowerCase();
+    if (c.includes('cyber') || c.includes('digital')) {
+      return {
+        border: 'border-l-4 border-l-cyan-400 hover:border-cyan-500/60',
+        badge: 'bg-cyan-950/60 text-cyan-300 border-cyan-800/40',
+        accent: 'text-cyan-400',
+        bgGlow: 'hover:shadow-cyan-950/40',
+        pill: 'text-cyan-300 bg-cyan-950/70 border-cyan-700/60',
+        icon: '💻',
+      };
+    }
+    if (c.includes('ballistic') || c.includes('physical')) {
+      return {
+        border: 'border-l-4 border-l-amber-400 hover:border-amber-500/60',
+        badge: 'bg-amber-950/60 text-amber-300 border-amber-800/40',
+        accent: 'text-amber-400',
+        bgGlow: 'hover:shadow-amber-950/40',
+        pill: 'text-amber-300 bg-amber-950/70 border-amber-700/60',
+        icon: '🎯',
+      };
+    }
+    if (c.includes('toxic') || c.includes('chemical')) {
+      return {
+        border: 'border-l-4 border-l-emerald-400 hover:border-emerald-500/60',
+        badge: 'bg-emerald-950/60 text-emerald-300 border-emerald-800/40',
+        accent: 'text-emerald-400',
+        bgGlow: 'hover:shadow-emerald-950/40',
+        pill: 'text-emerald-300 bg-emerald-950/70 border-emerald-700/60',
+        icon: '🧪',
+      };
+    }
+    if (c.includes('document') || c.includes('handwriting')) {
+      return {
+        border: 'border-l-4 border-l-purple-400 hover:border-purple-500/60',
+        badge: 'bg-purple-950/60 text-purple-300 border-purple-800/40',
+        accent: 'text-purple-400',
+        bgGlow: 'hover:shadow-purple-950/40',
+        pill: 'text-purple-300 bg-purple-950/70 border-purple-700/60',
+        icon: '📜',
+      };
+    }
+    return {
+      border: 'border-l-4 border-l-pink-400 hover:border-pink-500/60',
+      badge: 'bg-pink-950/60 text-pink-300 border-pink-800/40',
+      accent: 'text-pink-400',
+      bgGlow: 'hover:shadow-pink-950/40',
+      pill: 'text-pink-300 bg-pink-950/70 border-pink-700/60',
+      icon: '🧬',
+    };
+  };
+
+  const getCategoryBtnStyle = (catId: string, isSelected: boolean) => {
+    if (!isSelected) {
+      return 'bg-slate-950/70 text-slate-400 hover:text-slate-200 border border-slate-800/80';
+    }
+    switch (catId) {
+      case 'CYBER':
+        return 'bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold shadow-md shadow-cyan-500/20';
+      case 'BALLISTICS':
+        return 'bg-amber-500/20 text-amber-300 border-amber-400 font-bold shadow-md shadow-amber-500/20';
+      case 'TOXICOLOGY':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-400 font-bold shadow-md shadow-emerald-500/20';
+      case 'DOCUMENTS':
+        return 'bg-purple-500/20 text-purple-300 border-purple-400 font-bold shadow-md shadow-purple-500/20';
+      case 'DNA':
+        return 'bg-pink-500/20 text-pink-300 border-pink-400 font-bold shadow-md shadow-pink-500/20';
+      default:
+        return 'bg-slate-800 text-white border-slate-600 font-bold shadow-md';
+    }
+  };
 
   const filteredCases = recentCases.filter((c) => {
     const matchesCategory =
@@ -326,99 +402,215 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* 2. FOUR CLEAN STATS CARDS */}
+      {/* 2. FOUR DISTINCT ARCHITECTURAL STATS CARDS WITH BOLD MAIN TOPICS & MULTI-COLOR IDENTITY */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Active Cases */}
+        {/* Card 1: ACTIVE CASES DOSSIER - Tactical Folder Archetype (Electric Cyan) */}
         <div
           onClick={() => setActiveTab('cases')}
-          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-cyan-500/40 hover:bg-slate-900 transition-all shadow-sm relative overflow-hidden"
+          className="group cursor-pointer rounded-2xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-950 border-2 border-cyan-500/40 p-5 hover:border-cyan-400 hover:shadow-xl hover:shadow-cyan-500/20 transition-all relative overflow-hidden flex flex-col justify-between"
         >
           <BorderBeam colorScheme="cyan" rx="16" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Cases</span>
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Briefcase className="w-4 h-4" />
+          {/* Cyber Coordinate Grid Background */}
+          <div className="absolute inset-0 bg-[radial-gradient(#06b6d418_1px,transparent_1px)] [background-size:12px_12px] pointer-events-none"></div>
+
+          {/* Tactical Tab Header */}
+          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-cyan-900/50">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              <span className="font-mono text-[10px] font-black tracking-widest text-cyan-400 uppercase">
+                // DOSSIER MATRIX
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold">
+              LIVE INQUEST
+            </span>
+          </div>
+
+          <div className="my-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-wider uppercase block">
+                  TOPIC 01
+                </span>
+                <h3 className="text-sm font-black text-cyan-300 uppercase tracking-wider drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                  ACTIVE CASES DOSSIER
+                </h3>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-md shadow-cyan-500/20 group-hover:scale-110 transition-transform">
+                <Briefcase className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-white font-mono tracking-tight drop-shadow">
+                <CyberDecryptText text={String(recentCases.length)} />
+              </span>
+              <span className="text-xs text-cyan-400/90 font-mono font-semibold">Active Inquests Underway</span>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2 relative z-10">
-            <span className="text-2xl font-bold text-white font-mono">
-              <CyberDecryptText text={String(recentCases.length)} />
+
+          <div className="pt-2.5 border-t border-cyan-900/50 flex items-center justify-between text-xs font-bold text-cyan-400 relative z-10">
+            <span className="font-mono text-[11px] uppercase tracking-wider flex items-center gap-1">
+              <span>OPEN CASE REGISTRY</span>
             </span>
-            <span className="text-xs text-slate-400">Under Inquest</span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-cyan-400 font-medium pt-2 border-t border-slate-800/60 relative z-10">
-            <span>View All Dossiers</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform text-cyan-300" />
           </div>
         </div>
 
-        {/* Card 2: Sealed Evidence */}
+        {/* Card 2: SEALED EVIDENCE VAULT - Cryptographic Hex Matrix Safe (Cyber Jade / Emerald) */}
         <div
           onClick={() => setActiveTab('evidence')}
-          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-emerald-500/40 hover:bg-slate-900 transition-all shadow-sm relative overflow-hidden"
+          className="group cursor-pointer rounded-2xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border-2 border-emerald-500/40 p-5 hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/20 transition-all relative overflow-hidden flex flex-col justify-between"
         >
           <BorderBeam colorScheme="emerald" rx="16" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sealed Evidence</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <HardDrive className="w-4 h-4" />
+          {/* Hex Matrix Background */}
+          <div className="absolute inset-0 bg-[radial-gradient(#10b98118_1px,transparent_1px)] [background-size:12px_12px] pointer-events-none"></div>
+
+          {/* Vault Security Bracket Header */}
+          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-emerald-900/50">
+            <div className="flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-mono text-[10px] font-black tracking-widest text-emerald-400 uppercase">
+                // CRYPTO-VAULT [HSM]
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+              SHA-256 SEALED
+            </span>
+          </div>
+
+          <div className="my-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-wider uppercase block">
+                  TOPIC 02
+                </span>
+                <h3 className="text-sm font-black text-emerald-300 uppercase tracking-wider drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+                  SEALED EVIDENCE VAULT
+                </h3>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                <Database className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-white font-mono tracking-tight drop-shadow">
+                <CyberDecryptText text={String(stats?.totalEvidence ?? stats?.metrics?.totalEvidenceItemsHashed ?? 42)} />
+              </span>
+              <span className="text-xs text-emerald-400/90 font-mono font-semibold">Chain-of-Custody Intact</span>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2 relative z-10">
-            <span className="text-2xl font-bold text-white font-mono">
-              <CyberDecryptText text={String(stats?.totalEvidence ?? stats?.metrics?.totalEvidenceItemsHashed ?? 42)} />
+
+          <div className="pt-2.5 border-t border-emerald-900/50 flex items-center justify-between text-xs font-bold text-emerald-400 relative z-10">
+            <span className="font-mono text-[11px] uppercase tracking-wider flex items-center gap-1">
+              <span>VERIFY HASH REPOSITORY</span>
             </span>
-            <span className="text-xs text-slate-400">Physical & Digital</span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-emerald-400 font-medium pt-2 border-t border-slate-800/60 relative z-10">
-            <span>SHA-256 Verified</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform text-emerald-300" />
           </div>
         </div>
 
-        {/* Card 3: Forensic Reports */}
+        {/* Card 3: FORENSIC REPORTS - Sovereign Gold Attestation Parchment (Warm Amber & Gold) */}
         <div
           onClick={() => setActiveTab('reports')}
-          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-amber-500/40 hover:bg-slate-900 transition-all shadow-sm relative overflow-hidden"
+          className="group cursor-pointer rounded-2xl bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 border-2 border-amber-500/40 p-5 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/20 transition-all relative overflow-hidden flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Signed Reports</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <FileText className="w-4 h-4" />
+          {/* Sovereign Gold Background Ribbon */}
+          <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-amber-500/10 to-transparent pointer-events-none"></div>
+
+          {/* Legal Stamp Header */}
+          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-amber-900/50">
+            <div className="flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5 text-amber-400" />
+              <span className="font-mono text-[10px] font-black tracking-widest text-amber-400 uppercase">
+                // LEGAL CERTIFICATES
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+              SEC 65B CERTIFIED
+            </span>
+          </div>
+
+          <div className="my-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-wider uppercase block">
+                  TOPIC 03
+                </span>
+                <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                  SIGNED LAB REPORTS
+                </h3>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                <FileSignature className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-white font-mono tracking-tight drop-shadow">
+                <CyberDecryptText text={String(recentReports.length)} />
+              </span>
+              <span className="text-xs text-amber-400/90 font-mono font-semibold">Court Admissible Briefs</span>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-white font-mono">
-              <CyberDecryptText text={String(recentReports.length)} />
+
+          <div className="pt-2.5 border-t border-amber-900/50 flex items-center justify-between text-xs font-bold text-amber-400 relative z-10">
+            <span className="font-mono text-[11px] uppercase tracking-wider flex items-center gap-1">
+              <span>INSPECT DIGITAL ATTESTATIONS</span>
             </span>
-            <span className="text-xs text-slate-400">Sec 65B Certified</span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-amber-400 font-medium pt-2 border-t border-slate-800/60">
-            <span>Digital Attestations</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform text-amber-300" />
           </div>
         </div>
 
-        {/* Card 4: Audit Integrity */}
+        {/* Card 4: AUDIT INTEGRITY - Quantum Security Halo & Ledger (Neon Purple / Violet) */}
         <div
           onClick={() => setActiveTab('audit')}
-          className="group cursor-pointer rounded-2xl bg-slate-900/80 border border-slate-800 p-5 hover:border-teal-500/40 hover:bg-slate-900 transition-all shadow-sm relative overflow-hidden"
+          className="group cursor-pointer rounded-2xl bg-gradient-to-br from-purple-950/40 via-slate-900 to-slate-950 border-2 border-purple-500/40 p-5 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audit Integrity</span>
-            <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
-              <ShieldCheck className="w-4 h-4" />
+          {/* Radar Dial Watermark */}
+          <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full border border-purple-500/20 border-dashed pointer-events-none"></div>
+
+          {/* Quantum Ledger Header */}
+          <div className="relative z-10 flex items-center justify-between pb-2 border-b border-purple-900/50">
+            <div className="flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+              <span className="font-mono text-[10px] font-black tracking-widest text-purple-400 uppercase">
+                // QUANTUM LEDGER
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold">
+              TAMPER PROOF
+            </span>
+          </div>
+
+          <div className="my-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-wider uppercase block">
+                  TOPIC 04
+                </span>
+                <h3 className="text-sm font-black text-purple-300 uppercase tracking-wider drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                  AUDIT & HSM INTEGRITY
+                </h3>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-purple-300 font-mono tracking-tight drop-shadow">
+                <CyberDecryptText text="100%" />
+              </span>
+              <span className="text-xs text-purple-400/90 font-mono font-semibold">Zero Anomaly Guarantee</span>
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-emerald-400 font-mono">
-              <CyberDecryptText text="100%" />
+
+          <div className="pt-2.5 border-t border-purple-900/50 flex items-center justify-between text-xs font-bold text-purple-400 relative z-10">
+            <span className="font-mono text-[11px] uppercase tracking-wider flex items-center gap-1">
+              <span>VERIFY BLOCKCHAIN LOG</span>
             </span>
-            <span className="text-xs text-slate-400">Tamper-Proof</span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-teal-400 font-medium pt-2 border-t border-slate-800/60">
-            <span>Cryptographic Chain</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform text-purple-300" />
           </div>
         </div>
       </div>
@@ -430,95 +622,107 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="lg:col-span-7 rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
             {/* Header + Search Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-emerald-400" />
-                <h2 className="text-sm font-bold text-white">Active Forensic Cases</h2>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-                  {filteredCases.length}
-                </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cyan-900/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-md shadow-cyan-500/20">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    ACTIVE FORENSIC DOSSIERS
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40">
+                      {filteredCases.length} INQUESTS
+                    </span>
+                  </h2>
+                  <span className="text-[10px] font-mono text-cyan-400/70 font-semibold uppercase tracking-wider">
+                    EVIDENCE TRACKER • SEC 65B CHAIN-OF-CUSTODY
+                  </span>
+                </div>
               </div>
 
               {/* Clean Search Input */}
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-cyan-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   placeholder="Search FIR or Case..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full sm:w-48 bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                  className="w-full sm:w-52 bg-slate-950 border border-cyan-900/60 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-colors"
                 />
               </div>
             </div>
 
-            {/* Category Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {/* Category Pills with Distinct Colors */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                  className={`px-3 py-1 rounded-xl text-xs whitespace-nowrap transition-all uppercase tracking-wider font-mono ${getCategoryBtnStyle(
+                    cat.id,
                     selectedCategory === cat.id
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold'
-                      : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 border border-slate-800/80'
-                  }`}
+                  )}`}
                 >
                   {cat.label}
                 </button>
               ))}
             </div>
 
-            {/* Case List Cards */}
+            {/* Case List Cards with Distinct Category Archetypes */}
             <div className="space-y-3">
               {filteredCases.length === 0 ? (
                 <div className="py-12 text-center text-slate-500 text-xs font-mono">
                   No forensic cases match your search criteria.
                 </div>
               ) : (
-                filteredCases.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      if (onSelectCase) onSelectCase(c.id);
-                      setActiveTab('cases');
-                    }}
-                    className="group cursor-pointer rounded-xl bg-slate-950/70 border border-slate-800/80 p-4 hover:border-emerald-500/40 hover:bg-slate-950 transition-all shadow-sm space-y-2.5"
-                  >
-                    {/* Top Row: Case ID, FIR, Status */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/30 px-2 py-0.5 rounded border border-emerald-800/50">
-                          {c.id}
-                        </span>
-                        <span className="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                          {c.firNumber}
-                        </span>
-                        <StatusBadge type="priority" value={c.priority} />
+                filteredCases.map((c) => {
+                  const style = getCategoryStyle(c.category);
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        if (onSelectCase) onSelectCase(c.id);
+                        setActiveTab('cases');
+                      }}
+                      className={`group cursor-pointer rounded-xl bg-slate-950/80 border border-slate-800/90 p-4 transition-all shadow-md hover:bg-slate-950 space-y-2.5 ${style.border} ${style.bgGlow}`}
+                    >
+                      {/* Top Row: Case ID, FIR, Status */}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs font-mono font-black px-2 py-0.5 rounded border ${style.badge}`}>
+                            {c.id}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-slate-300 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800">
+                            FIR: {c.firNumber}
+                          </span>
+                          <StatusBadge type="priority" value={c.priority} />
+                        </div>
+                        <StatusBadge type="case" value={c.status} />
                       </div>
-                      <StatusBadge type="case" value={c.status} />
-                    </div>
 
-                    {/* Title */}
-                    <div className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
-                      {c.title}
-                    </div>
-
-                    {/* Meta details & Crime Scene Photos Attached */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2 border-t border-slate-900">
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="text-slate-400 text-[11px] truncate max-w-[200px]">
-                          {c.category}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[10px] text-cyan-300 font-mono bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40">
-                          <Camera className="w-3 h-3 text-cyan-400" />
-                          <span>{c.documents?.length || c._count?.documents || 2} Photos Attached</span>
-                        </span>
+                      {/* Main Title - BOLD with category accent */}
+                      <div className="text-sm font-black text-white group-hover:text-cyan-300 transition-colors tracking-tight flex items-center gap-2">
+                        <span className="text-base">{style.icon}</span>
+                        <span>{c.title}</span>
                       </div>
-                      <span className="text-[11px] text-slate-500 font-mono">{getTimeAgo(c.updatedAt)}</span>
+
+                      {/* Meta details & Crime Scene Photos Attached */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2 border-t border-slate-900">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${style.pill}`}>
+                            {c.category}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] text-cyan-300 font-mono bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40">
+                            <Camera className="w-3 h-3 text-cyan-400" />
+                            <span>{c.documents?.length || c._count?.documents || 2} Artifacts Hashed</span>
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 font-mono">{getTimeAgo(c.updatedAt)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -528,7 +732,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span className="font-mono text-[11px]">Total {recentCases.length} Registered Cases</span>
             <button
               onClick={() => setActiveTab('cases')}
-              className="text-emerald-400 hover:text-emerald-300 font-semibold inline-flex items-center gap-1 transition-colors"
+              className="text-cyan-400 hover:text-cyan-300 font-bold inline-flex items-center gap-1 transition-colors"
             >
               Open Full Case Registry →
             </button>
@@ -538,15 +742,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* RIGHT COLUMN: ACTIVITY FEED & LAB REPORTS (5 COLS) */}
         <div className="lg:col-span-5 rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-sm space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
-            {/* Header Tabs */}
+            {/* Header Tabs with Multi-Color Active States */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full">
+              <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-slate-800/90 w-full">
                 <button
                   onClick={() => setRightTab('hologram')}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider font-mono ${
                     rightTab === 'hologram'
-                      ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-black shadow-lg shadow-cyan-500/25'
+                      : 'text-slate-400 hover:text-white font-bold'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -554,10 +758,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </button>
                 <button
                   onClick={() => setRightTab('audit')}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider font-mono ${
                     rightTab === 'audit'
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black shadow-lg shadow-purple-500/25'
+                      : 'text-slate-400 hover:text-white font-bold'
                   }`}
                 >
                   <History className="w-3.5 h-3.5" />
@@ -565,14 +769,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </button>
                 <button
                   onClick={() => setRightTab('reports')}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider font-mono ${
                     rightTab === 'reports'
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-bold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black shadow-lg shadow-amber-500/25'
+                      : 'text-slate-400 hover:text-white font-bold'
                   }`}
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Recent Reports</span>
+                  <span>Lab Reports</span>
                 </button>
               </div>
             </div>

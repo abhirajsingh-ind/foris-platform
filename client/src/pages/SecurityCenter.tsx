@@ -71,24 +71,33 @@ export const SecurityCenterPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header with Bold Main Topic & Live Telemetry Pill */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border-2 border-rose-500/30 shadow-xl shadow-rose-950/20">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-cyan-400" />
-            Security Monitoring & Anomaly Center
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-mono font-bold tracking-widest text-rose-400 uppercase bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/40">
+              TOPIC: BACKEND DEFENSE OPERATIONS
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-[10px] font-mono text-emerald-400 font-bold">SHIELD INTEGRITY 100%</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-wider uppercase flex items-center gap-2">
+            <ShieldAlert className="w-6 h-6 text-rose-400" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-400 via-amber-300 to-cyan-400">
+              SECURITY MONITORING & ANOMALY RADAR
+            </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time defense posture inspection, rule-based behavioral anomaly detection, and privilege enforcement.
+          <p className="text-xs text-slate-300 font-medium mt-1">
+            Real-time defense posture inspection, behavioral anomaly heuristic engine, and cryptographic privilege enforcement.
           </p>
         </div>
 
         <button
           onClick={handleTriggerJudgeViolationTest}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-950/40 transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-rose-950/40 transition-all active:scale-95 shrink-0"
         >
-          <AlertOctagon className="w-4 h-4" />
-          <span>Simulate Judicial Violation (403 Demo)</span>
+          <AlertOctagon className="w-4 h-4 text-slate-950" />
+          <span>Simulate Judicial Violation (403 Test)</span>
         </button>
       </div>
 
@@ -99,37 +108,109 @@ export const SecurityCenterPage: React.FC = () => {
         </div>
       )}
 
-      {/* Defense Posture Indicators */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+      {/* Defense Posture Indicators - 6 DISTINCT ARCHITECTURAL GUARD TILES */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            Core Defense Posture (100% Operational)
-          </span>
-          <span className="text-xs text-emerald-400 font-mono flex items-center gap-1.5 font-bold">
+          <div>
+            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+              TOPIC: CORE GUARDS
+            </span>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              DEFENSE POSTURE MATRIX (100% OPERATIONAL)
+            </h3>
+          </div>
+          <span className="text-xs text-emerald-400 font-mono flex items-center gap-1.5 font-black bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-500/40">
             <CheckCircle2 className="w-4 h-4" />
-            All Guards Active
+            ALL GUARDS ACTIVE
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           {[
-            { label: 'Authentication', active: true },
-            { label: 'Server RBAC / ABAC', active: true },
-            { label: 'Audit Chaining', active: true },
-            { label: 'SHA-256 Hashing', active: true },
-            { label: 'Session Armor', active: true },
-            { label: 'Anomaly Engine', active: true },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30 text-center space-y-1"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-              <span className="text-xs font-semibold text-slate-200 block">{item.label}</span>
-              <span className="text-[10px] text-emerald-400 font-mono font-bold block">ACTIVE</span>
-            </div>
-          ))}
+            {
+              label: 'Authentication',
+              code: 'G-01',
+              color: 'cyan',
+              border: 'border-cyan-500/40 hover:border-cyan-400',
+              bg: 'from-cyan-950/50 via-slate-900 to-slate-950',
+              text: 'text-cyan-300',
+              badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+              icon: Lock,
+            },
+            {
+              label: 'RBAC / ABAC',
+              code: 'G-02',
+              color: 'purple',
+              border: 'border-purple-500/40 hover:border-purple-400',
+              bg: 'from-purple-950/50 via-slate-900 to-slate-950',
+              text: 'text-purple-300',
+              badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+              icon: ShieldCheck,
+            },
+            {
+              label: 'Audit Chaining',
+              code: 'G-03',
+              color: 'emerald',
+              border: 'border-emerald-500/40 hover:border-emerald-400',
+              bg: 'from-emerald-950/50 via-slate-900 to-slate-950',
+              text: 'text-emerald-300',
+              badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+              icon: Activity,
+            },
+            {
+              label: 'SHA-256 Hash',
+              code: 'G-04',
+              color: 'amber',
+              border: 'border-amber-500/40 hover:border-amber-400',
+              bg: 'from-amber-950/50 via-slate-900 to-slate-950',
+              text: 'text-amber-300',
+              badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+              icon: Cpu,
+            },
+            {
+              label: 'Session Armor',
+              code: 'G-05',
+              color: 'blue',
+              border: 'border-blue-500/40 hover:border-blue-400',
+              bg: 'from-blue-950/50 via-slate-900 to-slate-950',
+              text: 'text-blue-300',
+              badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+              icon: Server,
+            },
+            {
+              label: 'Anomaly Engine',
+              code: 'G-06',
+              color: 'rose',
+              border: 'border-rose-500/40 hover:border-rose-400',
+              bg: 'from-rose-950/50 via-slate-900 to-slate-950',
+              text: 'text-rose-300',
+              badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+              icon: AlertTriangle,
+            },
+          ].map((item) => {
+            const IconComp = item.icon;
+            return (
+              <div
+                key={item.label}
+                className={`bg-gradient-to-br ${item.bg} p-3.5 rounded-2xl border-2 ${item.border} text-center space-y-2 transition-all shadow-md group hover:scale-[1.03]`}
+              >
+                <div className="flex items-center justify-between text-[9px] font-mono font-bold text-slate-400">
+                  <span>{item.code}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                </div>
+                <div className="w-9 h-9 mx-auto rounded-xl bg-slate-900/90 flex items-center justify-center shadow-inner">
+                  <IconComp className={`w-4 h-4 ${item.text}`} />
+                </div>
+                <span className="text-xs font-black text-white block uppercase tracking-tight">
+                  {item.label}
+                </span>
+                <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border block ${item.badge}`}>
+                  ENFORCED
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

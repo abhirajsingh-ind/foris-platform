@@ -65,10 +65,24 @@ const renderInlineMarkdown = (content: string) => {
   const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
   return parts.map((part, pIdx) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={pIdx} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+      return (
+        <strong
+          key={pIdx}
+          className="font-black text-white px-1 py-0.5 rounded bg-slate-800/80 border border-slate-700/80 text-cyan-200 tracking-wide inline-block"
+        >
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={pIdx} className="px-1.5 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800 font-mono text-[11px]">{part.slice(1, -1)}</code>;
+      return (
+        <code
+          key={pIdx}
+          className="px-1.5 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800 font-mono text-[11px]"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
     }
     return part;
   });
@@ -111,10 +125,67 @@ const renderTextLines = (text: string, keyPrefix: string) => {
   return lines.map((line, idx) => {
     const k = `${keyPrefix}-${idx}`;
     if (line.startsWith('### ')) {
+      const topicText = line.replace('### ', '');
+      const lower = topicText.toLowerCase();
+      let theme = {
+        border: 'border-cyan-500/40',
+        bg: 'from-cyan-950/60 via-slate-900 to-slate-950',
+        text: 'text-cyan-300',
+        icon: '⚡',
+        badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+      };
+      if (lower.includes('evidence') || lower.includes('vault') || lower.includes('sha') || lower.includes('hash')) {
+        theme = {
+          border: 'border-emerald-500/40',
+          bg: 'from-emerald-950/60 via-slate-900 to-slate-950',
+          text: 'text-emerald-300',
+          icon: '🛡️',
+          badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        };
+      } else if (lower.includes('law') || lower.includes('legal') || lower.includes('section') || lower.includes('court') || lower.includes('report') || lower.includes('act')) {
+        theme = {
+          border: 'border-amber-500/40',
+          bg: 'from-amber-950/60 via-slate-900 to-slate-950',
+          text: 'text-amber-300',
+          icon: '⚖️',
+          badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        };
+      } else if (lower.includes('audit') || lower.includes('hsm') || lower.includes('crypto') || lower.includes('blockchain') || lower.includes('key')) {
+        theme = {
+          border: 'border-purple-500/40',
+          bg: 'from-purple-950/60 via-slate-900 to-slate-950',
+          text: 'text-purple-300',
+          icon: '🔮',
+          badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+        };
+      } else if (lower.includes('warning') || lower.includes('critical') || lower.includes('alert') || lower.includes('tamper') || lower.includes('error')) {
+        theme = {
+          border: 'border-rose-500/40',
+          bg: 'from-rose-950/60 via-slate-900 to-slate-950',
+          text: 'text-rose-300',
+          icon: '🚨',
+          badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+        };
+      }
+
       return (
-        <h3 key={k} className="text-sm font-bold text-emerald-300 pt-1.5 pb-0.5 flex items-center gap-1.5">
-          {line.replace('### ', '')}
-        </h3>
+        <div
+          key={k}
+          className={`my-3 p-3 rounded-xl bg-gradient-to-r ${theme.bg} border-2 ${theme.border} shadow-md space-y-1`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
+              TOPIC FOCUS
+            </span>
+            <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${theme.badge}`}>
+              VERIFIED KNOWLEDGE
+            </span>
+          </div>
+          <h3 className={`text-sm sm:text-base font-black uppercase tracking-wide flex items-center gap-2 ${theme.text} drop-shadow`}>
+            <span>{theme.icon}</span>
+            <span>{topicText}</span>
+          </h3>
+        </div>
       );
     }
     if (line.startsWith('- ') || line.startsWith('• ')) {
