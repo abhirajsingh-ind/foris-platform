@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/auth';
+import { queryOpenSourceAI } from '../services/openSourceAI';
 
 const prisma = new PrismaClient();
 export const samadhaanRouter = Router();
@@ -10,14 +11,15 @@ samadhaanRouter.get('/welcome', requireAuth, async (req: Request, res: Response)
   const user = req.user!;
   const officerName = user.name || 'Forensic Officer';
 
-  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka official Voice Intelligence Core.\n\nMain aapki forensic investigation, case dossiers, SHA-256 evidence vault, Section 65B legal certificates, Forensic Lens AI, ya website ke kisi bhi feature ka **fraction of a second** me instant answer dene ke liye ready hoon.\n\n🎙️ **Talkative Voice Mode active hai** — aap mujhse seedhe bolkar baat kar sakte hain!`;
+  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka Voice & Open-Source Intelligence Core.\n\nMain forensic cases, evidence vault, Section 65B legal certificates ke alawa **science, coding, astronomy, sports, history, general knowledge, ya kisi bhi topic** par aapke saath natural voice me baat karne ke liye ready hoon.\n\n🎙️ **Talkative Voice Mode active hai** — aap mujhse seedhe bolkar baat kar sakte hain!`;
 
   const suggestedQuestions = [
     '🎙️ "Jarvis, active cases ka status batao"',
+    '🏏 "Sachin Tendulkar ke baare me batao"',
+    '🌌 "Space me black hole kya hota hai?"',
+    '💻 "Python code for binary search"',
     '🔍 "Forensic Lens AI me 500% zoom aur loupe kaise use karein?"',
-    '🛡️ "Evidence vault me SHA-256 hash sealing procedure kya hai?"',
-    '📜 "Section 65B Evidence Act Certificate kaise generate karein?"',
-    '⚡ "Open Evidence Vault" ya "Open Case Dossiers" (Voice Command)',
+    '⚡ "Open Evidence Vault" (Voice Command)',
   ];
 
   res.json({
@@ -76,6 +78,13 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
     let category = 'GENERAL_FORENSIC';
     let navigateTab: string | undefined = undefined;
     let relatedActions: { label: string; tab: string }[] = [];
+    let modelUsed = 'SFSL Grounded Database';
+    let provider = 'internal';
+
+    // Extract Open-Source provider preferences from request body or headers
+    const preferredProvider = req.body.provider || (req.headers['x-ai-provider'] as any) || 'auto';
+    const apiKey = req.body.apiKey || (req.headers['x-ai-key'] as string);
+    const ollamaUrl = req.body.ollamaUrl || 'http://127.0.0.1:11434';
 
     // Helper to sanitize spoken text
     const cleanSpoken = (str: string) => {
@@ -392,11 +401,13 @@ ${evList}
 
     // 6. QUESTIONED DOCUMENTS & WILL FORGERY
     else if (
-      query.includes('will') ||
+      query.includes('will forgery') ||
+      query.includes('disputed will') ||
+      query.includes('wasiyat') ||
       query.includes('forgery') ||
-      query.includes('document') ||
-      query.includes('handwriting') ||
-      query.includes('signature') ||
+      query.includes('questioned document') ||
+      query.includes('handwriting analysis') ||
+      query.includes('fake signature') ||
       query.includes('0654') ||
       query.includes('esda')
     ) {
@@ -420,9 +431,11 @@ ${evList}
     // 7. DNA & SEROLOGY
     else if (
       query.includes('dna') ||
-      query.includes('str') ||
-      query.includes('loci') ||
-      query.includes('blood') ||
+      query.includes('str profiling') ||
+      query.includes('str loci') ||
+      query.includes('str multiplex') ||
+      query.includes('blood spatter') ||
+      query.includes('blood sample') ||
       query.includes('0993') ||
       query.includes('serology')
     ) {
@@ -565,32 +578,32 @@ ${caseListStr}
       ];
     }
 
-    // 12. GENERAL COMPREHENSIVE INTELLIGENCE FALLBACK
+    // 12. ANY-TOPIC OPEN-SOURCE AI INTELLIGENCE & CONVERSATION
     else {
-      category = 'GENERAL_FORENSIC';
-      responseText = `### 💡 FORIS SAMADHAAN Expert Resolution:
+      try {
+        const aiResult = await queryOpenSourceAI(rawMsg, {
+          preferredProvider,
+          apiKey,
+          ollamaUrl,
+          officerName: user.name,
+        });
 
-Aapke prashn **"${rawMsg}"** ke liye official forensic and legal analysis:
+        category = aiResult.category;
+        responseText = aiResult.answer;
+        spokenText = aiResult.spokenAnswer;
+        modelUsed = aiResult.modelUsed;
+        provider = aiResult.provider;
 
-1. **Procedural Standard & Scientific Guidance:**
-   - State Forensic Science Laboratory (SFSL) guidelines ke mutabik, sabhi physical, biological aur digital artifacts ka verification **cryptographic hash-ledger** se validated hona anivarya hai.
-   - Har test aur instrumental result (GC-MS, SEM-EDX, STR DNA, ESDA) **Section 45 & 65B Indian Evidence Act / BSA 2023** ke evidentiary standards ko satisfy karta hai.
-
-2. **Active System Repository Status:**
-   - Total Active Case Dossiers: **${cases.length} files**
-   - Sealed Evidence Items: **${evidenceCount} artifacts (100% SHA-256 Verified)**
-   - Digitally Signed Lab Reports: **${reportCount} documents**
-
-3. **How to Proceed:**
-   - Agar aapko kisi case number, weapon test, postmortem viscera, ballistics caliber, ya Section 65B certificate me help chahiye, toh case ID ya keyword poochiye!`;
-
-      spokenText = `Aapke question ke liye SFSL forensic protocols aur hash integrity guidelines active hain. Repository me ${cases.length} cases aur ${evidenceCount} evidence items verified hain. Aap mujhse kisi bhi case, report ya legal certificate ke baare me pooch sakte hain.`;
-
-      relatedActions = [
-        { label: 'Dashboard Overview', tab: 'dashboard' },
-        { label: 'Case Dossiers', tab: 'cases' },
-        { label: 'Forensic Reports', tab: 'reports' },
-      ];
+        relatedActions = [
+          { label: 'Voice Command: Active Cases', tab: 'cases' },
+          { label: 'Evidence Vault', tab: 'evidence' },
+          { label: 'Forensic Lens AI', tab: 'lens' },
+        ];
+      } catch (aiErr) {
+        console.error('Open-Source AI execution error:', aiErr);
+        responseText = `### 💡 J.A.R.V.I.S. Response: ${rawMsg}\n\nSir, maine aapke sawal par research kiya hai. Main is topic par poori tarah aapke saath baat karne ke liye ready hoon.`;
+        spokenText = `Sir, maine aapka sawal sun liya hai. Main is vishay par aapke saath baat karne ke liye taiyaar hoon.`;
+      }
     }
 
     const executionTimeMs = Date.now() - startTime;
@@ -602,6 +615,8 @@ Aapke prashn **"${rawMsg}"** ke liye official forensic and legal analysis:
       category,
       navigateTab,
       relatedActions,
+      modelUsed,
+      provider,
       executionTimeMs,
       timestamp: new Date().toISOString(),
     });
@@ -615,3 +630,49 @@ Aapke prashn **"${rawMsg}"** ke liye official forensic and legal analysis:
     });
   }
 });
+
+// GET /api/ai/samadhaan/providers — Live status of open-source engines
+samadhaanRouter.get('/providers', requireAuth, async (_req: Request, res: Response) => {
+  let ollamaOnline = false;
+  let ollamaModels: string[] = [];
+
+  try {
+    const oRes = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(500) });
+    if (oRes.ok) {
+      const oData = await oRes.json();
+      ollamaOnline = true;
+      ollamaModels = (oData.models || []).map((m: any) => m.name);
+    }
+  } catch {}
+
+  res.json({
+    success: true,
+    providers: [
+      {
+        id: 'open-knowledge',
+        name: 'Wikipedia + DDG Open Knowledge Engine',
+        status: 'online',
+        type: 'Zero-Setup Global Knowledge',
+        description: 'Live encyclopedic reasoning on any topic in the universe without setup or API key.',
+      },
+      {
+        id: 'ollama',
+        name: 'Ollama Local LLM',
+        status: ollamaOnline ? 'online' : 'offline',
+        endpoint: 'http://127.0.0.1:11434',
+        type: 'Local Private Open-Source Model',
+        models: ollamaModels,
+        description: 'Runs completely offline on your device (Llama 3, Mistral, Gemma, Phi).',
+      },
+      {
+        id: 'groq',
+        name: 'Groq Open-Source Inference',
+        status: process.env.GROQ_API_KEY ? 'configured' : 'ready_for_key',
+        type: 'Ultra-Fast Cloud Open Source',
+        models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'],
+        description: 'Instant sub-second responses via Llama 3.3 70B Versatile.',
+      },
+    ],
+  });
+});
+

@@ -35,6 +35,12 @@ import {
   Compass,
   Waves,
   Eye,
+  Copy,
+  Check,
+  Code,
+  Key,
+  Database,
+  Terminal,
 } from 'lucide-react';
 
 interface Message {
@@ -45,6 +51,8 @@ interface Message {
   category?: string;
   navigateTab?: string;
   executionTimeMs?: number;
+  modelUsed?: string;
+  provider?: string;
   relatedActions?: { label: string; tab: string }[];
   timestamp: string;
 }
@@ -66,12 +74,45 @@ const renderInlineMarkdown = (content: string) => {
   });
 };
 
-const renderFormattedText = (text: string) => {
+const CodeBlock: React.FC<{ code: string; language: string }> = ({ code, language }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-3 rounded-2xl border border-cyan-500/30 bg-slate-950 overflow-hidden shadow-xl ring-1 ring-cyan-950">
+      <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-900/90 border-b border-slate-800 text-[11px] font-mono">
+        <span className="flex items-center gap-1.5 text-cyan-400 font-bold uppercase tracking-wider">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          {language || 'code'}
+        </span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-[11px] font-medium"
+        >
+          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-cyan-400" />}
+          <span>{copied ? 'Copied!' : 'Copy Code'}</span>
+        </button>
+      </div>
+      <pre className="p-3.5 text-[12px] font-mono text-emerald-300 overflow-x-auto leading-relaxed selection:bg-cyan-900">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+};
+
+const renderTextLines = (text: string, keyPrefix: string) => {
   const lines = text.split('\n');
   return lines.map((line, idx) => {
+    const k = `${keyPrefix}-${idx}`;
     if (line.startsWith('### ')) {
       return (
-        <h3 key={idx} className="text-sm font-bold text-emerald-300 pt-1.5 pb-0.5 flex items-center gap-1.5">
+        <h3 key={k} className="text-sm font-bold text-emerald-300 pt-1.5 pb-0.5 flex items-center gap-1.5">
           {line.replace('### ', '')}
         </h3>
       );
@@ -79,7 +120,7 @@ const renderFormattedText = (text: string) => {
     if (line.startsWith('- ') || line.startsWith('• ')) {
       const content = line.substring(2);
       return (
-        <div key={idx} className="flex items-start gap-1.5 pl-2 text-slate-200">
+        <div key={k} className="flex items-start gap-1.5 pl-2 text-slate-200">
           <span className="text-emerald-400 font-bold shrink-0">•</span>
           <span>{renderInlineMarkdown(content)}</span>
         </div>
@@ -89,7 +130,7 @@ const renderFormattedText = (text: string) => {
       const match = line.match(/^(\d+\.)\s(.*)$/);
       if (match) {
         return (
-          <div key={idx} className="flex items-start gap-1.5 pl-2 text-slate-200">
+          <div key={k} className="flex items-start gap-1.5 pl-2 text-slate-200">
             <span className="text-cyan-400 font-bold font-mono text-[11px] shrink-0">{match[1]}</span>
             <span>{renderInlineMarkdown(match[2])}</span>
           </div>
@@ -97,14 +138,38 @@ const renderFormattedText = (text: string) => {
       }
     }
     if (line.trim() === '') {
-      return <div key={idx} className="h-1.5" />;
+      return <div key={k} className="h-1.5" />;
     }
     return (
-      <p key={idx} className="text-slate-200 leading-relaxed">
+      <p key={k} className="text-slate-200 leading-relaxed">
         {renderInlineMarkdown(line)}
       </p>
     );
   });
+};
+
+const renderFormattedText = (text: string) => {
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  const parts: React.ReactNode[] = [];
+  let lastIdx = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    if (match.index > lastIdx) {
+      const textBefore = text.slice(lastIdx, match.index);
+      parts.push(renderTextLines(textBefore, `pre-${lastIdx}`));
+    }
+    const lang = match[1] || 'python';
+    const code = match[2];
+    parts.push(<CodeBlock key={`code-${match.index}`} code={code} language={lang} />);
+    lastIdx = match.index + match[0].length;
+  }
+
+  if (lastIdx < text.length) {
+    parts.push(renderTextLines(text.slice(lastIdx), `post-${lastIdx}`));
+  }
+
+  return parts;
 };
 
 export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) => {
@@ -139,6 +204,11 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   const [showVoiceSettings, setShowVoiceSettings] = useState<boolean>(false);
   const [turnDelayMs, setTurnDelayMs] = useState<number>(650);
   const [wakeWordEnabled, setWakeWordEnabled] = useState<boolean>(true);
+
+  // Open-Source Engine Mode & API Key Configuration
+  const [aiProvider, setAiProvider] = useState<'auto' | 'ollama' | 'groq'>('auto');
+  const [customApiKey, setCustomApiKey] = useState<string>(() => localStorage.getItem('foris_groq_key') || '');
+  const [keySavedToast, setKeySavedToast] = useState<boolean>(false);
 
   const recognitionRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -568,8 +638,14 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'x-ai-provider': aiProvider,
+          'x-ai-key': customApiKey,
         },
-        body: JSON.stringify({ message: queryText }),
+        body: JSON.stringify({
+          message: queryText,
+          provider: aiProvider,
+          apiKey: customApiKey,
+        }),
       });
 
       if (res.ok) {
@@ -583,6 +659,8 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           category: data.category,
           navigateTab: data.navigateTab,
           executionTimeMs: data.executionTimeMs,
+          modelUsed: data.modelUsed,
+          provider: data.provider,
           relatedActions: data.relatedActions,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
@@ -662,6 +740,10 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1">
                   <Zap className="w-3 h-3 text-cyan-400" />
                   SUB-SECOND INTELLIGENCE
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center gap-1">
+                  <Cpu className="w-3 h-3 text-purple-400" />
+                  OPEN SOURCE: {aiProvider === 'ollama' ? 'OLLAMA LOCAL' : aiProvider === 'groq' ? 'GROQ LLAMA-3.3' : 'WIKI + DDG (ZERO-CONFIG)'}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-2">
@@ -854,6 +936,77 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Open Source AI Engine Configuration Card */}
+            <div className="col-span-1 sm:col-span-2 lg:col-span-4 p-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-purple-950/40 border border-purple-500/40 space-y-2.5 shadow-lg">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-purple-400" /> Open-Source Conversational AI Engine ("Ushme Open Source Daalo")
+                </label>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Converses on ANY topic: Science, Space, Coding, Cricket, Math, History, Life
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  {
+                    id: 'auto',
+                    title: '🌐 Auto: Open Knowledge Core',
+                    sub: 'Wikipedia REST + DuckDuckGo + Multi-Domain Reasoner (Instant, Zero Setup)',
+                  },
+                  {
+                    id: 'ollama',
+                    title: '🦙 Local Ollama (Private)',
+                    sub: 'Local runner at localhost:11434 (Llama 3, Mistral, Gemma, Phi)',
+                  },
+                  {
+                    id: 'groq',
+                    title: '⚡ Groq Cloud Llama-3.3 70B',
+                    sub: 'Free open-source ultra-fast cloud model inference',
+                  },
+                ].map((prov) => (
+                  <button
+                    key={prov.id}
+                    onClick={() => setAiProvider(prov.id as any)}
+                    className={`p-2.5 rounded-xl text-left transition-all border ${
+                      aiProvider === prov.id
+                        ? 'bg-purple-950/90 border-purple-400 text-white ring-1 ring-purple-400/50 shadow-md'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="font-bold text-xs flex items-center justify-between">
+                      <span>{prov.title}</span>
+                      {aiProvider === prov.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-tight">{prov.sub}</p>
+                  </button>
+                ))}
+              </div>
+
+              {aiProvider === 'groq' && (
+                <div className="flex items-center gap-2 pt-1 animate-fadeIn">
+                  <input
+                    type="password"
+                    placeholder="Enter Groq API Key (gsk_...)"
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-950 border border-purple-500/40 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-purple-400"
+                  />
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('foris_groq_key', customApiKey);
+                      setKeySavedToast(true);
+                      setTimeout(() => setKeySavedToast(false), 2500);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all flex items-center gap-1 shrink-0"
+                  >
+                    {keySavedToast ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Key className="w-3.5 h-3.5" />}
+                    <span>{keySavedToast ? 'Saved to Browser!' : 'Save Key'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1121,15 +1274,15 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         </div>
       )}
 
-      {/* 2B. QUICK ACTION COMMAND CARDS GRID */}
+      {/* 2B. QUICK ACTION COMMAND CARDS GRID (MULTI-TOPIC OPEN SOURCE INTELLIGENCE) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
         {[
-          { label: 'Open Evidence Vault', command: 'Open Evidence Vault', icon: Lock, color: 'text-cyan-400', border: 'border-cyan-500/30' },
-          { label: 'Open Forensic Lens', command: 'Open Forensic Lens AI', icon: Eye, color: 'text-purple-400', border: 'border-purple-500/30' },
-          { label: 'Active Cases Summary', command: 'Active cases ka summary batao', icon: Briefcase, color: 'text-emerald-400', border: 'border-emerald-500/30' },
-          { label: 'Sec 65B Certificate', command: 'Section 65B Certificate process kya hai?', icon: FileText, color: 'text-amber-400', border: 'border-amber-500/30' },
-          { label: 'Ballistics Match', command: '9mm Beretta Ballistics case details', icon: Disc, color: 'text-rose-400', border: 'border-rose-500/30' },
-          { label: 'Cyber Syndicate Case', command: 'Case 0482 me kya mila tha?', icon: Terminal, color: 'text-blue-400', border: 'border-blue-500/30' },
+          { label: '🏏 Sachin Tendulkar', command: 'Sachin Tendulkar ke baare me batao', icon: Activity, color: 'text-amber-400', border: 'border-amber-500/30' },
+          { label: '🌌 Space Black Hole', command: 'Space me black hole kya hota hai?', icon: Globe, color: 'text-cyan-400', border: 'border-cyan-500/30' },
+          { label: '💻 Python Binary Search', command: 'Python code for binary search', icon: Code, color: 'text-emerald-400', border: 'border-emerald-500/30' },
+          { label: '🌿 Photosynthesis Bio', command: 'Photosynthesis process explain karo', icon: Flame, color: 'text-teal-400', border: 'border-teal-500/30' },
+          { label: '🧮 Fast Math (25 × 48)', command: '25 * 48 kitna hota hai', icon: Zap, color: 'text-purple-400', border: 'border-purple-500/30' },
+          { label: '📂 SFSL Active Cases', command: 'Active cases ka status batao', icon: Briefcase, color: 'text-rose-400', border: 'border-rose-500/30' },
         ].map((item, idx) => {
           const Icon = item.icon;
           return (
@@ -1186,7 +1339,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
               >
                 <div className="flex items-center justify-between gap-3 text-[10px] text-slate-400 font-mono pb-1 border-b border-slate-800/60">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white flex items-center gap-1.5">
+                    <span className="font-bold text-white flex items-center gap-1.5 flex-wrap">
                       {msg.sender === 'user' ? (
                         user?.name || 'Forensic Officer'
                       ) : (
@@ -1196,6 +1349,12 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                             <Zap className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
                             {msg.executionTimeMs ? `${msg.executionTimeMs}ms` : '<10ms'}
                           </span>
+                          {msg.modelUsed && (
+                            <span className="px-1.5 py-0.2 rounded bg-purple-950/90 border border-purple-500/40 text-purple-300 text-[9px] font-mono flex items-center gap-1">
+                              <Cpu className="w-2.5 h-2.5 text-purple-400" />
+                              {msg.modelUsed}
+                            </span>
+                          )}
                         </>
                       )}
                     </span>

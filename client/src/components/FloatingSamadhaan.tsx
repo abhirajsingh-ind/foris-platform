@@ -16,6 +16,9 @@ import {
   VolumeX,
   Zap,
   Radio,
+  Copy,
+  Check,
+  Cpu,
 } from 'lucide-react';
 
 interface FloatingSamadhaanProps {
@@ -29,8 +32,79 @@ interface MiniMessage {
   spokenAnswer?: string;
   navigateTab?: string;
   executionTimeMs?: number;
+  modelUsed?: string;
+  provider?: string;
   timestamp: string;
 }
+
+const renderInlineMarkdown = (content: string) => {
+  const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
+  return parts.map((part, pIdx) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={pIdx} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={pIdx} className="px-1 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800 font-mono text-[10px]">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+};
+
+const MiniCodeBlock: React.FC<{ code: string; language: string }> = ({ code, language }) => {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="my-2 rounded-xl border border-cyan-500/30 bg-slate-950 overflow-hidden shadow">
+      <div className="flex items-center justify-between px-2.5 py-1 bg-slate-900 border-b border-slate-800 text-[10px] font-mono">
+        <span className="text-cyan-400 font-bold uppercase">{language || 'code'}</span>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className="text-slate-400 hover:text-white flex items-center gap-1"
+        >
+          {copied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
+          <span>{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+      <pre className="p-2.5 text-[11px] font-mono text-emerald-300 overflow-x-auto leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+};
+
+const renderMiniFormattedText = (text: string) => {
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  const parts: React.ReactNode[] = [];
+  let lastIdx = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    if (match.index > lastIdx) {
+      parts.push(
+        <div key={`txt-${lastIdx}`} className="whitespace-pre-wrap">
+          {renderInlineMarkdown(text.slice(lastIdx, match.index))}
+        </div>
+      );
+    }
+    const lang = match[1] || 'code';
+    const code = match[2];
+    parts.push(<MiniCodeBlock key={`code-${match.index}`} code={code} language={lang} />);
+    lastIdx = match.index + match[0].length;
+  }
+
+  if (lastIdx < text.length) {
+    parts.push(
+      <div key={`txt-${lastIdx}`} className="whitespace-pre-wrap">
+        {renderInlineMarkdown(text.slice(lastIdx))}
+      </div>
+    );
+  }
+
+  return parts;
+};
 
 // Tactical Web Audio Synthesizer for JARVIS Sound Cues
 const playJarvisChime = (type: 'listening' | 'execute' | 'stop' | 'wake') => {
@@ -247,14 +321,16 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
 
     try {
       const token = localStorage.getItem('foris_token');
+      const storedKey = localStorage.getItem('foris_groq_key') || undefined;
       const startTime = performance.now();
       const res = await fetch('/api/ai/samadhaan/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          ...(storedKey ? { 'x-ai-key': storedKey } : {}),
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, apiKey: storedKey }),
       });
 
       if (res.ok) {
@@ -276,6 +352,8 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
           spokenAnswer: data.spokenAnswer,
           navigateTab: data.navigateTab,
           executionTimeMs: latency,
+          modelUsed: data.modelUsed,
+          provider: data.provider,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, aiMsg]);
@@ -428,7 +506,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
                       : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{m.text}</div>
+                  <div>{renderMiniFormattedText(m.text)}</div>
 
                   {/* Voice Navigation Executed Pill */}
                   {m.navigateTab && (
@@ -440,9 +518,9 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/60 text-[9px] text-slate-500">
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/60 text-[9px] text-slate-500 flex-wrap">
                     {m.sender === 'ai' ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <button
                           onClick={() => speakText(m.spokenAnswer || m.text)}
                           className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono"
@@ -453,6 +531,12 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
                           <Zap className="w-2 h-2" />
                           {m.executionTimeMs ? `${m.executionTimeMs}ms` : '<10ms'}
                         </span>
+                        {m.modelUsed && (
+                          <span className="px-1 py-0.2 rounded bg-purple-950/80 border border-purple-500/30 text-purple-300 text-[8px] font-mono flex items-center gap-0.5">
+                            <Cpu className="w-2 h-2" />
+                            {m.modelUsed}
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <span>Officer</span>
