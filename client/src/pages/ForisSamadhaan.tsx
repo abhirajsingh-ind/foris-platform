@@ -412,10 +412,14 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
       const current = finalTranscript || interimTranscript;
       setLiveTranscript(current);
 
-      // Wake Word Audio Cue ("Hey Jarvis" / "Jarvis")
+      // Wake Word Audio Cue ("Hey Gyaan Guru" / "Gyaan Guru" / "Hey Jarvis")
       if (wakeWordEnabled && current) {
         const lower = current.toLowerCase();
         if (
+          lower.includes('hey gyaan guru') ||
+          lower.includes('gyaan guru') ||
+          lower.includes('gyan guru') ||
+          lower.includes('hey gyan guru') ||
           lower.includes('hey jarvis') ||
           lower.includes('hello jarvis') ||
           lower.includes('ok jarvis') ||
@@ -600,7 +604,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 id: 'welcome-1',
                 sender: 'ai',
                 text: data.greeting,
-                spokenAnswer: `Namaste Officer ${user?.name || 'Abhiraj Singh'}. JARVIS Voice Core is online. Boliye Sir, main aapki kya madad karoon?`,
+                spokenAnswer: `Namaste Officer ${user?.name || 'Abhiraj Singh'}. GYAAN GURU Voice Core is online. Boliye Sir, main aapki kya madad karoon?`,
                 category: 'SYSTEM_GREETING',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               },
@@ -616,8 +620,8 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           {
             id: 'welcome-fallback',
             sender: 'ai',
-            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon. State Forensic Science Laboratory ke sabhi systems online hain. How can I assist you today, Sir?`,
-            spokenAnswer: `Namaste Officer. Welcome to FORIS JARVIS Voice Assistant. Systems are fully operational.`,
+            text: `नमस्ते ऑफिसर ${user?.name || 'Dr. Abhiraj Singh'}! 🙏\n\nMain **GYAAN GURU (FORIS SAMADHAAN AI)** hoon. State Forensic Science Laboratory ke sabhi systems online hain. How can I assist you today, Sir?`,
+            spokenAnswer: `Namaste Officer. Welcome to FORIS GYAAN GURU Voice Assistant. Systems are fully operational.`,
             category: 'SYSTEM_GREETING',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
@@ -704,7 +708,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         // Auto-navigate if voice command requested tab switch
         if (data.navigateTab && setActiveTab) {
           playJarvisChime('execute');
-          setNavigationToast(`⚡ JARVIS ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
+          setNavigationToast(`⚡ GYAAN GURU ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
           setTimeout(() => {
             setActiveTab(data.navigateTab);
             setNavigationToast(null);
@@ -751,7 +755,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
   return (
     <div className="space-y-4 pb-10 max-w-6xl mx-auto font-sans text-slate-100 animate-fadeIn">
-      {/* 1. JARVIS HOLOGRAPHIC COMMAND HEADER */}
+      {/* 1. GYAAN GURU HOLOGRAPHIC COMMAND HEADER */}
       <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 border-2 border-cyan-500/40 p-5 sm:p-6 shadow-2xl shadow-cyan-950/60 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -805,7 +809,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                   ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-emerald-500/30 ring-2 ring-emerald-400/50'
                   : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-700'
               }`}
-              title="Toggle JARVIS Continuous Talkative Turn-Taking"
+              title="Toggle GYAAN GURU Continuous Talkative Turn-Taking"
             >
               <Radio className={`w-3.5 h-3.5 ${isTalkativeMode ? 'text-emerald-300 animate-pulse' : ''}`} />
               <span>{isTalkativeMode ? '🎙️ Talkative Mode: ON' : 'Talkative Mode: OFF'}</span>
@@ -876,7 +880,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 {[
-                  { id: 'jarvis', label: '🤖 Executive' },
+                  { id: 'jarvis', label: '🤖 Guru Executive' },
                   { id: 'soft', label: '🕊️ Soft Calm' },
                   { id: 'tactical', label: '⚡ Tactical' },
                   { id: 'hindi', label: '🇮🇳 Hindi Warm' },
@@ -942,7 +946,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
             <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-cyan-400 font-bold flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-cyan-400" /> "HEY JARVIS" WAKE ARM
+                  <Zap className="w-3 h-3 text-cyan-400" /> "HEY GYAAN GURU" WAKE ARM
                 </span>
                 <button
                   onClick={() => setWakeWordEnabled(!wakeWordEnabled)}
@@ -1109,7 +1113,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         </div>
       )}
 
-      {/* 2. JARVIS HOLOGRAPHIC ARC REACTOR & AUDIO FREQUENCY VISUALIZER */}
+      {/* 2. GYAAN GURU HOLOGRAPHIC ARC REACTOR & AUDIO FREQUENCY VISUALIZER */}
       {isVoiceMode && (
         <div className="rounded-3xl bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/60 border-2 border-cyan-500/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-fadeIn">
           {/* Subtle Grid Matrix Background */}
@@ -1262,7 +1266,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                       <>
                         <Sparkles className="w-9 h-9 text-cyan-400 group-hover:rotate-12 transition-transform drop-shadow" />
                         <span className="text-[9px] font-mono font-black mt-1 text-cyan-300 tracking-wider">
-                          JARVIS VOICE
+                          GYAAN GURU VOICE
                         </span>
                       </>
                     )}
@@ -1287,7 +1291,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 <div className="flex justify-between text-slate-300">
                   <span className="text-slate-500">Wake Word:</span>
                   <span className={wakeWordEnabled ? "text-emerald-400" : "text-slate-500"}>
-                    {wakeWordEnabled ? '"Hey Jarvis" Armed' : 'Muted'}
+                    {wakeWordEnabled ? '"Hey Gyaan Guru" Armed' : 'Muted'}
                   </span>
                 </div>
               </div>
@@ -1322,7 +1326,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 ) : isSpeaking ? (
                   <span className="text-cyan-300 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    JARVIS Speaking Response...
+                    GYAAN GURU Speaking Response...
                   </span>
                 ) : loading ? (
                   <span className="text-amber-400 flex items-center gap-1.5">
@@ -1331,7 +1335,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                   </span>
                 ) : (
                   <span className="text-slate-400 flex items-center gap-2">
-                    <span>Click orb or say <strong>"Hey Jarvis"</strong> to ask any question</span>
+                    <span>Click orb or say <strong>"Hey Gyaan Guru"</strong> to ask any question</span>
                   </span>
                 )}
               </div>
@@ -1428,7 +1432,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                         user?.name || 'Forensic Officer'
                       ) : (
                         <>
-                          <span className="text-cyan-300">JARVIS FORENSIC AI</span>
+                          <span className="text-cyan-300">GYAAN GURU FORENSIC AI</span>
                           <span className="px-1.5 py-0.2 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-[9px] font-mono flex items-center gap-1">
                             <Zap className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
                             {msg.executionTimeMs ? `${msg.executionTimeMs}ms` : '<10ms'}

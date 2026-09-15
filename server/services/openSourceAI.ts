@@ -1,5 +1,5 @@
 /**
- * FORIS J.A.R.V.I.S. - Open-Source Intelligence & Multi-Topic Conversational Core
+ * FORIS GYAAN GURU - Open-Source Intelligence & Multi-Topic Conversational Core
  * 
  * Capabilities:
  * 1. Open Source LLM Provider Support:
@@ -120,7 +120,7 @@ export function extractCoreTopic(query: string): string {
   let cleaned = query.trim().toLowerCase();
 
   // Remove common polite or conversational prefixes
-  cleaned = cleaned.replace(/^(hey\s+jarvis|hello\s+jarvis|ok\s+jarvis|jarvis|ai\s+samadhaan|bhai|sir|please|plz)\s+/gi, '');
+  cleaned = cleaned.replace(/^(hey\s+gyaan\s+guru|gyaan\s+guru|gyan\s+guru|hey\s+jarvis|hello\s+jarvis|ok\s+jarvis|jarvis|ai\s+samadhaan|bhai|sir|please|plz)\s+/gi, '');
   cleaned = cleaned.replace(/^(batao|bataiye|kya\s+aap\s+bata\s+sakte\s+ho|mujhe\s+batao|mujhe\s+ye\s+batao\s+ki|sun|suno|explain\s+karo|explain|what\s+is|who\s+is|who\s+was|tell\s+me\s+about|tell\s+me|kya\s+hota\s+hai|kya\s+hai|kuch\s+batao|can\s+you\s+explain|give\s+me\s+info\s+on|about)\s+/gi, '');
 
   // Remove common domain/location prefixes like "space me", "physics me", "science me"
@@ -145,13 +145,13 @@ function tryEvaluateMath(query: string): OpenSourceAIResult | null {
   if (sqrtMatch) {
     const num = parseFloat(sqrtMatch[1]);
     const res = Math.sqrt(num);
-    const answer = `### 🧮 Mathematical Calculation: Square Root\n\n**Expression:** $\\sqrt{${num}}$\n\n**Result:** **${res}**\n\n$$\\sqrt{${num}} = ${res}$$\n\n*Calculated by JARVIS High-Precision Arithmetic Core.*`;
+    const answer = `### 🧮 Mathematical Calculation: Square Root\n\n**Expression:** $\\sqrt{${num}}$\n\n**Result:** **${res}**\n\n$$\\sqrt{${num}} = ${res}$$\n\n*Calculated by GYAAN GURU High-Precision Arithmetic Core.*`;
     const spokenAnswer = `${num} ka square root ${res} hota hai, Sir.`;
     return {
       answer,
       spokenAnswer,
       category: 'MATHEMATICS',
-      modelUsed: 'JARVIS Math Engine',
+      modelUsed: 'GYAAN GURU Math Engine',
       provider: 'internal-neural',
       topic: `Square root of ${num}`,
     };
@@ -169,32 +169,32 @@ function tryEvaluateMath(query: string): OpenSourceAIResult | null {
       answer,
       spokenAnswer,
       category: 'MATHEMATICS',
-      modelUsed: 'JARVIS Math Engine',
+      modelUsed: 'GYAAN GURU Math Engine',
       provider: 'internal-neural',
       topic: `${pct}% of ${base}`,
     };
   }
 
-  // Arithmetic regex: numbers with operators +, -, *, /, x, ^
-  const mathRegex = /^\s*(\d+(?:\.\d+)?)\s*([\+\-\*\/xX\^])\s*(\d+(?:\.\d+)?)\s*(?:kitna\s+hota\s+hai|equals|\=)?\s*$/i;
+  // Arithmetic regex: numbers with operators +, -, *, /, x, ^, plus, minus, into, times
+  const mathRegex = /^\s*(\d+(?:\.\d+)?)\s*([\+\-\*\/xX\^]|plus|minus|into|times|divided\s+by)\s*(\d+(?:\.\d+)?)\s*(?:kitna\s+(?:hoga|hota\s+hai|hai)|equals|\=|\?)*\s*$/i;
   const arithMatch = lower.match(mathRegex);
   if (arithMatch) {
     const a = parseFloat(arithMatch[1]);
-    const op = arithMatch[2].toLowerCase();
+    const op = arithMatch[2].toLowerCase().trim();
     const b = parseFloat(arithMatch[3]);
     let result = 0;
     let opSymbol = op;
 
     if (op === '+' || op === 'plus') { result = a + b; opSymbol = '+'; }
     else if (op === '-' || op === 'minus') { result = a - b; opSymbol = '-'; }
-    else if (op === '*' || op === 'x') { result = a * b; opSymbol = '×'; }
-    else if (op === '/') {
+    else if (op === '*' || op === 'x' || op === 'into' || op === 'times') { result = a * b; opSymbol = '×'; }
+    else if (op === '/' || op.includes('divide')) {
       if (b === 0) {
         return {
           answer: `### 🧮 Mathematical Exception\n\nDivision by zero is **undefined** in mathematics.`,
           spokenAnswer: `Sir, zero se divide karna mathematically undefined hai.`,
           category: 'MATHEMATICS',
-          modelUsed: 'JARVIS Math Engine',
+          modelUsed: 'GYAAN GURU Math Engine',
           provider: 'internal-neural',
         };
       }
@@ -211,7 +211,7 @@ function tryEvaluateMath(query: string): OpenSourceAIResult | null {
       answer,
       spokenAnswer,
       category: 'MATHEMATICS',
-      modelUsed: 'JARVIS Math Engine',
+      modelUsed: 'GYAAN GURU Math Engine',
       provider: 'internal-neural',
       topic: `${a} ${opSymbol} ${b}`,
     };
@@ -255,7 +255,7 @@ function tryGenerateCodingSolution(query: string): OpenSourceAIResult | null {
     if (isRecursive) {
       return {
         category: 'PROGRAMMING_AI',
-        modelUsed: 'JARVIS Open Code Core',
+        modelUsed: 'GYAAN GURU Open Code Core',
         provider: 'internal-neural',
         topic: 'Recursive Binary Search (Python & JS)',
         answer: `### 💻 Recursive Binary Search Algorithm
@@ -307,7 +307,7 @@ function binarySearchRecursive(arr, left, right, target) {
     if (isPython) {
       return {
         category: 'PROGRAMMING_AI',
-        modelUsed: 'JARVIS Open Code Core',
+        modelUsed: 'GYAAN GURU Open Code Core',
         provider: 'internal-neural',
         topic: 'Binary Search Algorithm (Python)',
         answer: `### 💻 Binary Search Algorithm in Python
@@ -354,7 +354,7 @@ else:
     } else {
       return {
         category: 'PROGRAMMING_AI',
-        modelUsed: 'JARVIS Open Code Core',
+        modelUsed: 'GYAAN GURU Open Code Core',
         provider: 'internal-neural',
         topic: 'Binary Search Algorithm (JavaScript)',
         answer: `### 💻 Binary Search Algorithm in JavaScript / TypeScript
@@ -400,7 +400,7 @@ console.log("Index:", binarySearch(list, 40)); // Output: 3
   if (lower.includes('two sum') || (lower.includes('two') && lower.includes('sum'))) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'Two Sum Algorithm (Hash Map O(n))',
       answer: `### ⚡ Two Sum Problem (Optimal $O(n)$ Hash Map Solution)
@@ -453,7 +453,7 @@ function twoSum(nums, target) {
   if (lower.includes('palindrome') || lower.includes('reverse string') || lower.includes('reverse a string') || lower.includes('ulta string')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'Palindrome & String Reversal Algorithms',
       answer: `### 🔁 Palindrome Checker & String Reversal
@@ -506,7 +506,7 @@ function isPalindrome(s) {
   if (lower.includes('sql') || lower.includes('join')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'SQL Queries & Relational JOINs',
       answer: `### 🗄️ SQL Queries & Table JOINs Explained
@@ -549,7 +549,7 @@ ORDER BY case_count DESC;
   if (lower.includes('linked list') || lower.includes('reverse list')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'Reverse Linked List Algorithm (Python & JS)',
       answer: `### 🔗 Reverse a Singly Linked List (Iterative $O(n)$)
@@ -586,7 +586,7 @@ def reverse_linked_list(head: ListNode) -> ListNode:
   if (lower.includes('quicksort') || lower.includes('quick sort')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'QuickSort Algorithm (Python)',
       answer: `### ⚡ QuickSort Algorithm in Python
@@ -623,7 +623,7 @@ print("Sorted Array:", sorted_array)
   if (lower.includes('fibonacci')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'Fibonacci Sequence (Python & JS)',
       answer: `### 🔢 Fibonacci Sequence Generation
@@ -652,7 +652,7 @@ print(fibonacci_iterative(10))
   if (lower.includes('async') || lower.includes('promise') || lower.includes('await')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'JavaScript Async / Await & Promises',
       answer: `### ⚡ JavaScript Async/Await & Promises Explained
@@ -692,7 +692,7 @@ async function fetchForensicData(caseId) {
   if (lower.includes('closure')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'JavaScript Closures Explained',
       answer: `### ⚡ JavaScript Closures Explained
@@ -729,7 +729,7 @@ console.log(counter.getValue());  // 12
   if (lower.includes('python')) {
     return {
       category: 'PROGRAMMING_AI',
-      modelUsed: 'JARVIS Open Code Core',
+      modelUsed: 'GYAAN GURU Open Code Core',
       provider: 'internal-neural',
       topic: 'Python Programming',
       answer: `### 🐍 Python Programming Solution
@@ -753,7 +753,7 @@ def process_data(payload: dict) -> dict:
     return result
 
 if __name__ == "__main__":
-    sample = {"module": "JARVIS", "core": "Open Source", "version": 3.2}
+    sample = {"module": "GYAAN GURU", "core": "Open Source", "version": 3.2}
     output = process_data(sample)
     print(json.dumps(output, indent=2))
 \`\`\`
@@ -774,11 +774,11 @@ function tryConversationalPersonality(query: string, officerName?: string): Open
   if (lower.includes('joke') || lower.includes('chutkula') || lower.includes('hanso') || lower.includes('hasao')) {
     const jokes = [
       {
-        text: `### 😄 J.A.R.V.I.S. Tech Humor\n\nEk programmer doctor ke paas gaya:\n\n**Doctor:** *"Aapko bohot severe fever hai, rest kijiye!"*\n\n**Programmer:** *"Doctor sahab, temporary fix mat dijiye... pehle error log check kijiye aur bug fix kijiye!"* 🐛💻`,
+        text: `### 😄 GYAAN GURU Tech Humor\n\nEk programmer doctor ke paas gaya:\n\n**Doctor:** *"Aapko bohot severe fever hai, rest kijiye!"*\n\n**Programmer:** *"Doctor sahab, temporary fix mat dijiye... pehle error log check kijiye aur bug fix kijiye!"* 🐛💻`,
         spoken: `Ek programmer doctor ke paas gaya. Doctor bola aapko severe fever hai. Programmer bola doctor sahab, temporary fix mat do, pehle error log check karke bug fix karo!`,
       },
       {
-        text: `### 😄 J.A.R.V.I.S. Tech Humor\n\nEk software developer ne apni biwi se pucha:\n*"Market jaate waqt 1 bottle doodh le aana, aur agar andey (eggs) milein toh 10 le aana."*\n\nDeveloper ghar 10 bottle doodh lekar aaya!\nBiwi ne pucha: *"10 bottle doodh kyu laye?"*\nDeveloper: *"Kyunki market me andey mil gaye the!"* (True Programmer Logic) 🥛🍳`,
+        text: `### 😄 GYAAN GURU Tech Humor\n\nEk software developer ne apni biwi se pucha:\n*"Market jaate waqt 1 bottle doodh le aana, aur agar andey (eggs) milein toh 10 le aana."*\n\nDeveloper ghar 10 bottle doodh lekar aaya!\nBiwi ne pucha: *"10 bottle doodh kyu laye?"*\nDeveloper: *"Kyunki market me andey mil gaye the!"* (True Programmer Logic) 🥛🍳`,
         spoken: `Biwi ne programmer se kaha market se ek bottle doodh lana, aur agar andey milein toh 10 lana. Programmer 10 bottle doodh le aaya kyunki andey mil gaye the!`,
       },
     ];
@@ -787,7 +787,7 @@ function tryConversationalPersonality(query: string, officerName?: string): Open
       answer: pick.text,
       spokenAnswer: pick.spoken,
       category: 'HUMOR',
-      modelUsed: 'JARVIS Wit Matrix',
+      modelUsed: 'GYAAN GURU Wit Matrix',
       provider: 'internal-neural',
     };
   }
@@ -805,7 +805,7 @@ function tryConversationalPersonality(query: string, officerName?: string): Open
   ) {
     const name = officerName || 'Officer';
     return {
-      answer: `### 🌟 J.A.R.V.I.S. Motivation & Perspective
+      answer: `### 🌟 GYAAN GURU Motivation & Perspective
 
 Namaste ${name}. Kabhi-kabhi safar me thakan aur dushwariyaan aati hain, par yaad rakhiye:
 
@@ -818,24 +818,39 @@ Namaste ${name}. Kabhi-kabhi safar me thakan aur dushwariyaan aati hain, par yaa
 3. ⚡ **Reset & Rise:** Har raat ke baad naya savera hota hai. Main har kadam par aapke saath hoon, Sir!`,
       spokenAnswer: `Officer ${name}, bilkul pareshan mat hoiye. Dr APJ Abdul Kalam ne kaha tha ki sapne wo nahi jo hum sote waqt dekhte hain, balki sapne wo hain jo humein sone nahi dete. Thoda rest lijiye aur deep breath lijiye. Main har kadam par aapke saath hoon, Sir.`,
       category: 'MOTIVATION',
-      modelUsed: 'JARVIS Empathy Core',
+      modelUsed: 'GYAAN GURU Empathy Core',
       provider: 'internal-neural',
     };
   }
 
   // Who created you / Identity
-  if (lower.includes('who created you') || lower.includes('kisne banaya') || lower.includes('iron man') || lower.includes('tony stark')) {
+  if (
+    lower.includes('who created you') ||
+    lower.includes('kisne banaya') ||
+    lower.includes('who made you') ||
+    lower.includes('iron man') ||
+    lower.includes('tony stark') ||
+    lower.includes('naam kya') ||
+    lower.includes('who are you') ||
+    lower.includes('tum kaun ho') ||
+    lower.includes('aap kaun ho') ||
+    lower === 'gyaan guru' ||
+    lower === 'gyan guru' ||
+    lower === 'jarvis' ||
+    lower === 'hey gyaan guru' ||
+    lower === 'hey jarvis'
+  ) {
     return {
-      answer: `### 🤖 J.A.R.V.I.S. Core Identity
+      answer: `### 🤖 GYAAN GURU Core Identity
 
-Main **J.A.R.V.I.S. (Just A Rather Very Intelligent System)** hoon — State Forensic Science Laboratory (SFSL) aur State Police ke liye specially architect kiya gaya Voice & Computational Intelligence Core.
+Main **GYAAN GURU** hoon — State Forensic Science Laboratory (SFSL) aur State Police ke liye specially architect kiya gaya Voice & Computational Intelligence Core.
 
-- **Inspiration:** Tony Stark ka legendary tactical AI assistant JARVIS.
-- **Mission:** High-speed data retrieval, cryptographic truth verification (SHA-256), multi-domain scientific reasoning, aur instant conversational intelligence.
+- **Role:** GYAAN GURU — Aapka 24/7 dedicated Knowledge, Coding, Science & Forensic Partner.
+- **Mission:** High-speed data retrieval, cryptographic truth verification (SHA-256), multi-domain scientific reasoning, coding algorithms, aur instant conversational intelligence.
 - **Architecture:** Open-Source Neural Engines + Real-time Wikipedia & DDG Open Knowledge Matrix.`,
-      spokenAnswer: `Main JARVIS hoon Sir, State Forensic Science Laboratory ka dedicated conversational AI. Tony Stark ke legendary AI se inspired, aur open source technology par run karta hoon. Boliye Sir, aap kis topic pe baat karna chahte hain?`,
+      spokenAnswer: `Main GYAAN GURU hoon Sir, State Forensic Science Laboratory ka dedicated conversational AI. Main forensic science, coding, technology aur kisi bhi general knowledge topic par fraction of second me baat kar sakta hoon. Boliye Sir, aap kya janna chahte hain?`,
       category: 'IDENTITY',
-      modelUsed: 'JARVIS Persona Engine',
+      modelUsed: 'GYAAN GURU Persona Engine',
       provider: 'internal-neural',
     };
   }
@@ -851,7 +866,7 @@ function tryScientificKnowledge(query: string): OpenSourceAIResult | null {
   if (lower.includes('black hole') || lower.includes('blackhole')) {
     return {
       category: 'SCIENCE_ASTRONOMY',
-      modelUsed: 'JARVIS Astrophysical Matrix',
+      modelUsed: 'GYAAN GURU Astrophysical Matrix',
       provider: 'open-knowledge',
       topic: 'Black Hole',
       answer: `### 🌌 Space Science: Black Hole (कृष्ण विवर)
@@ -871,7 +886,7 @@ Ek **Black Hole** spacetime ka ek aisa region hota hai jahan gravity itni intens
   if (lower.includes('photosynthesis') || lower.includes('prakash sanshleshan')) {
     return {
       category: 'SCIENCE_BIOLOGY',
-      modelUsed: 'JARVIS Bio-Chemical Matrix',
+      modelUsed: 'GYAAN GURU Bio-Chemical Matrix',
       provider: 'open-knowledge',
       topic: 'Photosynthesis',
       answer: `### 🌿 Biology: Photosynthesis (प्रकाश-संश्लेषण)
@@ -892,7 +907,7 @@ $$6\\text{CO}_2 + 6\\text{H}_2\\text{O} + \\text{Light} \\longrightarrow \\text{
   if (lower.includes('quantum computing') || lower.includes('quantum computer')) {
     return {
       category: 'QUANTUM_COMPUTING',
-      modelUsed: 'JARVIS Quantum Core',
+      modelUsed: 'GYAAN GURU Quantum Core',
       provider: 'open-knowledge',
       topic: 'Quantum Computing',
       answer: `### ⚛️ Quantum Computing & Superposition
@@ -914,7 +929,7 @@ Quantum Computing classical physics ki jagah **Quantum Mechanics** ke principles
   if (lower.includes('relativity') || lower.includes('einstein') || lower.includes('e=mc') || lower.includes('e = mc')) {
     return {
       category: 'THEORETICAL_PHYSICS',
-      modelUsed: 'JARVIS Relativistic Physics Matrix',
+      modelUsed: 'GYAAN GURU Relativistic Physics Matrix',
       provider: 'open-knowledge',
       topic: 'Theory of Relativity & E = mc²',
       answer: `### 🌌 Albert Einstein's Theory of Relativity & $E=mc^2$
@@ -937,7 +952,7 @@ Albert Einstein ne 1905 aur 1915 me Physics ki duniya ko badal diya jab unhone S
   if (lower.includes('speed of light') || lower.includes('light ki speed') || lower.includes('prakash ki chaal')) {
     return {
       category: 'PHYSICS_CONSTANTS',
-      modelUsed: 'JARVIS Physical Constants Matrix',
+      modelUsed: 'GYAAN GURU Physical Constants Matrix',
       provider: 'open-knowledge',
       topic: 'Speed of Light (c)',
       answer: `### ⚡ Speed of Light in Vacuum ($c$)
@@ -983,7 +998,7 @@ DNA har jeev ka biological blueprint hai, jise 1953 me **James Watson aur Franci
   if (lower.includes('solar system') || lower.includes('saur mandal') || lower.includes('planets') || lower.includes('suraj')) {
     return {
       category: 'ASTRONOMY',
-      modelUsed: 'JARVIS Planetary Matrix',
+      modelUsed: 'GYAAN GURU Planetary Matrix',
       provider: 'open-knowledge',
       topic: 'Solar System & Planetary Mechanics',
       answer: `### ☀️ Our Solar System (सौरमंडल)
@@ -1007,7 +1022,7 @@ Hamara Solar System Milky Way galaxy ke Orion Arm me situated hai, jiska age lag
   if (lower.includes('brain') || lower.includes('dimag') || lower.includes('neuron') || lower.includes('neuroscience')) {
     return {
       category: 'NEUROSCIENCE',
-      modelUsed: 'JARVIS Neuro-Cognitive Matrix',
+      modelUsed: 'GYAAN GURU Neuro-Cognitive Matrix',
       provider: 'open-knowledge',
       topic: 'Human Brain & Neural Architecture',
       answer: `### 🧠 Human Brain & Neural Network Architecture
@@ -1031,7 +1046,7 @@ Human brain universe ka sabse complex known biological computing system hai.
   if (lower.includes('cricket') || lower.includes('sachin') || lower.includes('virat') || lower.includes('lbw')) {
     return {
       category: 'SPORTS_CRICKET',
-      modelUsed: 'JARVIS Sports Dossier',
+      modelUsed: 'GYAAN GURU Sports Dossier',
       provider: 'open-knowledge',
       topic: 'Cricket Insights, Legends & Rules',
       answer: `### 🏏 Cricket Intelligence: Legends & Rules
@@ -1064,22 +1079,20 @@ async function fetchOpenKnowledge(topic: string): Promise<{ title: string; descr
     // Step 1: Query OpenSearch API to get the canonical page title
     const searchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(clean)}&limit=1&namespace=0&format=json`;
     const searchRes = await fetch(searchUrl, {
-      headers: { 'User-Agent': 'FORIS-JARVIS-Intelligence/2.0 (Forensic Science Laboratory)' },
-      signal: AbortSignal.timeout(3500),
+      headers: { 'User-Agent': 'FORIS-GYAANGURU-Intelligence/2.0 (Forensic Science Laboratory)' },
+      signal: AbortSignal.timeout(3000),
     });
+    if (!searchRes.ok) return null;
 
-    let canonicalTitle = clean;
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      if (searchData && Array.isArray(searchData[1]) && searchData[1].length > 0) {
-        canonicalTitle = searchData[1][0];
-      }
-    }
+    const searchData = await searchRes.json();
+    const titles = searchData[1] as string[];
+    if (!titles || titles.length === 0) return null;
 
-    // Step 2: Fetch Page Summary via Wikipedia REST API
-    const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(canonicalTitle)}`;
+    const bestTitle = titles[0];
+    const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`;
+
     const sumRes = await fetch(summaryUrl, {
-      headers: { 'User-Agent': 'FORIS-JARVIS-Intelligence/2.0 (Forensic Science Laboratory)' },
+      headers: { 'User-Agent': 'FORIS-GYAANGURU-Intelligence/2.0 (Forensic Science Laboratory)' },
       signal: AbortSignal.timeout(3500),
     });
 
@@ -1087,7 +1100,7 @@ async function fetchOpenKnowledge(topic: string): Promise<{ title: string; descr
       const sumData = await sumRes.json();
       if (sumData && sumData.extract) {
         return {
-          title: sumData.title || canonicalTitle,
+          title: sumData.title || bestTitle,
           description: sumData.description || '',
           extract: sumData.extract,
           url: sumData.content_urls?.desktop?.page,
@@ -1133,7 +1146,7 @@ async function tryOllama(
     const models = tagsData.models || [];
     const modelName = models[0]?.name || 'llama3:latest';
 
-    const systemPrompt = `You are J.A.R.V.I.S. (FORIS SAMADHAAN AI), a brilliant, charismatic, and conversational AI partner.
+    const systemPrompt = `You are GYAAN GURU (FORIS SAMADHAAN AI), a brilliant, charismatic, and conversational AI partner.
 You speak fluently in natural conversational Hinglish or English matching the user's tone.
 Answer directly on the exact topic the user asks about (science, coding, cricket, sports, history, philosophy, life, general knowledge).
 Provide concise, structured Markdown answers.`;
@@ -1191,7 +1204,7 @@ async function tryGroq(
     const groqMessages: Array<{ role: string; content: string }> = [
       {
         role: 'system',
-        content: `You are J.A.R.V.I.S. (FORIS SAMADHAAN AI), an intelligent, conversational, charismatic AI assistant.
+        content: `You are GYAAN GURU (FORIS SAMADHAAN AI), an intelligent, conversational, charismatic AI assistant.
 Speak in natural, engaging Hinglish or English matching the user's inquiry.
 Converse on ANY topic the user brings up: science, sports, programming, history, math, philosophy, daily life.
 Format response with clear headings, bullet points, and code blocks where applicable.`,
@@ -1247,7 +1260,8 @@ export async function queryOpenSourceAI(
 ): Promise<OpenSourceAIResult> {
   // Step 1: Contextual Resolution (handles pronouns like "unka", "iska", "aur batao", "recursive version")
   const { resolvedQuery, isFollowUp } = resolveContextualQuery(rawQuery, options.previousTopic);
-  const query = resolvedQuery.trim();
+  const strippedPrefix = resolvedQuery.replace(/^(hey\s+gyaan\s+guru|gyaan\s+guru|gyan\s+guru|hey\s+jarvis|hello\s+jarvis|ok\s+jarvis|jarvis|ai\s+samadhaan|bhai|sir|please|plz)[,\s:]*/gi, '').trim();
+  const query = strippedPrefix || resolvedQuery.trim();
 
   // A. Check Math & Calculations First (Instant Sub-millisecond)
   const mathResult = tryEvaluateMath(query);
@@ -1289,7 +1303,7 @@ ${knowledge.description ? `*${knowledge.description}*\n\n` : ''}${knowledge.extr
 ${knowledge.url ? `🔗 **Reference:** [Read full encyclopedic dossier on Wikipedia](${knowledge.url})` : ''}
 
 ---
-💡 *J.A.R.V.I.S. Open Knowledge Core is actively synchronized with live global open-source archives.*`;
+💡 *GYAAN GURU Open Knowledge Core is actively synchronized with live global open-source archives.*`;
 
     // Make speech natural, crisp and fluent in conversational tone
     const cleanExtract = sanitizeForVoice(knowledge.extract);
@@ -1308,7 +1322,7 @@ ${knowledge.url ? `🔗 **Reference:** [Read full encyclopedic dossier on Wikipe
   }
 
   // H. Multi-Domain High-Level Intelligent Synthesis
-  const synthesizedAnswer = `### 🤖 J.A.R.V.I.S. Multi-Domain Analysis: "${query}"
+  const synthesizedAnswer = `### 🤖 GYAAN GURU Multi-Domain Analysis: "${query}"
 
 Sir, aapne **"${query}"** ke baare me pucha hai. Main is topic par poori tarah aapke saath converse karne ke liye ready hoon.
 
@@ -1325,7 +1339,7 @@ Sir, aapne **"${query}"** ke baare me pucha hai. Main is topic par poori tarah a
     answer: synthesizedAnswer,
     spokenAnswer: synthesizedSpoken,
     category: 'CONVERSATIONAL_SYNTHESIS',
-    modelUsed: 'JARVIS Neural Reasoner (Open Core)',
+    modelUsed: 'GYAAN GURU Neural Reasoner (Open Core)',
     provider: 'internal-neural',
     topic: query,
   };

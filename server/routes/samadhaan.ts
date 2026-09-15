@@ -11,10 +11,10 @@ samadhaanRouter.get('/welcome', requireAuth, async (req: Request, res: Response)
   const user = req.user!;
   const officerName = user.name || 'Forensic Officer';
 
-  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nMain **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka Voice & Open-Source Intelligence Core.\n\nMain forensic cases, evidence vault, Section 65B legal certificates ke alawa **science, coding, astronomy, sports, history, general knowledge, ya kisi bhi topic** par aapke saath natural voice me baat karne ke liye ready hoon.\n\n🎙️ **Talkative Voice Mode active hai** — aap mujhse seedhe bolkar baat kar sakte hain!`;
+  const welcomeMessage = `नमस्ते ऑफिसर ${officerName} (${user.badgeId})! 🙏\n\nMain **GYAAN GURU (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka Voice & Open-Source Intelligence Core.\n\nMain forensic cases, evidence vault, Section 65B legal certificates ke alawa **science, coding, astronomy, sports, history, general knowledge, ya kisi bhi topic** par aapke saath natural voice me baat karne ke liye ready hoon.\n\n🎙️ **Talkative Voice Mode active hai** — aap mujhse seedhe bolkar baat kar sakte hain!`;
 
   const suggestedQuestions = [
-    '🎙️ "Jarvis, active cases ka status batao"',
+    '🎙️ "Gyaan Guru, active cases ka status batao"',
     '🏏 "Sachin Tendulkar ke baare me batao"',
     '🌌 "Space me black hole kya hota hai?"',
     '💻 "Python code for binary search"',
@@ -50,7 +50,9 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
       });
     }
 
-    const query = rawMsg.trim().toLowerCase();
+    const rawLower = rawMsg.trim().toLowerCase();
+    const stripped = rawLower.replace(/^(hey\s+gyaan\s+guru|gyaan\s+guru|gyan\s+guru|hey\s+jarvis|hello\s+jarvis|ok\s+jarvis|jarvis|ai\s+samadhaan|bhai|sir|please|plz)[,\s:]*/gi, '').trim();
+    const query = stripped || rawLower;
 
     // Query active database records to ground all answers in real data
     const [cases, allEvidence, allReports, evidenceCount, reportCount] = await Promise.all([
@@ -102,7 +104,7 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
         .trim();
     };
 
-    // 0. DIRECT VOICE NAVIGATION COMMANDS (JARVIS Executive Control)
+    // 0. DIRECT VOICE NAVIGATION COMMANDS (GYAAN GURU Executive Control)
     if (
       query.includes('open dashboard') ||
       query.includes('show dashboard') ||
@@ -232,18 +234,27 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
       relatedActions = [{ label: 'Analytics', tab: 'analytics' }];
     }
 
-    // 1. CONVERSATIONAL / GREETINGS / IDENTITY (JARVIS Persona)
+    // 1. CONVERSATIONAL / GREETINGS / IDENTITY (GYAAN GURU Persona)
     else if (
       query === 'hi' ||
       query === 'hello' ||
       query === 'hey' ||
       query === 'namaste' ||
       query === 'namaskar' ||
-      query.includes('jarvis') ||
+      query === 'gyaan guru' ||
+      query === 'gyan guru' ||
+      query === 'jarvis' ||
+      query === 'hey gyaan guru' ||
+      query === 'hey gyan guru' ||
+      query === 'hey jarvis' ||
+      query === 'hello gyaan guru' ||
+      query === 'hello jarvis' ||
       query.includes('kaise ho') ||
       query.includes('kya haal') ||
       query.includes('who are you') ||
       query.includes('tum kaun ho') ||
+      query.includes('tumhara naam kya') ||
+      query.includes('aapka naam kya') ||
       query.includes('kya kar sakte ho') ||
       query.includes('what can you do') ||
       query.includes('help me') ||
@@ -252,7 +263,7 @@ samadhaanRouter.post('/query', requireAuth, async (req: Request, res: Response) 
       category = 'CONVERSATION';
       responseText = `### 🤖 Namaste Officer ${user.name || 'Dr. Abhiraj Singh'}!
 
-Main **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka dedicated **Defense & Legal Intelligence Assistant**.
+Main **GYAAN GURU (FORIS SAMADHAAN AI)** hoon — State Forensic Science Laboratory (SFSL) ka dedicated **Defense & Legal Intelligence Assistant**.
 
 **Aap mujhse natural voice me baat kar sakte hain. Main ye sabhi kaam instant speed me kar sakta hoon:**
 1. 📂 **Live Case & FIR Retrieval:** Database me registered kisi bhi case, FIR, seized weapon, mobile dump ya report ki exact scientific findings batana.
@@ -263,7 +274,7 @@ Main **J.A.R.V.I.S. (FORIS SAMADHAAN AI)** hoon — State Forensic Science Labor
 
 👉 *Sir, aap mujhse koi bhi question poochiye ya voice command dijiye — main fraction of second me answer dene ke liye ready hoon!*`;
 
-      spokenText = `Namaste Officer ${user.name || 'Abhiraj Singh'}! JARVIS at your service, Sir. State Forensic Laboratory ke sabhi systems 100% operational hain. Aap kisi bhi case, evidence hash, ya website navigation ke baare me pooch sakte hain. Boliye main aapki kya madad karoon?`;
+      spokenText = `Namaste Officer ${user.name || 'Abhiraj Singh'}! GYAAN GURU at your service, Sir. State Forensic Laboratory ke sabhi systems 100% operational hain. Aap kisi bhi case, evidence hash, ya website navigation ke baare me pooch sakte hain. Boliye main aapki kya madad karoon?`;
 
       relatedActions = [
         { label: 'View Case Dossiers', tab: 'cases' },
@@ -597,7 +608,7 @@ ${caseListStr}
         ];
       } catch (aiErr) {
         console.error('Open-Source AI execution error:', aiErr);
-        responseText = `### 💡 J.A.R.V.I.S. Response: ${rawMsg}\n\nSir, maine aapke sawal par research kiya hai. Main is topic par poori tarah aapke saath baat karne ke liye ready hoon.`;
+        responseText = `### 💡 GYAAN GURU Response: ${rawMsg}\n\nSir, maine aapke sawal par research kiya hai. Main is topic par poori tarah aapke saath baat karne ke liye ready hoon.`;
         spokenText = `Sir, maine aapka sawal sun liya hai. Main is vishay par aapke saath baat karne ke liye taiyaar hoon.`;
       }
     }

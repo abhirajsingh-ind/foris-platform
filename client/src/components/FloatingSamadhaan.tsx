@@ -196,7 +196,14 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
       }
 
       const current = (finalTranscript || interimTranscript).toLowerCase();
-      if (current.includes('hey jarvis') || current.includes('hello jarvis') || current.includes('jarvis')) {
+      if (
+        current.includes('hey gyaan guru') ||
+        current.includes('gyaan guru') ||
+        current.includes('gyan guru') ||
+        current.includes('hey jarvis') ||
+        current.includes('hello jarvis') ||
+        current.includes('jarvis')
+      ) {
         playJarvisChime('wake');
       }
 
@@ -290,8 +297,8 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
         {
           id: 'float-welcome',
           sender: 'ai',
-          text: `नमस्ते Officer ${user?.name || 'Sir'}! 🙏\n\nMain hoon **JARVIS Forensic AI Voice**. Talkative mode active hai — aap mujhse seedha baat kar sakte hain ya voice command dekar platform navigate kar sakte hain (e.g., *"Open Evidence Vault"*, *"Cases dikhao"*, *"Forensic Lens khole"*). Fraction of a second me jawab milega!`,
-          spokenAnswer: `Namaste Officer. JARVIS Forensic AI system online. Main aapki kya madad kar sakta hoon?`,
+          text: `नमस्ते Officer ${user?.name || 'Sir'}! 🙏\n\nMain hoon **GYAAN GURU Forensic AI Voice**. Talkative mode active hai — aap mujhse seedha baat kar sakte hain ya voice command dekar platform navigate kar sakte hain (e.g., *"Open Evidence Vault"*, *"Cases dikhao"*, *"Forensic Lens khole"*). Fraction of a second me jawab milega!`,
+          spokenAnswer: `Namaste Officer. GYAAN GURU Forensic AI system online. Main aapki kya madad kar sakta hoon?`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           executionTimeMs: 4,
         },
@@ -426,7 +433,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
               </div>
               <div>
                 <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span>JARVIS AI</span>
+                  <span>GYAAN GURU AI</span>
                   <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 flex items-center gap-0.5">
                     <Zap className="w-2.5 h-2.5 text-cyan-400" />
                     SUB-SECOND
@@ -615,7 +622,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
             <div className="px-3 py-1 bg-slate-950 border-t border-cyan-500/20 flex items-center justify-between">
               <span className="text-[10px] font-mono text-cyan-400 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                JARVIS Speaking...
+                GYAAN GURU Speaking...
               </span>
               <div className="flex items-center gap-1 h-3">
                 <span className="w-1 bg-cyan-400 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-2.5"></span>
@@ -646,7 +653,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
                     ? 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white animate-pulse'
                     : 'bg-slate-950 text-cyan-400 border border-slate-800 hover:border-cyan-400'
                 }`}
-                title={isListening ? 'Listening... click to stop' : 'Tap to speak with JARVIS'}
+                title={isListening ? 'Listening... click to stop' : 'Tap to speak with GYAAN GURU'}
               >
                 {isListening ? <Mic className="w-4 h-4 animate-bounce" /> : <Mic className="w-4 h-4" />}
               </button>
@@ -655,7 +662,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={isListening ? 'Listening to your voice...' : 'Ask JARVIS anything verbally...'}
+                placeholder={isListening ? 'Listening to your voice...' : 'Ask GYAAN GURU anything verbally...'}
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50"
               />
               <button
