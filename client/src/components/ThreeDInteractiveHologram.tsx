@@ -9,9 +9,10 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
   const [mode, setMode] = useState<HologramMode>('vault');
   const [isRotating, setIsRotating] = useState(true);
   const [wireframe, setWireframe] = useState(true);
-  const [telemetry, setTelemetry] = useState({ rotY: 0, fps: 60, status: 'LOCKED & SEALED' });
 
-  // Refs for animation loop
+  // Refs for animation loop and direct DOM updates (no React re-renders)
+  const rotTextRef = useRef<HTMLSpanElement>(null);
+  const fpsTextRef = useRef<HTMLSpanElement>(null);
   const modeRef = useRef<HologramMode>(mode);
   const isRotatingRef = useRef(isRotating);
   const sceneGroupRef = useRef<THREE.Group | null>(null);
@@ -34,9 +35,14 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.z = 26;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: 'low-power',
+      precision: 'mediump',
+    });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
@@ -193,11 +199,20 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
 
     // Animation Loop
     let animId: number;
+    let isRunning = true;
     let frameCount = 0;
     let lastTime = performance.now();
+    let lastFrameTime = 0;
+    const targetInterval = 1000 / 45; // 45 FPS cap for lightweight, stable performance
 
     const animate = (currentTime: number) => {
+      if (!isRunning) return;
       animId = requestAnimationFrame(animate);
+
+      // Frame interval throttle
+      const delta = currentTime - lastFrameTime;
+      if (delta < targetInterval) return;
+      lastFrameTime = currentTime - (delta % targetInterval);
 
       // Model visibility based on current mode
       dnaGroup.visible = modeRef.current === 'dna';
@@ -226,14 +241,16 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
         }
       }
 
-      // FPS Telemetry
+      // FPS Telemetry without triggering React re-renders
       frameCount++;
       if (currentTime - lastTime >= 1000) {
-        setTelemetry({
-          rotY: Math.round(((mainGroup.rotation.y % (Math.PI * 2)) / (Math.PI * 2)) * 360),
-          fps: frameCount,
-          status: 'HASH VERIFIED',
-        });
+        if (rotTextRef.current) {
+          const deg = Math.round(((mainGroup.rotation.y % (Math.PI * 2)) / (Math.PI * 2)) * 360);
+          rotTextRef.current.textContent = `ROT: ${deg >= 0 ? deg : deg + 360}°`;
+        }
+        if (fpsTextRef.current) {
+          fpsTextRef.current.textContent = `${frameCount} FPS`;
+        }
         frameCount = 0;
         lastTime = currentTime;
       }
@@ -243,12 +260,30 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
 
     animId = requestAnimationFrame(animate);
 
+    // Tab Inactivity Freeze
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        isRunning = false;
+        cancelAnimationFrame(animId);
+      } else {
+        if (!isRunning) {
+          isRunning = true;
+          lastFrameTime = performance.now();
+          animId = requestAnimationFrame(animate);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      isRunning = false;
       cancelAnimationFrame(animId);
       container.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
 
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -334,10 +369,10 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
         <div className="flex items-center gap-3">
           <span className="text-cyan-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-            ROT: {telemetry.rotY}°
+            <span ref={rotTextRef}>ROT: 0°</span>
           </span>
-          <span className="text-slate-500">{telemetry.fps} FPS</span>
-          <span className="text-emerald-400 font-semibold">{telemetry.status}</span>
+          <span ref={fpsTextRef} className="text-slate-500">45 FPS</span>
+          <span className="text-emerald-400 font-semibold">HASH VERIFIED</span>
         </div>
 
         <div className="flex items-center gap-2">

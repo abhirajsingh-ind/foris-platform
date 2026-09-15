@@ -141,14 +141,14 @@ export const Login: React.FC = () => {
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         <span>INTEGRITY MESH: ONLINE</span>
         <span className="text-slate-600">|</span>
-        <span>NEURAL PLEXUS: 85 NODES</span>
+        <span>QUANTUM GYRO: STABLE</span>
       </div>
 
       {/* BOTTOM-RIGHT SENSOR TELEMETRY */}
       <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 hidden md:flex items-center gap-2 text-[10px] font-mono text-slate-400 pointer-events-none">
-        <span>LASER SCANNER: 60 FPS</span>
+        <span>FRAME CADENCE: 45 FPS</span>
         <span className="text-slate-600">|</span>
-        <span className="text-cyan-400 font-semibold">LATENCY: &lt;5MS</span>
+        <span className="text-cyan-400 font-semibold">LATENCY: &lt;2MS</span>
       </div>
 
       {/* TOP FLOATING THEME BAR ON LOGIN SCREEN */}
