@@ -475,10 +475,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             cases={recentCases}
             reports={recentReports}
             stats={stats}
-            officerName={user?.name || 'Dr. Abhiraj Singh'}
+            user={user}
+            officerPhoto={activeOfficerPhoto}
+            onPhotoUpload={handlePhotoUpload}
             onSelectCase={onSelectCase}
             onSelectReport={onSelectReport}
             setActiveTab={setActiveTab}
+            viewMode={dashboardViewMode}
+            onToggleViewMode={setDashboardViewMode}
           />
         </div>
       )}
