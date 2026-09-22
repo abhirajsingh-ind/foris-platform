@@ -151,7 +151,7 @@ const renderMiniFormattedText = (text: string) => {
 };
 
 // Tactical Web Audio Synthesizer for JARVIS Sound Cues
-const playJarvisChime = (type: 'listening' | 'execute' | 'stop' | 'wake') => {
+const playGuruChime = (type: 'listening' | 'execute' | 'stop' | 'wake') => {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
@@ -248,7 +248,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
         current.includes('hello jarvis') ||
         current.includes('jarvis')
       ) {
-        playJarvisChime('wake');
+        playGuruChime('wake');
       }
 
       if (finalTranscript) {
@@ -299,7 +299,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
         setTimeout(() => {
           if (!isListening && recognitionRef.current) {
             try {
-              playJarvisChime('listening');
+              playGuruChime('listening');
               recognitionRef.current.start();
               setIsListening(true);
             } catch {}
@@ -319,14 +319,14 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
     }
 
     if (isListening) {
-      playJarvisChime('stop');
+      playGuruChime('stop');
       try {
         recognitionRef.current.stop();
       } catch {}
       setIsListening(false);
     } else {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      playJarvisChime('listening');
+      playGuruChime('listening');
       try {
         recognitionRef.current.start();
       } catch (err) {
@@ -347,7 +347,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
           executionTimeMs: 4,
         },
       ]);
-      playJarvisChime('wake');
+      playGuruChime('wake');
     }
   }, [isOpen, user, messages.length]);
 
@@ -411,7 +411,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
 
         // Instant Voice Navigation Execution
         if (data.navigateTab && onNavigateTab) {
-          playJarvisChime('execute');
+          playGuruChime('execute');
           onNavigateTab(data.navigateTab);
           setNavigationToast(`Navigated to ${data.navigateTab.toUpperCase()} Screen`);
           setTimeout(() => setNavigationToast(null), 4000);

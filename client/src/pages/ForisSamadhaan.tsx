@@ -262,7 +262,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   const [speechSupported, setSpeechSupported] = useState(true);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
 
-  // JARVIS Talkative Mode & Auto-Navigation
+  // GYAAN GURU Talkative Mode & Auto-Navigation
   const [isTalkativeMode, setIsTalkativeMode] = useState(true);
   const [navigationToast, setNavigationToast] = useState<string | null>(null);
   const isTalkativeModeRef = useRef(isTalkativeMode);
@@ -271,7 +271,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   // Voice Engine Tone & Tuning Customization
   const [voiceSpeed, setVoiceSpeed] = useState<number>(1.04);
   const [voicePitch, setVoicePitch] = useState<number>(1.0);
-  const [voiceTone, setVoiceTone] = useState<'jarvis' | 'soft' | 'tactical' | 'hindi'>('jarvis');
+  const [voiceTone, setVoiceTone] = useState<'guru' | 'soft' | 'tactical' | 'hindi'>('guru');
   const [showVoiceSettings, setShowVoiceSettings] = useState<boolean>(false);
   const [turnDelayMs, setTurnDelayMs] = useState<number>(650);
   const [wakeWordEnabled, setWakeWordEnabled] = useState<boolean>(true);
@@ -308,8 +308,8 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
-  // Web Audio API High-Tech Sound Synthesis (JARVIS Multi-Tone Harmonic Chimes)
-  const playJarvisChime = (type: 'listening' | 'execute' | 'wake' | 'stop') => {
+  // Web Audio API High-Tech Sound Synthesis (GYAAN GURU Multi-Tone Harmonic Chimes)
+  const playGuruChime = (type: 'listening' | 'execute' | 'wake' | 'stop') => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;

@@ -34,11 +34,13 @@ import {
   Layers,
   Radio,
   FileCheck2,
+  Network,
 } from 'lucide-react';
 import officerPhotoDefault from '../assets/officer_abhiraj.jpg';
 import { BorderBeam } from '../components/BorderBeam';
 import { CyberDecryptText } from '../components/CyberDecryptText';
 import { ThreeDInteractiveHologram } from '../components/ThreeDInteractiveHologram';
+import { ControlAIPolicyGraph } from '../components/ControlAIPolicyGraph';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -82,6 +84,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [rightTab, setRightTab] = useState<'hologram' | 'audit' | 'reports'>('hologram');
   const [photoError, setPhotoError] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [dashboardViewMode, setDashboardViewMode] = useState<'graph' | 'matrix'>('graph');
 
 
   useEffect(() => {
@@ -282,6 +285,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </span>
           </div>
 
+          {/* Center: Dribbble Control AI View Mode Switcher */}
+          <div className="flex items-center gap-1 bg-slate-950/90 p-1 rounded-2xl border border-slate-800 shadow-inner">
+            <button
+              onClick={() => setDashboardViewMode('graph')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all ${
+                dashboardViewMode === 'graph'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Network className="w-3.5 h-3.5" />
+              <span>Policy & Evidence Graph</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-950/40 text-cyan-200 uppercase font-black">AI VIEW</span>
+            </button>
+            <button
+              onClick={() => setDashboardViewMode('matrix')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all ${
+                dashboardViewMode === 'matrix'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Command Matrix</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1.5 bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
@@ -438,7 +468,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* 2. FOUR DISTINCT ARCHITECTURAL STATS CARDS WITH BOLD MAIN TOPICS & MULTI-COLOR IDENTITY */}
+      {/* 2. DRIBBLE-INSPIRED "CONTROL AI POLICY & FORENSIC GRAPH" VIEW */}
+      {dashboardViewMode === 'graph' && (
+        <div className="space-y-6 animate-fadeIn">
+          <ControlAIPolicyGraph
+            cases={recentCases}
+            reports={recentReports}
+            stats={stats}
+            officerName={user?.name || 'Dr. Abhiraj Singh'}
+            onSelectCase={onSelectCase}
+            onSelectReport={onSelectReport}
+            setActiveTab={setActiveTab}
+          />
+        </div>
+      )}
+
+      {/* 3. FOUR DISTINCT ARCHITECTURAL STATS CARDS WITH BOLD MAIN TOPICS & MULTI-COLOR IDENTITY */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: ACTIVE CASES DOSSIER - Tactical Folder Archetype (Electric Cyan) */}
         <div
