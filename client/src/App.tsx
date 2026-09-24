@@ -14,6 +14,7 @@ import { UsersPage } from './pages/Users';
 import { AnalyticsPage } from './pages/Analytics';
 import { ForisSamadhaan } from './pages/ForisSamadhaan';
 import { ForensicLensAI } from './pages/ForensicLensAI';
+import { ChainOfCustodyPage } from './pages/Custody';
 
 const AppContent: React.FC = () => {
   const { user, isLoading, faceVerified } = useAuth();
@@ -76,7 +77,7 @@ const AppContent: React.FC = () => {
       case 'reports':
         return <ReportsPage initialReportId={selectedReportId} />;
       case 'custody':
-        return <EvidencePage initialEvidenceId={selectedEvidenceId} />;
+        return <ChainOfCustodyPage initialEvidenceId={selectedEvidenceId} setActiveTab={setActiveTab} />;
       case 'audit':
         return <AuditTrailPage />;
       case 'security':
