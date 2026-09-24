@@ -18,6 +18,8 @@ import { ForensicLensAI } from './pages/ForensicLensAI';
 const AppContent: React.FC = () => {
   const { user, isLoading, faceVerified } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -48,6 +50,10 @@ const AppContent: React.FC = () => {
         return (
           <Dashboard
             setActiveTab={setActiveTab}
+            onSelectCase={(caseId) => {
+              setSelectedCaseId(caseId);
+              setActiveTab('cases');
+            }}
             onSelectReport={(repId) => {
               setSelectedReportId(repId);
               setActiveTab('reports');
@@ -57,6 +63,7 @@ const AppContent: React.FC = () => {
       case 'cases':
         return (
           <Cases
+            initialCaseId={selectedCaseId}
             setActiveTab={setActiveTab}
             onSelectReport={(repId) => {
               setSelectedReportId(repId);
@@ -65,11 +72,11 @@ const AppContent: React.FC = () => {
           />
         );
       case 'evidence':
-        return <EvidencePage />;
+        return <EvidencePage initialEvidenceId={selectedEvidenceId} />;
       case 'reports':
         return <ReportsPage initialReportId={selectedReportId} />;
       case 'custody':
-        return <EvidencePage />;
+        return <EvidencePage initialEvidenceId={selectedEvidenceId} />;
       case 'audit':
         return <AuditTrailPage />;
       case 'security':
