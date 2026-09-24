@@ -26,17 +26,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [faceVerified, setFaceVerified] = useState<boolean>(false);
-  const [phoneOtpVerified, setPhoneOtpVerified] = useState<boolean>(false);
+  const [phoneOtpVerified, setPhoneOtpVerified] = useState<boolean>(true);
 
   // Ensure website ALWAYS starts on Page 1 (Login) upon opening/refreshing
   useEffect(() => {
     localStorage.removeItem('foris_token');
     sessionStorage.removeItem('foris_face_verified');
-    sessionStorage.removeItem('foris_phone_otp_verified');
     setUser(null);
     setToken(null);
     setFaceVerified(false);
-    setPhoneOtpVerified(false);
+    setPhoneOtpVerified(true);
     setIsLoading(false);
   }, []);
 
@@ -153,72 +152,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const completeFaceVerification = () => {
     setFaceVerified(true);
-    setPhoneOtpVerified(false);
+    setPhoneOtpVerified(true);
     sessionStorage.setItem('foris_face_verified', 'true');
-    sessionStorage.removeItem('foris_phone_otp_verified');
+    sessionStorage.setItem('foris_phone_otp_verified', 'true');
   };
 
-  const verifyPhoneOtp = async (otp: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      if (token && !token.startsWith('mock_jwt_demo_')) {
-        const res = await fetch('/api/auth/verify-2fa-otp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ otp }),
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setPhoneOtpVerified(true);
-          sessionStorage.setItem('foris_phone_otp_verified', 'true');
-          return { success: true };
-        }
-        return { success: false, error: data.error || 'Invalid verification code.' };
-      }
-
-      // Fallback for static demo environments
-      if (otp.length === 6) {
-        setPhoneOtpVerified(true);
-        sessionStorage.setItem('foris_phone_otp_verified', 'true');
-        return { success: true };
-      }
-
-      return { success: false, error: 'Invalid verification code.' };
-    } catch (err: any) {
-      if (otp.length === 6) {
-        setPhoneOtpVerified(true);
-        sessionStorage.setItem('foris_phone_otp_verified', 'true');
-        return { success: true };
-      }
-      return { success: false, error: err.message || 'Verification failed.' };
-    }
+  const verifyPhoneOtp = async (_otp: string): Promise<{ success: boolean; error?: string }> => {
+    setPhoneOtpVerified(true);
+    return { success: true };
   };
 
   const resendPhoneOtp = async (): Promise<{ success: boolean; message?: string; error?: string }> => {
-    try {
-      if (token && !token.startsWith('mock_jwt_demo_')) {
-        const res = await fetch('/api/auth/resend-2fa-otp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          return { success: true, message: data.message };
-        }
-        return { success: false, error: data.error || 'Failed to resend SMS verification code.' };
-      }
-
-      return { success: true, message: 'Fresh verification code dispatched to abhirajsingh0904@gmail.com' };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to resend code.' };
-    }
+    return { success: true, message: 'Email verification disabled.' };
   };
 
   const logout = async () => {
@@ -238,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setFaceVerified(false);
-    setPhoneOtpVerified(false);
+    setPhoneOtpVerified(true);
   };
 
   return (

@@ -4,7 +4,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { FaceVerification } from './pages/FaceVerification';
-import { PhoneOtpVerification } from './pages/PhoneOtpVerification';
 import { Dashboard } from './pages/Dashboard';
 import { Cases } from './pages/Cases';
 import { EvidencePage } from './pages/Evidence';
@@ -17,7 +16,7 @@ import { ForisSamadhaan } from './pages/ForisSamadhaan';
 import { ForensicLensAI } from './pages/ForensicLensAI';
 
 const AppContent: React.FC = () => {
-  const { user, isLoading, faceVerified, phoneOtpVerified } = useAuth();
+  const { user, isLoading, faceVerified } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
@@ -42,12 +41,7 @@ const AppContent: React.FC = () => {
     return <FaceVerification />;
   }
 
-  // PAGE 3: 2-Step Gmail Verification (OTP dispatched to abhirajsingh0904@gmail.com)
-  if (!phoneOtpVerified) {
-    return <PhoneOtpVerification />;
-  }
-
-  // PAGE 3+: Authenticated dashboard and feature pages
+  // Authenticated dashboard and feature pages
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':

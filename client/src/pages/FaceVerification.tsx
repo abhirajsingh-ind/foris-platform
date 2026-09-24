@@ -1118,7 +1118,7 @@ export const FaceVerification: React.FC = () => {
                     Biometric Identity Confirmed with {matchScore}% Confidence Score!
                   </div>
                   <div className="text-[10px] text-emerald-400/90 font-mono font-normal">
-                    Officer {referenceOfficerName} authenticated. Proceeding to Stage 3: Email 2FA (abhirajsingh0904@gmail.com)...
+                    Officer {referenceOfficerName} authenticated. Access granted to FORIS Forensic Core...
                   </div>
                 </div>
               </div>
