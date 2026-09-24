@@ -11,6 +11,7 @@
     "vercel-build": "prisma generate && tsc -b && vite build",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:fix-chain": "tsx scripts/fix-audit-chain.ts",
     "db:studio": "prisma studio",
     "test": "tsx tests/api.test.ts",
     "start": "tsx server/index.ts"

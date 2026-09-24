@@ -714,10 +714,11 @@ async function main() {
     });
 
     // Audit Case Creation
+    const audit1Time = new Date();
     const audit1Hash = calculateAuditHash({
       sequenceIndex: currentAuditIndex,
       previousAuditHash: prevHash,
-      timestamp: new Date().toISOString(),
+      timestamp: audit1Time,
       userId: policeOfficer.id,
       action: 'CASE_CREATED',
       resourceType: 'CASE',
@@ -727,6 +728,7 @@ async function main() {
     await prisma.auditEvent.create({
       data: {
         sequenceIndex: currentAuditIndex++,
+        timestamp: audit1Time,
         userId: policeOfficer.id,
         userBadge: policeOfficer.badgeId,
         userName: policeOfficer.name,
@@ -811,10 +813,11 @@ async function main() {
       });
 
       // Audit Evidence Logging
+      const evAuditTime = new Date();
       const evAuditHash = calculateAuditHash({
         sequenceIndex: currentAuditIndex,
         previousAuditHash: prevHash,
-        timestamp: new Date().toISOString(),
+        timestamp: evAuditTime,
         userId: fexOfficer.id,
         action: 'EVIDENCE_SEALED',
         resourceType: 'EVIDENCE',
@@ -824,6 +827,7 @@ async function main() {
       await prisma.auditEvent.create({
         data: {
           sequenceIndex: currentAuditIndex++,
+          timestamp: evAuditTime,
           userId: fexOfficer.id,
           userBadge: fexOfficer.badgeId,
           userName: fexOfficer.name,
@@ -911,10 +915,11 @@ async function main() {
     });
 
     // Audit Report Signing
+    const repAuditTime = new Date();
     const repAuditHash = calculateAuditHash({
       sequenceIndex: currentAuditIndex,
       previousAuditHash: prevHash,
-      timestamp: new Date().toISOString(),
+      timestamp: repAuditTime,
       userId: fexOfficer.id,
       action: 'REPORT_SIGNED',
       resourceType: 'REPORT',
@@ -924,6 +929,7 @@ async function main() {
     await prisma.auditEvent.create({
       data: {
         sequenceIndex: currentAuditIndex++,
+        timestamp: repAuditTime,
         userId: fexOfficer.id,
         userBadge: fexOfficer.badgeId,
         userName: fexOfficer.name,
