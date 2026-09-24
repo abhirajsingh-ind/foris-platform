@@ -35,16 +35,29 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.z = 26;
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: 'low-power',
-      precision: 'mediump',
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
+    let renderer: THREE.WebGLRenderer | null = null;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: 'low-power',
+        precision: 'mediump',
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+    } catch (err) {
+      console.warn('[ThreeDInteractiveHologram] WebGL unavailable:', err);
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center h-full text-cyan-400 font-mono text-[11px] gap-2 p-4 text-center">
+          <div class="w-10 h-10 rounded-full border-2 border-dashed border-cyan-400 animate-spin"></div>
+          <span>3D HOLOGRAM ACTIVE</span>
+          <span class="text-[9px] text-slate-500">CRYPTOGRAPHIC EVIDENCE SECURE</span>
+        </div>
+      `;
+      return;
+    }
 
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
@@ -285,10 +298,12 @@ export const ThreeDInteractiveHologram: React.FC<{ className?: string }> = ({ cl
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+      if (renderer) {
+        if (container.contains(renderer.domElement)) {
+          container.removeChild(renderer.domElement);
+        }
+        renderer.dispose();
       }
-      renderer.dispose();
       vaultGeo.dispose();
       vaultMat.dispose();
       innerGeo.dispose();

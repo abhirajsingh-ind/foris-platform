@@ -28,13 +28,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [faceVerified, setFaceVerified] = useState<boolean>(false);
   const [phoneOtpVerified, setPhoneOtpVerified] = useState<boolean>(true);
 
-  // Ensure website ALWAYS starts on Page 1 (Login) upon opening/refreshing
+  // Restore session upon opening/refreshing if valid session exists
   useEffect(() => {
-    localStorage.removeItem('foris_token');
-    sessionStorage.removeItem('foris_face_verified');
-    setUser(null);
-    setToken(null);
-    setFaceVerified(false);
+    try {
+      const savedToken = localStorage.getItem('foris_token');
+      const savedUser = localStorage.getItem('foris_user');
+      const savedFaceVerified = sessionStorage.getItem('foris_face_verified') === 'true';
+
+      if (savedToken && savedUser) {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setToken(savedToken);
+        setFaceVerified(savedFaceVerified);
+      }
+    } catch {
+      localStorage.removeItem('foris_token');
+      localStorage.removeItem('foris_user');
+    }
     setPhoneOtpVerified(true);
     setIsLoading(false);
   }, []);
@@ -51,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (res.ok && data.success) {
         localStorage.setItem('foris_token', data.token);
+        localStorage.setItem('foris_user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
         // Face verification NOT yet complete — user must pass biometric check
@@ -65,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (demoAuth.success && demoAuth.user) {
           const mockToken = 'mock_jwt_demo_' + Date.now();
           localStorage.setItem('foris_token', mockToken);
+          localStorage.setItem('foris_user', JSON.stringify(demoAuth.user));
           setToken(mockToken);
           setUser(demoAuth.user);
           setFaceVerified(false);
@@ -86,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (demoAuth.success && demoAuth.user) {
         const mockToken = 'mock_jwt_demo_' + Date.now();
         localStorage.setItem('foris_token', mockToken);
+        localStorage.setItem('foris_user', JSON.stringify(demoAuth.user));
         setToken(mockToken);
         setUser(demoAuth.user);
         setFaceVerified(false);
@@ -99,11 +112,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getDemoAuthFallback = (bId: string, pwd: string) => {
     const rawId = bId.trim().toUpperCase();
     let upperBadge = rawId;
-    if (upperBadge.includes('ABHIRAJ') || upperBadge.includes('SINGH') || upperBadge.includes('RAJESH') || upperBadge.includes('FEX')) {
+    if (upperBadge.includes('ABHIRAJ') || upperBadge.includes('SINGH') || upperBadge.includes('RAJESH') || upperBadge.includes('FEX') || upperBadge.includes('CFO')) {
       upperBadge = 'FEX-1024';
-    } else if (upperBadge.includes('VIKRAM') || upperBadge.includes('SPO') || upperBadge.includes('RATHORE')) {
+    } else if (upperBadge.includes('POOJA') || upperBadge.includes('CYBER')) {
+      upperBadge = 'FORIS-CYBER-002';
+    } else if (upperBadge.includes('VIKRAM') || upperBadge.includes('SPO') || upperBadge.includes('RATHORE') || upperBadge.includes('POLICE') || upperBadge.includes('AMIT')) {
       upperBadge = 'SPO-2048';
-    } else if (upperBadge.includes('MANISHA') || upperBadge.includes('JDG') || upperBadge.includes('JUDGE')) {
+    } else if (upperBadge.includes('MANISHA') || upperBadge.includes('JDG') || upperBadge.includes('JUDGE') || upperBadge.includes('DESHMUKH')) {
       upperBadge = 'JDG-3012';
     } else if (upperBadge.includes('ANANYA') || upperBadge.includes('ADMIN')) {
       upperBadge = 'ADMIN-001';
@@ -127,6 +142,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'FORENSIC_OFFICER',
         designation: 'Chief Forensic Scientist & Ballistics Lead',
         department: 'State Cyber & Forensic Laboratory (SFSL)',
+      },
+      'FORIS-CYBER-002': {
+        id: 'usr-cyb-002',
+        badgeId: 'FORIS-CYBER-002',
+        name: 'Pooja Sharma',
+        email: 'pooja.sharma@foris.gov.in',
+        role: 'FORENSIC_OFFICER',
+        designation: 'Senior Cyber Forensic Specialist',
+        department: 'Cyber Crime Investigation Cell',
       },
       'SPO-2048': {
         id: 'usr-pol-101',
@@ -157,7 +181,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
     };
 
-    const validPasswords = ['{123FORIS@', '123FORIS@', '{123FORIS@}', 'ForisSecure2026!', 'Forensic#Secure2026', 'Police#Shield2026', 'Justice#Docket2026', '123FORIS'];
+    const validPasswords = [
+      '{123FORIS@',
+      '123FORIS@',
+      '{123FORIS@}',
+      'ForisSecure2026!',
+      'Forensic#Secure2026',
+      'Cyber#Forensic2026',
+      'Police#Shield2026',
+      'Justice#Docket2026',
+      '123FORIS',
+      'admin123',
+    ];
     const trimmedPw = pwd.trim();
 
     if (demoUsers[upperBadge] && (validPasswords.includes(trimmedPw) || trimmedPw.length >= 6)) {
@@ -194,6 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     localStorage.removeItem('foris_token');
+    localStorage.removeItem('foris_user');
     sessionStorage.removeItem('foris_face_verified');
     sessionStorage.removeItem('foris_phone_otp_verified');
     setToken(null);
