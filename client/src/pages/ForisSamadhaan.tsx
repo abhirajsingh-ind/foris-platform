@@ -465,7 +465,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     recognition.onstart = () => {
       setIsListening(true);
       setLiveTranscript('');
-      playJarvisChime('listening');
+      playGuruChime('listening');
     };
 
     recognition.onresult = (event: any) => {
@@ -496,7 +496,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
           lower.includes('ok jarvis') ||
           (lower.startsWith('jarvis') && lower.length < 15)
         ) {
-          playJarvisChime('wake');
+          playGuruChime('wake');
         }
       }
 
@@ -574,7 +574,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
         if (selectedVoiceUri) {
           const matched = voices.find((v) => v.voiceURI === selectedVoiceUri);
           if (matched) utterance.voice = matched;
-        } else if (voiceTone === 'jarvis') {
+        } else if (voiceTone === 'guru') {
           const jarvisVoice = voices.find(
             (v) =>
               v.lang.startsWith('en') &&
@@ -607,11 +607,11 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
       setIsSpeaking(false);
       setCurrentlyPlayingId(null);
 
-      // JARVIS TALKATIVE MODE: Hands-free fluid conversation turn-taking
+      // GYAAN GURU TALKATIVE MODE: Hands-free fluid conversation turn-taking
       if (isTalkativeModeRef.current && recognitionRef.current) {
         setTimeout(() => {
           try {
-            playJarvisChime('listening');
+            playGuruChime('listening');
             recognitionRef.current.start();
             setIsListening(true);
           } catch (e) {
@@ -644,7 +644,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
     }
 
     if (isListening) {
-      playJarvisChime('stop');
+      playGuruChime('stop');
       try {
         recognitionRef.current.stop();
       } catch {}
@@ -778,7 +778,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
         // Auto-navigate if voice command requested tab switch
         if (data.navigateTab && setActiveTab) {
-          playJarvisChime('execute');
+          playGuruChime('execute');
           setNavigationToast(`⚡ GYAAN GURU ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
           setTimeout(() => {
             setActiveTab(data.navigateTab);
@@ -872,7 +872,7 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
                 const next = !isTalkativeMode;
                 setIsTalkativeMode(next);
                 if (next) {
-                  playJarvisChime('wake');
+                  playGuruChime('wake');
                 }
               }}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md active:scale-95 ${
