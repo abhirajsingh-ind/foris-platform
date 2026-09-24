@@ -673,26 +673,14 @@ export const ControlAIPolicyGraph: React.FC<ControlAIPolicyGraphProps> = ({
 
           {/* Officer Profile Capsule (Dr. Abhiraj Singh) with 1-Click Photo Upload */}
           <div className="flex items-center gap-2.5 bg-slate-900/90 p-1.5 pr-3.5 rounded-2xl border border-slate-800 shadow-sm">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={onPhotoUpload}
-              accept="image/*"
-              className="hidden"
-            />
             <div
-              onClick={() => fileInputRef.current?.click()}
-              title="Click to change officer photo"
-              className="relative cursor-pointer group w-9 h-9 rounded-xl overflow-hidden border-2 border-emerald-400 shadow-md shadow-emerald-500/30"
+              className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-emerald-400 shadow-md shadow-emerald-500/30"
             >
               <img
                 src={officerPhoto}
                 alt={user?.name || 'Dr. Abhiraj Singh'}
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform"
+                className="w-full h-full object-cover object-center"
               />
-              <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-cyan-300">
-                <Camera className="w-4 h-4" />
-              </div>
             </div>
             <div className="text-left font-mono">
               <div className="flex items-center gap-1.5">
