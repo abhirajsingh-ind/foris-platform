@@ -190,37 +190,36 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Tactical Forensic HUD Crosshair & Click Ripples */}
       <CyberHUDCursor enabled={cyberFxEnabled} />
 
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-slate-900/90 backdrop-blur-md border-r border-slate-800 flex flex-col justify-between shrink-0 shadow-xl z-20">
+      {/* Left Sidebar - Compact Premium Intelligence Console */}
+      <aside className="w-56 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/70 flex flex-col justify-between shrink-0 shadow-2xl z-20 font-sans">
         <div>
-          {/* Brand Logo & Subtitle */}
-          <div className="p-4 border-b border-slate-800 bg-slate-950/80">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-600 text-white shadow-md font-serif font-black text-sm relative group overflow-hidden">
-                <span className="relative z-10">SFSL</span>
-                <span className="absolute inset-0 bg-gradient-to-t from-emerald-700 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          {/* Brand Logo & Console Header */}
+          <div className="p-3.5 border-b border-slate-800/80 bg-slate-950/90">
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-mono font-black text-xs shadow-md">
+                SFSL
               </div>
-              <div>
-                <span className="font-bold text-base tracking-wide text-white block">
-                  <CyberDecryptText text="FORIS Portal" />
+              <div className="truncate">
+                <span className="font-bold text-xs tracking-wider text-white font-mono block">
+                  <CyberDecryptText text="FORIS PORTAL" />
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono block">
-                  State Forensic Laboratory
+                <span className="text-[9px] text-slate-500 font-mono block truncate">
+                  GOV FORENSIC COMMAND
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[9px] font-mono text-slate-500">
               <span className="flex items-center gap-1 text-emerald-400 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                OFFICIAL SYSTEM
+                SYSTEM LIVE
               </span>
               <span>SFSL-GOV-IN</span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-2.5 space-y-1 overflow-y-auto max-h-[calc(100vh-270px)]">
+          <nav className="p-2 space-y-0.5 overflow-y-auto max-h-[calc(100vh-220px)]">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -228,47 +227,29 @@ export const Layout: React.FC<LayoutProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium tracking-wide transition-all ${
                     isActive
-                      ? (item as any).isLens
-                        ? 'bg-gradient-to-r from-purple-950/90 to-fuchsia-950/70 text-fuchsia-200 border-l-4 border-fuchsia-400 shadow-md shadow-purple-900/40'
-                        : item.isAi
-                          ? 'bg-emerald-950/60 text-emerald-300 border-l-4 border-emerald-400 shadow-sm'
-                          : 'bg-slate-800 text-emerald-400 border-l-4 border-emerald-500 shadow-sm'
-                      : (item as any).isLens
-                        ? 'text-fuchsia-300/80 hover:text-fuchsia-200 hover:bg-purple-950/40 border-l-4 border-purple-500/30'
-                        : item.isAi
-                          ? 'text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-950/30 border-l-4 border-emerald-500/20'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-l-4 border-transparent'
+                      ? 'bg-cyan-950/50 text-cyan-200 border-l-2 border-cyan-400 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border-l-2 border-transparent'
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 ${
-                      isActive
-                        ? (item as any).isLens
-                          ? 'text-fuchsia-400 animate-pulse'
-                          : item.isAi
-                            ? 'text-emerald-300 animate-pulse'
-                            : 'text-emerald-400'
-                        : (item as any).isLens
-                          ? 'text-purple-400'
-                          : item.isAi
-                            ? 'text-emerald-400'
-                            : 'text-slate-400'
+                    className={`w-3.5 h-3.5 ${
+                      isActive ? 'text-cyan-400' : 'text-slate-500'
                     }`}
                   />
-                  <span className="flex-1 text-left flex items-center justify-between">
+                  <span className="flex-1 text-left truncate text-[11px]">
                     {item.label}
-                    {(item as any).isLens ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 uppercase tracking-widest font-mono shadow-[0_0_8px_rgba(217,70,239,0.3)]">
-                        AI LENS
-                      </span>
-                    ) : item.isAi ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-widest font-mono">
-                        NEW
-                      </span>
-                    ) : null}
                   </span>
+                  {(item as any).isLens ? (
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 uppercase font-mono">
+                      LENS
+                    </span>
+                  ) : item.isAi ? (
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase font-mono">
+                      AI
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
@@ -276,20 +257,20 @@ export const Layout: React.FC<LayoutProps> = ({
         </div>
 
         {/* Defense Status & Bottom Info */}
-        <div className="p-3.5 border-t border-slate-800 bg-slate-950/80 space-y-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 font-mono">
-            <span className="flex items-center gap-1.5 font-medium text-emerald-400">
+        <div className="p-2.5 border-t border-slate-800/80 bg-slate-950/90 space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 px-1 font-mono">
+            <span className="flex items-center gap-1 font-medium text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               Ledger Active
             </span>
-            <span className="text-[10px] text-slate-500">SHA-256 Valid</span>
+            <span>SHA-256 Valid</span>
           </div>
 
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-800 hover:border-red-500/30 transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-slate-800 hover:border-red-500/30 transition-colors"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3 h-3" />
             Sign Out Officer
           </button>
         </div>
@@ -297,8 +278,8 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="h-16 bg-slate-900/85 backdrop-blur-md border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0 z-30">
+        {/* Top Bar - Command Console Style */}
+        <header className="h-14 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-5 flex items-center justify-between shrink-0 z-30 font-sans">
           {/* Left section: Global Search & Current Title */}
           <div className="flex items-center gap-4 flex-1 max-w-xl">
             <div className="relative w-full">
@@ -482,6 +463,18 @@ export const Layout: React.FC<LayoutProps> = ({
                 {cyberFxEnabled ? 'CYBER FX: ON' : 'FX: OFF'}
               </span>
             </button>
+
+            {/* System Status & SHA-256 Cryptographic Integrity Telemetry */}
+            <div className="hidden 2xl:flex items-center gap-2 px-2.5 py-1 bg-slate-900/80 border border-slate-800 rounded-xl text-[10px] font-mono">
+              <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                SFSL NODE: LIVE
+              </span>
+              <span className="text-slate-600">|</span>
+              <span className="text-cyan-300">
+                SHA-256: 1,135 BLOCKS VERIFIED
+              </span>
+            </div>
 
             {/* Cryptographic Hash Pulse Telemetry */}
             <CryptographicPulseWave className="hidden lg:flex" />
