@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { resolveAIQuery } from '../services/clientSamadhaanAI';
 import {
   Sparkles,
   X,
@@ -384,59 +385,97 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
       const token = localStorage.getItem('foris_token');
       const storedKey = localStorage.getItem('foris_groq_key') || undefined;
       const startTime = performance.now();
-      const res = await fetch('/api/ai/samadhaan/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          ...(storedKey ? { 'x-ai-key': storedKey } : {}),
-        },
-        body: JSON.stringify({
-          message: text,
-          apiKey: storedKey,
-          previousTopic: lastTopicRef.current,
+      let data: any = null;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch('/api/ai/samadhaan/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...(storedKey ? { 'x-ai-key': storedKey } : {}),
+          },
+          body: JSON.stringify({
+            message: text,
+            apiKey: storedKey,
+            previousTopic: lastTopicRef.current,
+            conversationHistory: messages.slice(-4).map((m) => ({
+              role: m.sender === 'user' ? 'user' : 'assistant',
+              text: m.text,
+            })),
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && json.answer) {
+            data = json;
+          }
+        }
+      } catch (netErr) {
+        console.warn('Backend AI network fetch error in FloatingSamadhaan:', netErr);
+      }
+
+      // If backend was unreachable or returned an error, run client-side AI!
+      if (!data || !data.answer) {
+        data = await resolveAIQuery(text, {
+          officerName: user?.name,
           conversationHistory: messages.slice(-4).map((m) => ({
             role: m.sender === 'user' ? 'user' : 'assistant',
             text: m.text,
           })),
-        }),
-      });
+          onNavigateTab,
+        });
+      }
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.topic) {
-          lastTopicRef.current = data.topic;
-        }
-        const latency = data.executionTimeMs || Math.round(performance.now() - startTime);
+      if (data.topic) {
+        lastTopicRef.current = data.topic;
+      }
+      const latency = data.executionTimeMs || Math.round(performance.now() - startTime);
 
-        // Instant Voice Navigation Execution
-        if (data.navigateTab && onNavigateTab) {
-          playGuruChime('execute');
-          onNavigateTab(data.navigateTab);
-          setNavigationToast(`Navigated to ${data.navigateTab.toUpperCase()} Screen`);
-          setTimeout(() => setNavigationToast(null), 4000);
-        }
+      // Instant Voice Navigation Execution
+      if (data.navigateTab && onNavigateTab) {
+        playGuruChime('execute');
+        onNavigateTab(data.navigateTab);
+        setNavigationToast(`Navigated to ${data.navigateTab.toUpperCase()} Screen`);
+        setTimeout(() => setNavigationToast(null), 4000);
+      }
 
-        const aiMsg: MiniMessage = {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: data.answer || 'Solution processed.',
-          spokenAnswer: data.spokenAnswer,
-          navigateTab: data.navigateTab,
-          executionTimeMs: latency,
-          modelUsed: data.modelUsed,
-          provider: data.provider,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, aiMsg]);
+      const aiMsg: MiniMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: data.answer || 'Solution processed.',
+        spokenAnswer: data.spokenAnswer,
+        navigateTab: data.navigateTab,
+        executionTimeMs: latency,
+        modelUsed: data.modelUsed,
+        provider: data.provider,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
 
-        if (autoSpeak) {
-          const speakContent = data.spokenAnswer || data.answer.replace(/[#*`_]/g, '');
-          speakText(speakContent);
-        }
+      if (autoSpeak) {
+        const speakContent = data.spokenAnswer || data.answer.replace(/[#*`_]/g, '');
+        speakText(speakContent);
       }
     } catch (err) {
-      console.error('Floating samadhaan error:', err);
+      console.error('Floating samadhaan final fallback error:', err);
+      const fallbackAns = await resolveAIQuery(text, { officerName: user?.name, onNavigateTab });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: fallbackAns.answer,
+          spokenAnswer: fallbackAns.spokenAnswer,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+      if (autoSpeak) speakText(fallbackAns.spokenAnswer);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { resolveAIQuery } from '../services/clientSamadhaanAI';
 import {
   Send,
   Sparkles,
@@ -734,84 +735,109 @@ export const ForisSamadhaan: React.FC<ForisSamadhaanProps> = ({ setActiveTab }) 
 
     try {
       const token = localStorage.getItem('foris_token');
-      const res = await fetch('/api/ai/samadhaan/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          'x-ai-provider': aiProvider,
-          'x-ai-key': customApiKey,
-        },
-        body: JSON.stringify({
-          message: queryText,
-          provider: aiProvider,
-          apiKey: customApiKey,
-          previousTopic: lastTopicRef.current,
+      let data: any = null;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch('/api/ai/samadhaan/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            'x-ai-provider': aiProvider,
+            'x-ai-key': customApiKey,
+          },
+          body: JSON.stringify({
+            message: queryText,
+            provider: aiProvider,
+            apiKey: customApiKey,
+            previousTopic: lastTopicRef.current,
+            conversationHistory: messages.slice(-4).map((m) => ({
+              role: m.sender === 'user' ? 'user' : 'assistant',
+              text: m.text,
+            })),
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && json.answer) {
+            data = json;
+          }
+        }
+      } catch (netErr) {
+        console.warn('Backend AI network fetch error, running client AI engine:', netErr);
+      }
+
+      // If backend failed or was unreachable, run clientSamadhaanAI!
+      if (!data || !data.answer) {
+        data = await resolveAIQuery(queryText, {
+          officerName: user?.name,
           conversationHistory: messages.slice(-4).map((m) => ({
             role: m.sender === 'user' ? 'user' : 'assistant',
             text: m.text,
           })),
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.topic) {
-          lastTopicRef.current = data.topic;
-          setActiveContextTopic(data.topic);
-        }
-        const aiMsgId = `ai-${Date.now()}`;
-        const aiMsg: Message = {
-          id: aiMsgId,
-          sender: 'ai',
-          text: data.answer || 'Samadhaan resolution completed.',
-          spokenAnswer: data.spokenAnswer,
-          category: data.category,
-          navigateTab: data.navigateTab,
-          executionTimeMs: data.executionTimeMs,
-          modelUsed: data.modelUsed,
-          provider: data.provider,
-          relatedActions: data.relatedActions,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, aiMsg]);
-
-        // Auto-navigate if voice command requested tab switch
-        if (data.navigateTab && setActiveTab) {
-          playGuruChime('execute');
-          setNavigationToast(`⚡ GYAAN GURU ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
-          setTimeout(() => {
-            setActiveTab(data.navigateTab);
-            setNavigationToast(null);
-          }, 1400);
-        }
-
-        // Auto-speak reply immediately with zero delay
-        if (autoSpeak) {
-          const textToSpeak = data.spokenAnswer || data.answer.replace(/[#*`_]/g, '');
-          speakText(textToSpeak, aiMsgId);
-        }
-      } else {
-        const aiErrorMsg: Message = {
-          id: `ai-err-${Date.now()}`,
-          sender: 'ai',
-          text: 'FORIS SAMADHAAN service encountered a temporary network delay. Please retry your question.',
-          spokenAnswer: 'Sorry, temporary network delay. Please retry your question.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, aiErrorMsg]);
-        if (autoSpeak) speakText(aiErrorMsg.spokenAnswer || '', aiErrorMsg.id);
+          onNavigateTab: setActiveTab,
+        });
       }
-    } catch (err) {
-      const aiErrorMsg: Message = {
-        id: `ai-err-${Date.now()}`,
+
+      if (data.topic) {
+        lastTopicRef.current = data.topic;
+        setActiveContextTopic(data.topic);
+      }
+      const aiMsgId = `ai-${Date.now()}`;
+      const aiMsg: Message = {
+        id: aiMsgId,
         sender: 'ai',
-        text: 'Network connection failed while reaching FORIS SAMADHAAN core.',
-        spokenAnswer: 'Network connection failed while reaching FORIS SAMADHAAN.',
+        text: data.answer || 'Samadhaan resolution completed.',
+        spokenAnswer: data.spokenAnswer,
+        category: data.category,
+        navigateTab: data.navigateTab,
+        executionTimeMs: data.executionTimeMs,
+        modelUsed: data.modelUsed,
+        provider: data.provider,
+        relatedActions: data.relatedActions,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages((prev) => [...prev, aiErrorMsg]);
-      if (autoSpeak) speakText(aiErrorMsg.spokenAnswer || '', aiErrorMsg.id);
+      setMessages((prev) => [...prev, aiMsg]);
+
+      // Auto-navigate if voice command requested tab switch
+      if (data.navigateTab && setActiveTab) {
+        playGuruChime('execute');
+        setNavigationToast(`⚡ GYAAN GURU ACTION: Navigating to ${data.navigateTab.toUpperCase()}...`);
+        setTimeout(() => {
+          setActiveTab(data.navigateTab);
+          setNavigationToast(null);
+        }, 1400);
+      }
+
+      // Auto-speak reply immediately with zero delay
+      if (autoSpeak) {
+        const textToSpeak = data.spokenAnswer || data.answer.replace(/[#*`_]/g, '');
+        speakText(textToSpeak, aiMsgId);
+      }
+    } catch (err) {
+      console.error('Final resolution fallback:', err);
+      const fallbackAns = await resolveAIQuery(queryText, {
+        officerName: user?.name,
+        onNavigateTab: setActiveTab,
+      });
+      const aiMsgId = `ai-${Date.now()}`;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: aiMsgId,
+          sender: 'ai',
+          text: fallbackAns.answer,
+          spokenAnswer: fallbackAns.spokenAnswer,
+          category: fallbackAns.category,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+      if (autoSpeak) speakText(fallbackAns.spokenAnswer, aiMsgId);
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
