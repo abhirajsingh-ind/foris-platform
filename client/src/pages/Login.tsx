@@ -22,17 +22,15 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (id: string, pass: string) => {
     setError(null);
-
-    if (!badgeId.trim() || !password) {
+    if (!id.trim() || !pass) {
       setError('Please enter your Account Number and Password.');
       return;
     }
 
     setLoading(true);
-    const result = await login(badgeId.trim(), password);
+    const result = await login(id.trim(), pass);
     setLoading(false);
 
     if (!result.success) {
@@ -40,9 +38,20 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(badgeId, password);
+  };
+
+  const handleQuickLogin = async (id: string, pass: string) => {
+    setBadgeId(id);
+    setPassword(pass);
+    await performLogin(id, pass);
+  };
+
   return (
     <div
-      className="min-h-[100dvh] w-full relative flex items-center justify-center lg:justify-end font-sans selection:bg-blue-500/30 selection:text-blue-200 overflow-x-hidden bg-[#050811]"
+      className="min-h-[100dvh] w-full relative flex items-center justify-center lg:justify-end font-sans selection:bg-blue-500/30 selection:text-blue-200 overflow-x-hidden"
       style={{
         backgroundImage: `url(${cyberLoginBg})`,
         backgroundSize: 'cover',
@@ -50,22 +59,22 @@ export const Login: React.FC = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* 100% Pure Transparent Floating Login Card (Matches Left Side Scene Perfectly) */}
-      <div className="relative z-10 w-full max-w-[400px] mx-4 sm:mx-8 lg:mr-16 xl:mr-28 my-auto">
-        <div className="w-full bg-slate-950/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] p-7 sm:p-9 text-slate-100 transition-all">
+      {/* 100% Fully Transparent Floating Login Box (Zero Background Tint) */}
+      <div className="relative z-10 w-full max-w-[390px] mx-4 sm:mx-8 lg:mr-16 xl:mr-28 my-auto">
+        <div className="w-full bg-transparent border border-white/15 rounded-2xl p-7 sm:p-9 text-slate-100 transition-all">
           {/* Header */}
           <div className="text-center mb-7">
-            <h1 className="text-2xl sm:text-[26px] font-semibold text-white tracking-tight drop-shadow-md">
+            <h1 className="text-2xl sm:text-[26px] font-semibold text-white tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
               User Login
             </h1>
-            <p className="text-xs text-slate-300/80 mt-1.5 font-normal tracking-wide drop-shadow-sm">
+            <p className="text-xs text-slate-300 mt-1.5 font-normal tracking-wide drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
               SFSL Security & Anti-Fraud Center
             </p>
           </div>
 
           {/* Error Banner */}
           {error && (
-            <div className="mb-5 flex items-center gap-2 p-3 rounded-lg bg-rose-950/60 backdrop-blur-md border border-rose-500/40 text-rose-200 text-xs font-medium animate-fadeIn">
+            <div className="mb-5 flex items-center gap-2 p-3 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs font-medium animate-fadeIn">
               <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
@@ -73,7 +82,7 @@ export const Login: React.FC = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
-            {/* Account Number Field - Fully Transparent Glass Input */}
+            {/* Account Number Field - Fully Transparent Input */}
             <div className="relative flex items-center">
               <div className="absolute left-3.5 text-slate-300 pointer-events-none">
                 <User className="w-4 h-4" />
@@ -90,11 +99,11 @@ export const Login: React.FC = () => {
                 autoComplete="off"
                 spellCheck={false}
                 required
-                className="w-full bg-black/25 backdrop-blur-md border border-white/15 focus:border-[#1890ff] focus:bg-black/40 focus:ring-1 focus:ring-[#1890ff] rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 outline-none transition-all shadow-inner"
+                className="w-full bg-transparent border border-white/20 focus:border-[#1890ff] focus:ring-1 focus:ring-[#1890ff] rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 outline-none transition-all drop-shadow-sm"
               />
             </div>
 
-            {/* Password Field - Fully Transparent Glass Input */}
+            {/* Password Field - Fully Transparent Input */}
             <div className="relative flex items-center">
               <div className="absolute left-3.5 text-slate-300 pointer-events-none">
                 <Lock className="w-4 h-4" />
@@ -110,7 +119,7 @@ export const Login: React.FC = () => {
                 placeholder="Password"
                 autoComplete="new-password"
                 required
-                className="w-full bg-black/25 backdrop-blur-md border border-white/15 focus:border-[#1890ff] focus:bg-black/40 focus:ring-1 focus:ring-[#1890ff] rounded-lg pl-10 pr-10 py-3 text-sm text-white placeholder-slate-400 outline-none transition-all shadow-inner"
+                className="w-full bg-transparent border border-white/20 focus:border-[#1890ff] focus:ring-1 focus:ring-[#1890ff] rounded-lg pl-10 pr-10 py-3 text-sm text-white placeholder-slate-400 outline-none transition-all drop-shadow-sm"
               />
               <button
                 type="button"
@@ -139,95 +148,79 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Demo Credentials (1-Click Fill) */}
+          {/* Quick Demo Credentials (1-Click Instant Fast Access) */}
           <div className="mt-6 pt-5 border-t border-white/10">
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[11px] font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1.5 drop-shadow-sm">
+              <span className="text-[11px] font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                 <Sparkles className="w-3 h-3 text-[#1890ff]" />
                 Demo Credentials
               </span>
-              <span className="text-[10px] text-[#1890ff] font-medium">1-Click Fill</span>
+              <span className="text-[10px] text-[#1890ff] font-medium">1-Click Fast Login</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setBadgeId('FORIS-CFO-001');
-                  setPassword('Forensic#Secure2026');
-                  setError(null);
-                }}
-                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between backdrop-blur-md ${
+                onClick={() => handleQuickLogin('FORIS-CFO-001', 'Forensic#Secure2026')}
+                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'FORIS-CFO-001'
-                    ? 'bg-blue-600/30 border-[#1890ff] text-white shadow-sm'
-                    : 'bg-black/20 border-white/10 text-slate-200 hover:border-white/20 hover:bg-black/40'
+                    ? 'bg-blue-600/25 border-[#1890ff] text-white'
+                    : 'bg-transparent border-white/15 text-slate-200 hover:border-[#1890ff] hover:bg-white/5'
                 }`}
               >
-                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px]">
+                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
                   <Shield className="w-3 h-3 text-[#1890ff] shrink-0" />
                   Dr. Abhiraj Singh
                 </span>
-                <span className="text-[9px] text-slate-300/80 truncate mt-0.5">Chief Forensic Officer</span>
+                <span className="text-[9px] text-slate-300 truncate mt-0.5">Chief Forensic Officer</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setBadgeId('FORIS-CYBER-002');
-                  setPassword('Cyber#Forensic2026');
-                  setError(null);
-                }}
-                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between backdrop-blur-md ${
+                onClick={() => handleQuickLogin('FORIS-CYBER-002', 'Cyber#Forensic2026')}
+                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'FORIS-CYBER-002'
-                    ? 'bg-purple-600/30 border-purple-400 text-white shadow-sm'
-                    : 'bg-black/20 border-white/10 text-slate-200 hover:border-white/20 hover:bg-black/40'
+                    ? 'bg-purple-600/25 border-purple-400 text-white'
+                    : 'bg-transparent border-white/15 text-slate-200 hover:border-purple-400 hover:bg-white/5'
                 }`}
               >
-                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px]">
+                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
                   <Cpu className="w-3 h-3 text-purple-400 shrink-0" />
                   Pooja Sharma
                 </span>
-                <span className="text-[9px] text-slate-300/80 truncate mt-0.5">Senior Cyber Expert</span>
+                <span className="text-[9px] text-slate-300 truncate mt-0.5">Senior Cyber Expert</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setBadgeId('POLICE-INV-101');
-                  setPassword('Police#Shield2026');
-                  setError(null);
-                }}
-                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between backdrop-blur-md ${
+                onClick={() => handleQuickLogin('POLICE-INV-101', 'Police#Shield2026')}
+                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'POLICE-INV-101'
-                    ? 'bg-blue-600/30 border-blue-400 text-white shadow-sm'
-                    : 'bg-black/20 border-white/10 text-slate-200 hover:border-white/20 hover:bg-black/40'
+                    ? 'bg-blue-600/25 border-blue-400 text-white'
+                    : 'bg-transparent border-white/15 text-slate-200 hover:border-blue-400 hover:bg-white/5'
                 }`}
               >
-                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px]">
+                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
                   <User className="w-3 h-3 text-blue-400 shrink-0" />
                   Insp. Amit Singh
                 </span>
-                <span className="text-[9px] text-slate-300/80 truncate mt-0.5">Lead Investigator</span>
+                <span className="text-[9px] text-slate-300 truncate mt-0.5">Lead Investigator</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setBadgeId('JUDGE-SESS-901');
-                  setPassword('Justice#Docket2026');
-                  setError(null);
-                }}
-                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between backdrop-blur-md ${
+                onClick={() => handleQuickLogin('JUDGE-SESS-901', 'Justice#Docket2026')}
+                className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'JUDGE-SESS-901'
-                    ? 'bg-amber-600/30 border-amber-400 text-white shadow-sm'
-                    : 'bg-black/20 border-white/10 text-slate-200 hover:border-white/20 hover:bg-black/40'
+                    ? 'bg-amber-600/25 border-amber-400 text-white'
+                    : 'bg-transparent border-white/15 text-slate-200 hover:border-amber-400 hover:bg-white/5'
                 }`}
               >
-                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px]">
+                <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
                   <ShieldCheck className="w-3 h-3 text-amber-400 shrink-0" />
                   Justice Deshmukh
                 </span>
-                <span className="text-[9px] text-slate-300/80 truncate mt-0.5">Sessions Judge</span>
+                <span className="text-[9px] text-slate-300 truncate mt-0.5">Sessions Judge</span>
               </button>
             </div>
           </div>
