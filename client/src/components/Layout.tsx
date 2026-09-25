@@ -29,6 +29,8 @@ import {
   Sun,
   Moon,
   ScanText,
+  Menu,
+  FolderOpen,
 } from 'lucide-react';
 import { CyberBackgroundMesh } from './CyberBackgroundMesh';
 import { CyberHUDCursor } from './CyberHUDCursor';
@@ -51,6 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
@@ -183,15 +186,109 @@ export const Layout: React.FC<LayoutProps> = ({
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-emerald-500/30 selection:text-emerald-200 relative">
+    <div className="flex h-[100dvh] bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-emerald-500/30 selection:text-emerald-200 relative">
       {/* Global Interactive Cyber Mesh Background */}
       <CyberBackgroundMesh intensity={cyberFxEnabled ? 1.0 : 0.4} />
 
       {/* Tactical Forensic HUD Crosshair & Click Ripples */}
       <CyberHUDCursor enabled={cyberFxEnabled} />
 
-      {/* Left Sidebar - Compact Premium Intelligence Console */}
-      <aside className="w-56 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/70 flex flex-col justify-between shrink-0 shadow-2xl z-20 font-sans">
+      {/* Mobile Off-Canvas Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex animate-fadeIn">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <aside className="relative w-72 max-w-[85vw] bg-slate-950 border-r border-slate-800 flex flex-col justify-between h-full shadow-2xl z-10 animate-slideRight">
+            <div>
+              {/* Header with Close Button */}
+              <div className="p-4 border-b border-slate-800 bg-slate-950/90 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-mono font-black text-xs shadow-md">
+                    SFSL
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs tracking-wider text-white font-mono block">
+                      FORIS PORTAL
+                    </span>
+                    <span className="text-[9px] text-slate-500 font-mono block">
+                      GOV FORENSIC COMMAND
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="p-2.5 space-y-1 overflow-y-auto max-h-[calc(100dvh-180px)]">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-mono font-medium tracking-wide transition-all ${
+                        isActive
+                          ? 'bg-cyan-950/70 text-cyan-200 border-l-2 border-cyan-400 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border-l-2 border-transparent'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
+                      <span className="flex-1 text-left truncate">{item.label}</span>
+                      {(item as any).isLens ? (
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 uppercase font-mono">
+                          LENS
+                        </span>
+                      ) : item.isAi ? (
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase font-mono">
+                          AI
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Officer Info & Sign Out in Drawer */}
+            <div className="p-3 border-t border-slate-800 bg-slate-950 space-y-2">
+              <div className="flex items-center gap-2.5 px-1 py-1">
+                <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-400">
+                  {user?.badgeId?.slice(0, 3) || 'FEX'}
+                </div>
+                <div className="truncate text-left flex-1">
+                  <span className="text-xs font-bold text-white block truncate">{user?.name || 'Officer'}</span>
+                  <span className="text-[10px] font-mono text-cyan-400 block">{user?.badgeId} • {user?.role}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={logout}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-mono font-medium text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out Officer
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Left Sidebar - Compact Premium Intelligence Console (Desktop Only) */}
+      <aside className="hidden lg:flex w-56 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/70 flex-col justify-between shrink-0 shadow-2xl z-20 font-sans">
         <div>
           {/* Brand Logo & Console Header */}
           <div className="p-3.5 border-b border-slate-800/80 bg-slate-950/90">
@@ -279,9 +376,17 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar - Command Console Style */}
-        <header className="h-14 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-5 flex items-center justify-between shrink-0 z-30 font-sans">
-          {/* Left section: Global Search & Current Title */}
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
+        <header className="h-14 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-3 sm:px-5 flex items-center justify-between shrink-0 z-30 font-sans">
+          {/* Left section: Hamburger (Mobile) + Global Search & Current Title */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-xl">
+            {/* Hamburger Button for Mobile */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/50 transition-all shrink-0"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-4 h-4 text-cyan-400" />
+            </button>
             <div className="relative w-full">
               <div className="relative flex items-center">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
@@ -651,8 +756,71 @@ export const Layout: React.FC<LayoutProps> = ({
         )}
 
         {/* Main Content Render Area */}
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-950/40">{children}</main>
+        <main
+          className={`flex-1 overflow-y-auto bg-slate-950/40 ${
+            activeTab === 'dashboard'
+              ? 'p-0 pb-16 lg:pb-0'
+              : 'p-3 sm:p-5 md:p-6 pb-20 lg:pb-6'
+          }`}
+        >
+          {children}
+        </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Phone Full-Screen Support) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-2xl border-t border-slate-800/80 px-2 py-1.5 flex items-center justify-around shadow-2xl font-sans">
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+            activeTab === 'dashboard'
+              ? 'text-cyan-400 bg-cyan-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Briefcase className="w-4 h-4" />
+          <span className="text-[9px] font-mono">Console</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('cases')}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+            activeTab === 'cases'
+              ? 'text-cyan-400 bg-cyan-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <FolderOpen className="w-4 h-4" />
+          <span className="text-[9px] font-mono">Cases</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('evidence')}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+            activeTab === 'evidence'
+              ? 'text-emerald-400 bg-emerald-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          <span className="text-[9px] font-mono">Evidence</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
+            activeTab === 'reports'
+              ? 'text-rose-400 bg-rose-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span className="text-[9px] font-mono">Reports</span>
+        </button>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl text-slate-400 hover:text-cyan-300 transition-all"
+        >
+          <Menu className="w-4 h-4" />
+          <span className="text-[9px] font-mono">Menu</span>
+        </button>
+      </nav>
 
       {/* 17-Step Demo Guide Modal */}
       {isDemoGuideOpen && (

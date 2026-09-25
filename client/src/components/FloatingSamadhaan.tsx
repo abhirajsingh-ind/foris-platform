@@ -482,24 +482,24 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 font-sans">
+    <div className="fixed bottom-16 sm:bottom-5 right-3 sm:right-5 z-40 font-sans">
       {/* Floating Action Bubble Toggle Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="relative flex items-center gap-3 px-4 py-3 rounded-full bg-slate-950/90 border-2 border-cyan-400 text-cyan-200 font-bold text-xs shadow-2xl shadow-cyan-950/90 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all group backdrop-blur-xl"
+          className="relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-full bg-slate-950/90 border-2 border-cyan-400 text-cyan-200 font-bold text-xs shadow-2xl shadow-cyan-950/90 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all group backdrop-blur-xl"
         >
           {/* Rotating Arc Reactor Dash Ring */}
-          <div className="relative w-5 h-5 flex items-center justify-center">
+          <div className="relative w-4 sm:w-5 h-4 sm:h-5 flex items-center justify-center">
             <svg className="absolute inset-0 w-full h-full animate-[spin_8s_linear_infinite]" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" fill="none" stroke="#22d3ee" strokeWidth="2" strokeDasharray="6 4" />
             </svg>
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-md shadow-cyan-400"></div>
+            <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-cyan-400 animate-pulse shadow-md shadow-cyan-400"></div>
           </div>
-          <span className="tracking-widest font-mono font-black text-[11px] uppercase bg-gradient-to-r from-cyan-300 via-white to-teal-300 bg-clip-text text-transparent">
+          <span className="tracking-widest font-mono font-black text-[10px] sm:text-[11px] uppercase bg-gradient-to-r from-cyan-300 via-white to-teal-300 bg-clip-text text-transparent">
             J.A.R.V.I.S. AI
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 text-[9px] font-mono border border-cyan-500/40">
+          <span className="hidden sm:inline px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 text-[9px] font-mono border border-cyan-500/40">
             ⚡ &lt;10ms
           </span>
         </button>
@@ -507,7 +507,7 @@ export const FloatingSamadhaan: React.FC<FloatingSamadhaanProps> = ({ onNavigate
 
       {/* Floating Chat Modal Box */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[550px] rounded-3xl bg-slate-900/95 border-2 border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden animate-fadeIn backdrop-blur-2xl">
+        <div className="w-[calc(100vw-1.5rem)] max-w-[360px] sm:max-w-[420px] h-[480px] sm:h-[550px] max-h-[75vh] rounded-3xl bg-slate-900/95 border-2 border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden animate-fadeIn backdrop-blur-2xl">
           {/* Header */}
           <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">

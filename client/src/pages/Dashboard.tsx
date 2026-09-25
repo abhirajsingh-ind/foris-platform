@@ -309,31 +309,38 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
+  const handleSelectNode = (node: IntelligenceNode | null) => {
+    setSelectedNode(node);
+    if (node) {
+      setIsRightPanelOpen(true);
+    }
+  };
+
   return (
-    <div className="h-[calc(100vh-6rem)] min-h-[680px] flex flex-col font-sans -m-6 overflow-hidden bg-slate-950">
+    <div className="w-full h-full min-h-0 flex flex-col font-sans overflow-hidden bg-slate-950">
       {/* 1. TOP COMMAND & CASE TELEMETRY STRIP */}
-      <div className="px-6 py-2.5 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+      <div className="px-3 sm:px-6 py-2 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 flex items-center justify-between gap-2 shrink-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-            <span className="font-mono text-xs font-bold text-white tracking-wider flex items-center gap-2">
-              <span>FORENSIC INTELLIGENCE COMMAND</span>
-              <span className="text-[10px] text-cyan-400 font-normal px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/50">
-                SFSL NODE 01
+            <span className="font-mono text-xs font-bold text-white tracking-wider flex items-center gap-1 sm:gap-2">
+              <span className="truncate max-w-[120px] sm:max-w-none">INTELLIGENCE</span>
+              <span className="text-[9px] sm:text-[10px] text-cyan-400 font-normal px-1 sm:px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/50 shrink-0">
+                NODE 01
               </span>
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-1.5 pl-3 border-l border-slate-800">
-            <span className="text-[10px] font-mono text-slate-400">ACTIVE DOSSIER:</span>
+          <div className="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-slate-800 min-w-0">
+            <span className="text-[10px] font-mono text-slate-400 hidden md:inline">ACTIVE:</span>
             <select
               value={activeCaseId}
               onChange={(e) => handleSelectCase(e.target.value)}
-              className="bg-slate-900 border border-slate-700/80 hover:border-cyan-500/50 text-cyan-300 font-mono text-xs font-bold rounded-xl px-2.5 py-1 outline-none transition-all cursor-pointer"
+              className="bg-slate-900 border border-slate-700/80 hover:border-cyan-500/50 text-cyan-300 font-mono text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl px-2 py-1 outline-none transition-all cursor-pointer max-w-[130px] sm:max-w-[200px] md:max-w-xs truncate"
             >
               {recentCases.map((c) => (
                 <option key={c.id} value={c.id} className="bg-slate-900 text-white font-mono">
-                  {c.id} — {c.firNumber} ({c.title?.slice(0, 32)}...)
+                  {c.id} — {c.firNumber}
                 </option>
               ))}
             </select>
@@ -341,11 +348,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Right Action Shortcuts */}
-        <div className="flex items-center gap-2">
-          {/* Quick Tab Jump Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Quick Tab Jump Buttons (Desktop) */}
           <button
             onClick={() => setActiveTab('cases')}
-            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all hidden sm:flex items-center gap-1.5"
+            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all hidden xl:flex items-center gap-1.5"
           >
             <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
             <span>Cases ({recentCases.length})</span>
@@ -353,40 +360,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <button
             onClick={() => setActiveTab('evidence')}
-            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-emerald-300 transition-all hidden sm:flex items-center gap-1.5"
+            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-emerald-300 transition-all hidden xl:flex items-center gap-1.5"
           >
             <Shield className="w-3.5 h-3.5 text-emerald-400" />
             <span>Evidence ({stats.totalEvidence || 42})</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('reports')}
-            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-purple-300 transition-all hidden md:flex items-center gap-1.5"
-          >
-            <FileText className="w-3.5 h-3.5 text-purple-400" />
-            <span>Reports ({recentReports.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('custody')}
-            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300 hover:text-teal-300 transition-all hidden lg:flex items-center gap-1.5"
-          >
-            <Clock className="w-3.5 h-3.5 text-teal-400" />
-            <span>Custody</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('samadhaan')}
-            className="px-3 py-1 rounded-xl bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900/90 hover:to-indigo-900/90 border border-purple-500/40 text-purple-200 text-xs font-mono font-bold transition-all flex items-center gap-1.5 shadow-md shadow-purple-950/30"
+            className="px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900/90 hover:to-indigo-900/90 border border-purple-500/40 text-purple-200 text-[10px] sm:text-xs font-mono font-bold transition-all flex items-center gap-1 sm:gap-1.5 shadow-md shadow-purple-950/30"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-            <span>AI SAMADHAAN</span>
+            <span className="hidden sm:inline">AI SAMADHAAN</span>
+            <span className="sm:hidden">AI</span>
           </button>
 
-          {/* Toggle Right Intelligence Panel on Mobile / Tablet */}
+          {/* Toggle Right Intelligence Panel */}
           <button
             onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white lg:hidden transition-colors"
+            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-cyan-400 hover:text-white transition-colors"
             title={isRightPanelOpen ? 'Collapse Intelligence Panel' : 'Open Intelligence Panel'}
           >
             {isRightPanelOpen ? (
@@ -407,7 +399,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           audits={recentAudits}
           evidence={evidenceList}
           selectedNodeId={selectedNode ? selectedNode.id : null}
-          onSelectNode={setSelectedNode}
+          onSelectNode={handleSelectNode}
           activeCaseId={activeCaseId}
           onChangeActiveCase={handleSelectCase}
           setActiveTab={setActiveTab}
@@ -415,23 +407,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onSearchChange={setSearchQuery}
         />
 
-        {/* Dynamic Right-Side Intelligence Panel */}
+        {/* Dynamic Right-Side Intelligence Panel (Modal/Drawer on mobile, Side panel on lg screens) */}
         {isRightPanelOpen && (
-          <RightIntelligencePanel
-            selectedNode={selectedNode}
-            onClearSelection={() => setSelectedNode(null)}
-            onSelectNodeById={handleSelectNodeById}
-            stats={stats}
-            cases={recentCases}
-            reports={recentReports}
-            audits={recentAudits}
-            evidence={evidenceList}
-            setActiveTab={setActiveTab}
-            onSelectCase={onSelectCase}
-            onSelectReport={onSelectReport}
-            isCollapsed={!isRightPanelOpen}
-            onToggleCollapse={() => setIsRightPanelOpen(!isRightPanelOpen)}
-          />
+          <>
+            {/* Mobile Backdrop */}
+            <div
+              className="lg:hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 animate-fadeIn"
+              onClick={() => setIsRightPanelOpen(false)}
+            />
+            <div className="fixed inset-y-0 right-0 w-full sm:w-[420px] max-w-[100vw] z-40 lg:relative lg:inset-auto lg:w-[420px] lg:z-auto h-full flex flex-col shadow-2xl animate-slideRight sm:animate-fadeIn">
+              <RightIntelligencePanel
+                selectedNode={selectedNode}
+                onClearSelection={() => setSelectedNode(null)}
+                onSelectNodeById={handleSelectNodeById}
+                stats={stats}
+                cases={recentCases}
+                reports={recentReports}
+                audits={recentAudits}
+                evidence={evidenceList}
+                setActiveTab={setActiveTab}
+                onSelectCase={onSelectCase}
+                onSelectReport={onSelectReport}
+                isCollapsed={!isRightPanelOpen}
+                onToggleCollapse={() => setIsRightPanelOpen(false)}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

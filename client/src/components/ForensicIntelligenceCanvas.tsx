@@ -473,6 +473,30 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     setIsDragging(false);
   };
 
+  // Touch Handlers for Mobile Panning
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('.interactive-node')) return;
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - panOffset.x,
+        y: e.touches[0].clientY - panOffset.y,
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setPanOffset({
+      x: e.touches[0].clientX - dragStart.x,
+      y: e.touches[0].clientY - dragStart.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   // Zoom Handlers
   const handleZoom = (delta: number) => {
     setZoomLevel((prev) => Math.min(2.2, Math.max(0.65, prev + delta)));
@@ -559,7 +583,10 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      className="relative flex-1 h-full min-h-[640px] overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative flex-1 w-full h-full min-h-0 overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans touch-none"
       style={{
         background:
           'radial-gradient(ellipse 75% 60% at 50% 45%, rgba(6, 78, 86, 0.42) 0%, rgba(3, 38, 48, 0.55) 35%, rgba(4, 15, 24, 0.88) 70%, #020409 100%)',
@@ -622,13 +649,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       </div>
 
       {/* 3. TOP TACTICAL CATEGORY FILTER PILLS */}
-      <div className="absolute top-4 left-6 right-6 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-        <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
+      <div className="absolute top-2 sm:top-4 left-2 sm:left-6 right-2 sm:right-6 z-20 flex items-center justify-between gap-1.5 sm:gap-3 pointer-events-none">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto overflow-x-auto no-scrollbar max-w-[calc(100%-105px)] sm:max-w-none">
           {['ALL', 'CASES', 'EVIDENCE', 'REPORTS', 'OFFICERS', 'CUSTODY', 'COURTS'].map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider transition-all ${
+              className={`px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold tracking-wider transition-all whitespace-nowrap shrink-0 ${
                 activeCategory === cat
                   ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/60 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
                   : 'text-slate-400 hover:text-white border border-transparent'
@@ -640,29 +667,29 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
         </div>
 
         {/* Zoom & Reset View Controls */}
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <div className="flex items-center bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-2xl">
+        <div className="flex items-center gap-1 sm:gap-2 pointer-events-auto shrink-0">
+          <div className="flex items-center bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-full p-0.5 sm:p-1 shadow-2xl">
             <button
               onClick={() => handleZoom(0.15)}
-              className="p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
+              className="p-1 sm:p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
               title="Zoom In (+)"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2 font-mono text-[10px] text-slate-300 font-bold">
+            <span className="px-1.5 sm:px-2 font-mono text-[9px] sm:text-[10px] text-slate-300 font-bold hidden sm:inline">
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={() => handleZoom(-0.15)}
-              className="p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
+              className="p-1 sm:p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
               title="Zoom Out (-)"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <div className="w-[1px] h-3.5 bg-slate-800 mx-1" />
+            <div className="w-[1px] h-3 sm:h-3.5 bg-slate-800 mx-0.5 sm:mx-1" />
             <button
               onClick={handleResetView}
-              className="p-1.5 text-slate-400 hover:text-white rounded-full transition-all"
+              className="p-1 sm:p-1.5 text-slate-400 hover:text-white rounded-full transition-all"
               title="Reset View (⟲)"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -735,7 +762,11 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
           transformOrigin: 'center center',
         }}
       >
-        <svg viewBox="0 0 1000 800" className="w-full h-full min-w-[1000px] min-h-[800px] pointer-events-auto">
+        <svg
+          viewBox="0 0 1000 800"
+          className="w-full h-full max-w-full max-h-full pointer-events-auto select-none"
+          preserveAspectRatio="xMidYMid meet"
+        >
           <defs>
             {/* 3D Glass Jewel Radial Gradients (Hot Specular Top-Left Highlight) */}
             {/* 1. Core Gold Reactor Gradient */}
@@ -1078,82 +1109,84 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       </div>
 
       {/* 6. BOTTOM FROSTED CAPSULE DOCK & AI INQUIRY BAR (Matching Reference Image 1) */}
-      <div className="absolute bottom-4 left-6 right-6 z-20 pointer-events-auto">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] p-3 space-y-2.5">
+      <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-6 right-2 sm:right-6 z-20 pointer-events-auto">
+        <div className="max-w-4xl mx-auto rounded-2xl sm:rounded-3xl bg-slate-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] p-2 sm:p-3 space-y-1.5 sm:space-y-2.5">
           {/* Telemetry Metric Pills Row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-2 border-b border-white/5 pb-2 text-[11px] font-mono">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-extrabold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                COMPLIANCE: 99.4%
+          <div className="flex items-center justify-between gap-2 px-1 sm:px-2 border-b border-white/5 pb-1.5 sm:pb-2 text-[10px] sm:text-[11px] font-mono">
+            <div className="flex items-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-0.5">
+              <span className="flex items-center gap-1 sm:gap-1.5 text-emerald-400 font-extrabold whitespace-nowrap">
+                <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-400 animate-pulse" />
+                99.4%
               </span>
-              <span className="hidden sm:inline text-slate-400">
-                EXHIBITS: <strong className="text-cyan-300">{evidence.length || 42}</strong>
+              <span className="text-slate-400 whitespace-nowrap">
+                EXH: <strong className="text-cyan-300">{evidence.length || 42}</strong>
               </span>
-              <span className="hidden sm:inline text-slate-400">
-                CHAINED BLOCKS: <strong className="text-purple-300">1,135</strong>
+              <span className="text-slate-400 whitespace-nowrap">
+                BLOCKS: <strong className="text-purple-300">1,135</strong>
               </span>
-              <span className="hidden md:inline text-slate-400">
-                ACTIVE INQUESTS: <strong className="text-amber-300">{cases.length}</strong>
+              <span className="hidden md:inline text-slate-400 whitespace-nowrap">
+                INQUESTS: <strong className="text-amber-300">{cases.length}</strong>
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/40 font-bold shadow-sm">
-                PRIMARY: {currentCase.id}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-mono text-cyan-300 bg-cyan-950/70 px-2 py-0.5 rounded-full border border-cyan-500/40 font-bold shadow-sm truncate max-w-[120px] sm:max-w-none">
+                {currentCase.id}
               </span>
             </div>
           </div>
 
           {/* AI Response Box (if active) */}
           {aiResponse && (
-            <div className="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-slate-200 flex items-start justify-between gap-3 animate-fadeIn">
+            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-slate-200 flex items-start justify-between gap-3 animate-fadeIn">
               <div>
-                <span className="font-mono font-bold text-cyan-300 block mb-0.5">
+                <span className="font-mono font-bold text-cyan-300 block mb-0.5 text-[11px] sm:text-xs">
                   {aiResponse.title}
                 </span>
-                <p className="text-slate-300 text-xs leading-relaxed">{aiResponse.text}</p>
+                <p className="text-slate-300 text-[11px] sm:text-xs leading-relaxed">{aiResponse.text}</p>
               </div>
-              <button onClick={() => setAiResponse(null)} className="text-slate-400 hover:text-white p-1">
+              <button onClick={() => setAiResponse(null)} className="text-slate-400 hover:text-white p-1 text-xs">
                 ✕
               </button>
             </div>
           )}
 
           {/* Frosted Input Capsule */}
-          <form onSubmit={handleAskAI} className="relative flex items-center gap-2">
+          <form onSubmit={handleAskAI} className="relative flex items-center gap-1.5 sm:gap-2">
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder={`Ask GYAAN GURU AI about ${currentCase.id}, ballistic striations, custody, or BSA statutes...`}
+                placeholder={`Ask GYAAN GURU AI about ${currentCase.id}...`}
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                className="w-full bg-slate-900/80 border border-slate-700/80 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 rounded-full pl-5 pr-10 py-2.5 text-xs text-white placeholder-slate-400 outline-none transition-all shadow-inner"
+                className="w-full bg-slate-900/80 border border-slate-700/80 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 rounded-full pl-3.5 sm:pl-5 pr-8 sm:pr-10 py-1.5 sm:py-2.5 text-xs text-white placeholder-slate-400 outline-none transition-all shadow-inner"
               />
               <button
                 type="button"
                 onClick={() => setActiveTab('samadhaan')}
-                className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-300"
+                className="absolute right-2.5 sm:right-3.5 top-2 sm:top-3 text-slate-400 hover:text-cyan-300"
                 title="Launch Voice Samadhaan"
               >
-                <Mic className="w-4 h-4" />
+                <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
             <button
               type="submit"
               disabled={isAiThinking || !aiPrompt.trim()}
-              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs font-mono transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95 shrink-0"
+              className="px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-[10px] sm:text-xs font-mono transition-all flex items-center gap-1 sm:gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95 shrink-0"
             >
               {isAiThinking ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>SYNTHESIZING...</span>
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <span className="hidden sm:inline">SYNTHESIZING...</span>
+                  <span className="sm:hidden">...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>AI INQUIRE</span>
+                  <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">AI INQUIRE</span>
+                  <span className="sm:hidden">ASK</span>
                 </>
               )}
             </button>

@@ -569,3 +569,25 @@ body.theme-light,
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(6, 182, 212, 0.35));
 }
 
+/* Mobile Utilities & Slide Animations */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideRight {
+  animation: slideRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
