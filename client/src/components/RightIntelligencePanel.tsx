@@ -8,7 +8,6 @@ import {
   History,
   CheckCircle2,
   AlertTriangle,
-  ExternalLink,
   ChevronRight,
   ArrowRight,
   Copy,
@@ -22,7 +21,8 @@ import {
   Scale,
   Hash,
   Activity,
-  Award,
+  BarChart3,
+  PieChart,
 } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { CyberDecryptText } from './CyberDecryptText';
@@ -87,7 +87,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
   onToggleCollapse,
 }) => {
   const [copiedHash, setCopiedHash] = useState(false);
-  const [panelTab, setPanelTab] = useState<'overview' | 'audit' | 'integrity'>('overview');
+  const [panelTab, setPanelTab] = useState<'analytics' | 'overview' | 'audit'>('analytics');
 
   const handleCopyHash = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -95,85 +95,85 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
     setTimeout(() => setCopiedHash(false), 2000);
   };
 
-  const getCategoryColor = (cat?: string) => {
+  const getCategoryTheme = (cat?: string) => {
     switch (cat) {
       case 'case':
         return {
-          badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+          pill: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]',
           accent: 'text-cyan-400',
-          glow: 'border-cyan-500/30 shadow-cyan-950/40',
+          grad: 'from-cyan-950 via-slate-900 to-slate-950',
           icon: Briefcase,
         };
       case 'evidence':
         return {
-          badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          pill: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]',
           accent: 'text-emerald-400',
-          glow: 'border-emerald-500/30 shadow-emerald-950/40',
+          grad: 'from-emerald-950 via-slate-900 to-slate-950',
           icon: Shield,
         };
       case 'report':
         return {
-          badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-          accent: 'text-purple-400',
-          glow: 'border-purple-500/30 shadow-purple-950/40',
+          pill: 'bg-rose-500/20 text-rose-200 border-rose-400/50 shadow-[0_0_12px_rgba(244,63,94,0.3)]',
+          accent: 'text-rose-400',
+          grad: 'from-rose-950 via-slate-900 to-slate-950',
           icon: FileText,
         };
       case 'officer':
         return {
-          badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+          pill: 'bg-amber-500/20 text-amber-200 border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]',
           accent: 'text-amber-400',
-          glow: 'border-amber-500/30 shadow-amber-950/40',
+          grad: 'from-amber-950 via-slate-900 to-slate-950',
           icon: UserCheck,
         };
       case 'court':
         return {
-          badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-          accent: 'text-emerald-400',
-          glow: 'border-emerald-500/30 shadow-emerald-950/40',
+          pill: 'bg-teal-500/20 text-teal-200 border-teal-400/50 shadow-[0_0_12px_rgba(20,184,166,0.3)]',
+          accent: 'text-teal-400',
+          grad: 'from-teal-950 via-slate-900 to-slate-950',
           icon: Scale,
         };
       case 'custody':
         return {
-          badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
-          accent: 'text-teal-400',
-          glow: 'border-teal-500/30 shadow-teal-950/40',
+          pill: 'bg-purple-500/20 text-purple-200 border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.3)]',
+          accent: 'text-purple-400',
+          grad: 'from-purple-950 via-slate-900 to-slate-950',
           icon: Clock,
         };
       default:
         return {
-          badge: 'bg-slate-800 text-slate-300 border-slate-700',
+          pill: 'bg-slate-800 text-slate-200 border-slate-700',
           accent: 'text-cyan-400',
-          glow: 'border-slate-800',
+          grad: 'from-slate-900 to-slate-950',
           icon: Layers,
         };
     }
   };
 
-  // 1. ENTITY INTELLIGENCE VIEW (When node is selected)
+  // 1. ENTITY INTELLIGENCE DOSSIER (When a node is selected)
   if (selectedNode) {
-    const styling = getCategoryColor(selectedNode.category);
-    const CategoryIcon = styling.icon;
+    const theme = getCategoryTheme(selectedNode.category);
+    const CategoryIcon = theme.icon;
 
     return (
-      <aside className="w-full lg:w-[410px] bg-slate-950/90 backdrop-blur-xl border-l border-slate-800/80 flex flex-col h-full shrink-0 shadow-2xl z-20 overflow-hidden animate-fadeIn font-sans">
+      <aside className="w-full lg:w-[420px] bg-slate-950/92 backdrop-blur-2xl border-l border-white/10 flex flex-col h-full shrink-0 shadow-2xl z-20 overflow-hidden font-sans animate-fadeIn">
         {/* Panel Header */}
-        <div className="p-4 border-b border-slate-800/80 bg-slate-900/60 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-xl border ${styling.badge}`}>
+        <div className="p-4 border-b border-white/10 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-2xl border ${theme.pill}`}>
               <CategoryIcon className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${styling.badge}`}>
-                  {selectedNode.category} INTELLIGENCE
+                <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.pill}`}>
+                  {selectedNode.category} DOSSIER
                 </span>
                 {selectedNode.priority && (
                   <span
-                    className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                    className={`text-[9px] font-mono font-bold px-2 py-0.2 rounded-full border ${
                       selectedNode.priority === 'CRITICAL'
-                        ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
                         : selectedNode.priority === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
                         : 'bg-slate-800 text-slate-400 border-slate-700'
                     }`}
                   >
@@ -181,7 +181,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   </span>
                 )}
               </div>
-              <h3 className="text-sm font-black text-white font-mono mt-0.5 tracking-tight truncate max-w-[260px]">
+              <h3 className="text-sm font-black text-white font-mono mt-1 tracking-tight truncate max-w-[270px]">
                 {selectedNode.label}
               </h3>
             </div>
@@ -189,8 +189,8 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
           <button
             onClick={onClearSelection}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-            title="Return to System Overview"
+            className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 transition-colors"
+            title="Return to System Analytics"
           >
             <X className="w-4 h-4" />
           </button>
@@ -200,9 +200,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
           {/* Node Summary / Description */}
           {selectedNode.description && (
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-1.5">
+            <div className="p-3.5 rounded-2xl bg-slate-900/70 border border-white/5 space-y-1.5 shadow-inner">
               <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
-                Investigative Synthesis
+                Investigative Forensic Synthesis
               </span>
               <p className="text-slate-300 leading-relaxed text-xs">
                 {selectedNode.description}
@@ -210,28 +210,42 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             </div>
           )}
 
-          {/* Primary Metadata Attributes */}
-          <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-2.5">
+          {/* Execution & Attestation Progress Meter (Reference Image 3) */}
+          <div className="rounded-2xl bg-slate-900/70 border border-white/5 p-3.5 space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-400">Section 65B & 45 Attestation:</span>
+              <span className="font-bold text-emerald-400">100% COMPLETE</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+
+          {/* Primary Metadata Table */}
+          <div className="rounded-2xl bg-slate-900/60 border border-white/5 p-3.5 space-y-2.5">
             <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
               Forensic Identifiers & Metadata
             </span>
 
             {selectedNode.caseId && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
                 <span className="text-slate-400 font-mono">Case ID:</span>
                 <span className="font-mono font-bold text-cyan-400">{selectedNode.caseId}</span>
               </div>
             )}
 
             {selectedNode.firNumber && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
                 <span className="text-slate-400 font-mono">FIR Record:</span>
                 <span className="font-mono font-bold text-white">{selectedNode.firNumber}</span>
               </div>
             )}
 
             {selectedNode.officerName && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
                 <span className="text-slate-400 font-mono">Assigned Officer:</span>
                 <span className="font-bold text-slate-200">
                   {selectedNode.officerName} {selectedNode.officerBadge ? `[${selectedNode.officerBadge}]` : ''}
@@ -240,22 +254,22 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             )}
 
             {selectedNode.department && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
                 <span className="text-slate-400 font-mono">Division / Unit:</span>
-                <span className="text-slate-300 truncate max-w-[200px]">{selectedNode.department}</span>
+                <span className="text-slate-300 truncate max-w-[210px]">{selectedNode.department}</span>
               </div>
             )}
 
             {selectedNode.status && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
                 <span className="text-slate-400 font-mono">Status:</span>
                 <StatusBadge type={selectedNode.category as any} value={selectedNode.status} />
               </div>
             )}
 
             {selectedNode.timestamp && (
-              <div className="flex items-center justify-between text-xs py-1 border-b border-slate-800/60">
-                <span className="text-slate-400 font-mono">Last Inquest Activity:</span>
+              <div className="flex items-center justify-between text-xs py-1 border-b border-white/5">
+                <span className="text-slate-400 font-mono">Inquest Activity Date:</span>
                 <span className="font-mono text-slate-300">
                   {new Date(selectedNode.timestamp).toLocaleDateString('en-IN', {
                     day: 'numeric',
@@ -266,11 +280,11 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               </div>
             )}
 
-            {/* Cryptographic SHA-256 Hash Verification */}
+            {/* Cryptographic SHA-256 Hash */}
             {selectedNode.sha256 && (
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 font-bold">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                     SHA-256 Cryptographic Hash
                   </span>
@@ -291,7 +305,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     )}
                   </button>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-[10px] text-slate-400 break-all select-all">
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-white/5 font-mono text-[10px] text-slate-300 break-all select-all">
                   {selectedNode.sha256}
                 </div>
               </div>
@@ -300,13 +314,13 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
           {/* Chain of Custody Timeline (if custody history exists) */}
           {selectedNode.custodyHistory && selectedNode.custodyHistory.length > 0 && (
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-3">
+            <div className="rounded-2xl bg-slate-900/60 border border-white/5 p-3.5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-teal-400" />
-                  Chain of Custody Timeline
+                  Chain of Custody Handover Track
                 </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
                   {selectedNode.custodyHistory.length} Checkpoints
                 </span>
               </div>
@@ -314,7 +328,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               <div className="relative pl-4 space-y-3 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
                 {selectedNode.custodyHistory.map((step, idx) => (
                   <div key={idx} className="relative group text-xs">
-                    <span className="absolute -left-4 top-1 w-2.5 h-2.5 rounded-full bg-teal-400 ring-4 ring-slate-900"></span>
+                    <span className="absolute -left-4 top-1 w-2.5 h-2.5 rounded-full bg-teal-400 ring-4 ring-slate-950" />
                     <div className="flex items-baseline justify-between">
                       <span className="font-bold text-white text-xs">{step.stage}</span>
                       <span className="text-[10px] font-mono text-slate-500">{step.timestamp}</span>
@@ -322,7 +336,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
                       <span className="text-teal-300 font-mono">{step.holder}</span>
                       {step.verified && (
-                        <span className="text-[9px] text-emerald-400 font-mono">✓ Verified</span>
+                        <span className="text-[9px] text-emerald-400 font-mono font-bold">✓ Verified</span>
                       )}
                     </div>
                   </div>
@@ -331,18 +345,18 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             </div>
           )}
 
-          {/* Connected Relational Nodes in Graph */}
+          {/* Connected Relational Nodes */}
           {selectedNode.connectedNodeIds && selectedNode.connectedNodeIds.length > 0 && (
-            <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-2.5">
+            <div className="rounded-2xl bg-slate-900/60 border border-white/5 p-3.5 space-y-2.5">
               <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
-                Connected Relational Entities ({selectedNode.connectedNodeIds.length})
+                Relational Network Links ({selectedNode.connectedNodeIds.length})
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {selectedNode.connectedNodeIds.map((cId) => (
                   <button
                     key={cId}
                     onClick={() => onSelectNodeById(cId)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-950/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-full bg-slate-950 hover:bg-slate-800 border border-white/10 hover:border-cyan-400 text-[10px] font-mono text-slate-300 hover:text-cyan-300 transition-all flex items-center gap-1"
                   >
                     <span>{cId}</span>
                     <ChevronRight className="w-3 h-3 text-slate-500" />
@@ -352,7 +366,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
             </div>
           )}
 
-          {/* Action Navigator Buttons (Existing Routes / Functionality) */}
+          {/* Action Navigator Buttons */}
           <div className="space-y-2 pt-2">
             {selectedNode.caseId && (
               <button
@@ -360,19 +374,19 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   if (onSelectCase) onSelectCase(selectedNode.caseId!);
                   else setActiveTab('cases');
                 }}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 font-bold font-mono text-xs transition-all shadow-md active:scale-98"
+                className="w-full flex items-center justify-between px-4 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-bold font-mono text-xs transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-98"
               >
                 <span className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-cyan-400" />
+                  <Briefcase className="w-4 h-4" />
                   VIEW CASE DOSSIER
                 </span>
-                <ArrowRight className="w-4 h-4 text-cyan-400" />
+                <ArrowRight className="w-4 h-4" />
               </button>
             )}
 
             <button
               onClick={() => setActiveTab('evidence')}
-              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-emerald-500/40 font-mono text-xs transition-all"
+              className="w-full flex items-center justify-between px-4 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 hover:border-emerald-500/50 font-mono text-xs transition-all"
             >
               <span className="flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 text-emerald-400" />
@@ -387,10 +401,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                   if (onSelectReport) onSelectReport(selectedNode.reportId!);
                   else setActiveTab('reports');
                 }}
-                className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-purple-500/40 font-mono text-xs transition-all"
+                className="w-full flex items-center justify-between px-4 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 hover:border-rose-500/50 font-mono text-xs transition-all"
               >
                 <span className="flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5 text-purple-400" />
+                  <FileText className="w-3.5 h-3.5 text-rose-400" />
                   VIEW FORENSIC REPORT
                 </span>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
@@ -399,7 +413,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
             <button
               onClick={() => setActiveTab('custody')}
-              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-teal-500/40 font-mono text-xs transition-all"
+              className="w-full flex items-center justify-between px-4 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 hover:border-teal-500/50 font-mono text-xs transition-all"
             >
               <span className="flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-teal-400" />
@@ -410,7 +424,7 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
 
             <button
               onClick={() => setActiveTab('audit')}
-              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 font-mono text-xs transition-all"
+              className="w-full flex items-center justify-between px-4 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 hover:border-slate-700 font-mono text-xs transition-all"
             >
               <span className="flex items-center gap-2">
                 <History className="w-3.5 h-3.5 text-slate-400" />
@@ -421,75 +435,232 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
           </div>
         </div>
 
-        {/* Bottom Attestation Pill */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950/90 text-[10px] font-mono text-slate-500 flex items-center justify-between shrink-0">
+        {/* Panel Footer */}
+        <div className="p-3 border-t border-white/10 bg-slate-950 text-[10px] font-mono text-slate-500 flex items-center justify-between shrink-0">
           <span>SEC 45 / 65B BSA CERTIFIED</span>
-          <span className="text-emerald-400 font-semibold">VERIFIED RECORD</span>
+          <span className="text-emerald-400 font-bold">VERIFIED SOVEREIGN RECORD</span>
         </div>
       </aside>
     );
   }
 
-  // 2. SYSTEM OVERVIEW DEFAULT VIEW (When no node is selected)
+  // 2. SYSTEM OVERVIEW & CHARTS (Default when no node is selected)
   return (
-    <aside className="w-full lg:w-[410px] bg-slate-950/90 backdrop-blur-xl border-l border-slate-800/80 flex flex-col h-full shrink-0 shadow-2xl z-20 overflow-hidden font-sans">
-      {/* Overview Tabs Header */}
-      <div className="p-3.5 border-b border-slate-800/80 bg-slate-900/60 shrink-0">
+    <aside className="w-full lg:w-[420px] bg-slate-950/92 backdrop-blur-2xl border-l border-white/10 flex flex-col h-full shrink-0 shadow-2xl z-20 overflow-hidden font-sans">
+      {/* Top Navigation Tabs Header */}
+      <div className="p-3.5 border-b border-white/10 bg-slate-950/80 shrink-0">
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-              INTELLIGENCE OVERVIEW
+              INTELLIGENCE ANALYTICS
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
-            SFSL LIVE
+          <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/40 font-bold">
+            SFSL SOVEREIGN
           </span>
         </div>
 
         {/* Tab Buttons */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-full border border-white/5">
           <button
-            onClick={() => setPanelTab('overview')}
-            className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold transition-all ${
-              panelTab === 'overview'
-                ? 'bg-slate-800 text-white shadow-sm'
+            onClick={() => setPanelTab('analytics')}
+            className={`py-1.5 px-2 rounded-full text-[10px] font-mono font-bold transition-all ${
+              panelTab === 'analytics'
+                ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            OVERVIEW
+            ANALYTICS
+          </button>
+          <button
+            onClick={() => setPanelTab('overview')}
+            className={`py-1.5 px-2 rounded-full text-[10px] font-mono font-bold transition-all ${
+              panelTab === 'overview'
+                ? 'bg-slate-800 text-cyan-300 shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            DOSSIERS
           </button>
           <button
             onClick={() => setPanelTab('audit')}
-            className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold transition-all ${
+            className={`py-1.5 px-2 rounded-full text-[10px] font-mono font-bold transition-all ${
               panelTab === 'audit'
-                ? 'bg-slate-800 text-cyan-300 shadow-sm'
+                ? 'bg-slate-800 text-teal-300 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            AUDIT TRAIL
-          </button>
-          <button
-            onClick={() => setPanelTab('integrity')}
-            className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold transition-all ${
-              panelTab === 'integrity'
-                ? 'bg-slate-800 text-emerald-300 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            INTEGRITY
+            AUDIT STREAM
           </button>
         </div>
       </div>
 
-      {/* Tab 1: System Overview Body */}
+      {/* Tab 1: Analytics with Circular Donut Gauge & Stacked Bar Chart (Reference Images 3 & 4) */}
+      {panelTab === 'analytics' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs animate-fadeIn">
+          {/* Circular Donut Gauge: 100% Cryptographic Attestation (Reference Image 4) */}
+          <div className="p-4 rounded-3xl bg-slate-900/60 border border-white/5 relative overflow-hidden flex flex-col items-center">
+            <div className="w-full flex items-center justify-between mb-3 text-[10px] font-mono">
+              <span className="text-slate-400 uppercase font-bold tracking-wider">
+                Cryptographic Attestation Radar
+              </span>
+              <span className="text-emerald-400 font-bold">100% VERIFIED</span>
+            </div>
+
+            {/* Glowing SVG Multi-Colored Donut Gauge */}
+            <div className="relative w-40 h-40 flex items-center justify-center">
+              <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                {/* Background Ring */}
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#090d16" strokeWidth="12" />
+                {/* Segment 1: Cyan (Evidence Hashes 45%) */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#06b6d4"
+                  strokeWidth="12"
+                  strokeDasharray="135 301"
+                  strokeDashoffset="0"
+                  className="drop-shadow-[0_0_8px_#06b6d4]"
+                />
+                {/* Segment 2: Purple (Report Attestation 30%) */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#a855f7"
+                  strokeWidth="12"
+                  strokeDasharray="90 301"
+                  strokeDashoffset="-140"
+                  className="drop-shadow-[0_0_8px_#a855f7]"
+                />
+                {/* Segment 3: Emerald (Custody Transfers 15%) */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="12"
+                  strokeDasharray="45 301"
+                  strokeDashoffset="-235"
+                  className="drop-shadow-[0_0_8px_#10b981]"
+                />
+                {/* Segment 4: Amber (Officer Approvals 10%) */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="12"
+                  strokeDasharray="30 301"
+                  strokeDashoffset="-285"
+                  className="drop-shadow-[0_0_8px_#f59e0b]"
+                />
+              </svg>
+
+              {/* Center Donut Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                <span className="text-xl font-black font-mono text-white tracking-tight">1,135</span>
+                <span className="text-[9px] font-mono text-slate-400">Chained Blocks</span>
+              </div>
+            </div>
+
+            {/* Donut Legend */}
+            <div className="grid grid-cols-2 gap-2 w-full mt-3 pt-3 border-t border-white/5 text-[10px] font-mono">
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_4px_#06b6d4]" />
+                <span>Evidence Hashes ({evidence.length || 42})</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_4px_#a855f7]" />
+                <span>Reports Attested ({reports.length || 6})</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_4px_#10b981]" />
+                <span>Custody Sealed (18)</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_4px_#f59e0b]" />
+                <span>Lead Officers (7)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stacked Frequency Bar Chart (Reference Image 3) */}
+          <div className="p-4 rounded-3xl bg-slate-900/60 border border-white/5 space-y-3">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="text-slate-400 uppercase font-bold tracking-wider">
+                Monthly Inquest Telemetry (Jan - Dec)
+              </span>
+              <span className="text-cyan-400 font-bold">ANNUAL FREQUENCY</span>
+            </div>
+
+            {/* Visual Stacked Column Bar Chart */}
+            <div className="h-32 flex items-end justify-between gap-1.5 pt-4">
+              {[
+                { month: 'Jan', amber: 8, purple: 14, teal: 22 },
+                { month: 'Feb', amber: 12, purple: 18, teal: 28 },
+                { month: 'Mar', amber: 10, purple: 22, teal: 35 },
+                { month: 'Apr', amber: 15, purple: 26, teal: 42 },
+                { month: 'May', amber: 9, purple: 20, teal: 30 },
+                { month: 'Jun', amber: 18, purple: 32, teal: 48 },
+                { month: 'Jul', amber: 14, purple: 28, teal: 40 },
+                { month: 'Aug', amber: 20, purple: 36, teal: 56 },
+                { month: 'Sep', amber: 24, purple: 42, teal: 65 },
+                { month: 'Oct', amber: 18, purple: 34, teal: 52 },
+                { month: 'Nov', amber: 16, purple: 30, teal: 46 },
+                { month: 'Dec', amber: 22, purple: 38, teal: 60 },
+              ].map((bar, bIdx) => (
+                <div key={bIdx} className="flex-1 flex flex-col items-center gap-1 group relative">
+                  <div className="w-full flex flex-col items-stretch justify-end h-24 rounded-t-md overflow-hidden bg-slate-950/60">
+                    <div
+                      className="bg-amber-400 w-full transition-all group-hover:brightness-125"
+                      style={{ height: `${bar.amber}%` }}
+                    />
+                    <div
+                      className="bg-purple-500 w-full transition-all group-hover:brightness-125"
+                      style={{ height: `${bar.purple}%` }}
+                    />
+                    <div
+                      className="bg-teal-400 w-full transition-all group-hover:brightness-125"
+                      style={{ height: `${bar.teal}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] font-mono text-slate-500 group-hover:text-cyan-300">
+                    {bar.month}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-4 text-[9px] font-mono text-slate-400 pt-2 border-t border-white/5">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-teal-400" /> Evidence Intake
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-purple-500" /> Report Signed
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-amber-400" /> Court Tendered
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Case Dossiers Quick Drawer */}
       {panelTab === 'overview' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs animate-fadeIn">
-          {/* Real Metrics Grid */}
+          {/* Quick Metrics Grid */}
           <div className="grid grid-cols-2 gap-2.5">
             <div
               onClick={() => setActiveTab('cases')}
-              className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 hover:border-cyan-500/40 cursor-pointer transition-all group"
+              className="p-3.5 rounded-3xl bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 hover:border-cyan-400/50 cursor-pointer transition-all group shadow-md"
             >
               <div className="flex items-center justify-between text-slate-400 mb-1">
                 <span className="text-[10px] font-mono font-bold uppercase">Active Inquests</span>
@@ -498,14 +669,14 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               <div className="text-2xl font-black text-white font-mono">
                 <CyberDecryptText text={String(cases.length || 7)} />
               </div>
-              <span className="text-[10px] text-cyan-400/80 font-mono mt-0.5 block group-hover:underline">
+              <span className="text-[10px] text-cyan-300 font-mono mt-0.5 block group-hover:underline">
                 View Dossiers →
               </span>
             </div>
 
             <div
               onClick={() => setActiveTab('evidence')}
-              className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 hover:border-emerald-500/40 cursor-pointer transition-all group"
+              className="p-3.5 rounded-3xl bg-slate-900/60 hover:bg-slate-900/90 border border-white/5 hover:border-emerald-400/50 cursor-pointer transition-all group shadow-md"
             >
               <div className="flex items-center justify-between text-slate-400 mb-1">
                 <span className="text-[10px] font-mono font-bold uppercase">Seized Exhibits</span>
@@ -514,119 +685,57 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
               <div className="text-2xl font-black text-white font-mono">
                 <CyberDecryptText text={String(stats?.totalEvidence || 42)} />
               </div>
-              <span className="text-[10px] text-emerald-400/80 font-mono mt-0.5 block group-hover:underline">
+              <span className="text-[10px] text-emerald-300 font-mono mt-0.5 block group-hover:underline">
                 Evidence Vault →
               </span>
             </div>
-
-            <div
-              onClick={() => setActiveTab('reports')}
-              className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 hover:border-purple-500/40 cursor-pointer transition-all group"
-            >
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] font-mono font-bold uppercase">Attested Reports</span>
-                <FileText className="w-3.5 h-3.5 text-purple-400" />
-              </div>
-              <div className="text-2xl font-black text-white font-mono">
-                <CyberDecryptText text={String(reports.length || 6)} />
-              </div>
-              <span className="text-[10px] text-purple-400/80 font-mono mt-0.5 block group-hover:underline">
-                View Reports →
-              </span>
-            </div>
-
-            <div
-              onClick={() => setActiveTab('audit')}
-              className="p-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 hover:border-teal-500/40 cursor-pointer transition-all group"
-            >
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] font-mono font-bold uppercase">Chained Blocks</span>
-                <History className="w-3.5 h-3.5 text-teal-400" />
-              </div>
-              <div className="text-2xl font-black text-white font-mono">1,135</div>
-              <span className="text-[10px] text-teal-400/80 font-mono mt-0.5 block group-hover:underline">
-                Audit Chain →
-              </span>
-            </div>
           </div>
 
-          {/* Quick Interactive Cases Drawer */}
-          <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
-                Active Inquests in Graph ({cases.length})
-              </span>
-              <button
-                onClick={() => setActiveTab('cases')}
-                className="text-[10px] font-mono text-cyan-400 hover:underline"
-              >
-                All Cases →
-              </button>
-            </div>
+          {/* Inquests List */}
+          <div className="rounded-3xl bg-slate-900/60 border border-white/5 p-4 space-y-3">
+            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+              Government Inquests Registry ({cases.length})
+            </span>
 
-            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-              {cases.slice(0, 5).map((c) => (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {cases.map((c) => (
                 <div
                   key={c.id}
-                  onClick={() => onSelectNodeById(`node-${c.id}`)}
-                  className="p-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800 hover:border-cyan-500/40 cursor-pointer transition-all flex items-center justify-between group"
+                  onClick={() => onSelectNodeById(`case-${c.id}`)}
+                  className="p-3 rounded-2xl bg-slate-950/80 hover:bg-slate-900 border border-white/5 hover:border-cyan-400/50 cursor-pointer transition-all flex items-center justify-between group"
                 >
-                  <div className="truncate max-w-[240px]">
+                  <div className="truncate max-w-[250px]">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-cyan-400 text-xs">{c.id}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">[{c.firNumber}]</span>
+                      <span className="font-mono font-bold text-cyan-300 text-xs">{c.id}</span>
+                      <span className="text-[9px] text-slate-500 font-mono">[{c.firNumber}]</span>
                     </div>
                     <p className="text-[11px] text-slate-300 truncate mt-0.5">{c.title}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-300 transition-transform group-hover:translate-x-0.5" />
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-300 transition-transform group-hover:translate-x-1" />
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Forensic System Capabilities */}
-          <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-2">
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
-              Operational Status
-            </span>
-            <div className="space-y-1.5 text-xs text-slate-300">
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Section 65B Electronic Proof:</span>
-                <span className="text-emerald-400 font-mono font-semibold">Active & Attested</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Chain-of-Custody Integrity:</span>
-                <span className="text-emerald-400 font-mono font-semibold">Zero Anomaly</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span className="text-slate-400">HSM Signatures (FIPS 140-2):</span>
-                <span className="text-cyan-400 font-mono font-semibold">Hardware Enforced</span>
-              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab 2: Compact Audit Trail Timeline */}
+      {/* Tab 3: Cryptographic Audit Stream */}
       {panelTab === 'audit' && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs animate-fadeIn">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs animate-fadeIn">
+          <div className="flex items-center justify-between mb-1 text-[10px] font-mono">
+            <span className="font-bold text-slate-400 uppercase tracking-wider">
               Cryptographic Audit Stream
             </span>
-            <button
-              onClick={() => setActiveTab('audit')}
-              className="text-[10px] font-mono text-cyan-400 hover:underline"
-            >
-              Full Trail →
+            <button onClick={() => setActiveTab('audit')} className="text-cyan-400 hover:underline">
+              Full Ledger →
             </button>
           </div>
 
           <div className="relative pl-4 space-y-3.5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
-            {audits.slice(0, 6).map((aud, idx) => (
+            {audits.slice(0, 7).map((aud, idx) => (
               <div key={aud.id || idx} className="relative group">
-                <span className="absolute -left-4 top-1.5 w-2 h-2 rounded-full bg-cyan-400 ring-4 ring-slate-950"></span>
-                <div className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                <span className="absolute -left-4 top-1.5 w-2.5 h-2.5 rounded-full bg-cyan-400 ring-4 ring-slate-950" />
+                <div className="p-3 rounded-2xl bg-slate-900/80 border border-white/5 space-y-1 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10px] font-bold text-cyan-300">
                       {aud.action}
@@ -636,9 +745,9 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300 leading-snug">{aud.reason}</p>
-                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-800/60">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1.5 border-t border-white/5">
                     <span>Officer: <strong className="text-slate-300">{aud.userBadge}</strong></span>
-                    <span className="text-emerald-400">✓ HASH VALID</span>
+                    <span className="text-emerald-400 font-bold">✓ HASH VALID</span>
                   </div>
                 </div>
               </div>
@@ -647,57 +756,10 @@ export const RightIntelligencePanel: React.FC<RightIntelligencePanelProps> = ({
         </div>
       )}
 
-      {/* Tab 3: Security & Cryptographic Integrity */}
-      {panelTab === 'integrity' && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs animate-fadeIn">
-          <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-2">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs font-mono">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>SHA-256 HASH CHAIN INTEGRITY</span>
-            </div>
-            <p className="text-slate-300 text-xs leading-relaxed">
-              Every forensic artifact, physical evidence handover, and report version transition is cryptographically chained via SHA-256 hashing.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-3.5 space-y-2.5">
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
-              Cryptographic Parameters
-            </span>
-            <div className="space-y-1.5 font-mono text-[11px]">
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-500">Digest Algorithm:</span>
-                <span className="text-cyan-300">SHA-256 (FIPS 180-4)</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-500">Chain Height:</span>
-                <span className="text-white">1,135 Verified Blocks</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-500">Anomalies Detected:</span>
-                <span className="text-emerald-400">0 (Zero Mismatch)</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500">Judicial Read-Only Guard:</span>
-                <span className="text-amber-300">Enforced (RBAC Tier 1)</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setActiveTab('security')}
-            className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 text-emerald-300 font-mono text-xs font-bold transition-all flex items-center justify-center gap-2"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Open Security Center</span>
-          </button>
-        </div>
-      )}
-
-      {/* Panel Footer */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950/90 text-[10px] font-mono text-slate-500 flex items-center justify-between shrink-0">
-        <span>CLICK ANY GRAPH NODE TO INSPECT</span>
-        <span className="text-cyan-400 font-semibold">INTERACTIVE HUD</span>
+      {/* Panel Bottom Information */}
+      <div className="p-3.5 border-t border-white/10 bg-slate-950 text-[10px] font-mono text-slate-500 flex items-center justify-between shrink-0">
+        <span>CLICK GRAPH NODE TO INSPECT</span>
+        <span className="text-cyan-400 font-semibold">INTERACTIVE COMMAND</span>
       </div>
     </aside>
   );

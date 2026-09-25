@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Shield,
   ShieldCheck,
@@ -26,19 +26,21 @@ import {
   Sliders,
   ChevronRight,
   Fingerprint,
+  Bot,
 } from 'lucide-react';
 import { IntelligenceNode } from './RightIntelligencePanel';
 import { resolveAIQuery } from '../services/clientSamadhaanAI';
 import { CyberDecryptText } from './CyberDecryptText';
 
 interface CanvasNode extends IntelligenceNode {
-  x: number; // percentage in coordinate space (0 - 1000)
-  y: number; // percentage in coordinate space (0 - 800)
+  x: number;
+  y: number;
   radius: number;
+  gradId: string;
   glowColor: string;
   borderColor: string;
-  bgColor: string;
   iconSymbol: string;
+  metricBadge?: { label: string; pct: number; color: string };
 }
 
 interface CanvasEdge {
@@ -47,6 +49,8 @@ interface CanvasEdge {
   to: string;
   label?: string;
   category: string;
+  curveX: number;
+  curveY: number;
   animated?: boolean;
 }
 
@@ -95,27 +99,30 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
   const [aiResponse, setAiResponse] = useState<{ title: string; text: string } | null>(null);
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
 
-  // Identify Active Case
+  // Active Case
   const currentCase = useMemo(() => {
-    return cases.find((c) => c.id === activeCaseId) || cases[0] || {
-      id: 'MP-FOR-2026-00125',
-      firNumber: 'FIR-892/2026/CYBER',
-      title: 'High-Profile Cyber Financial Embezzlement & Exfiltration',
-      priority: 'HIGH',
-      status: 'IN_ANALYSIS',
-      category: 'Digital Evidence & Cyber Intrusion',
-    };
+    return (
+      cases.find((c) => c.id === activeCaseId) ||
+      cases[0] || {
+        id: 'MP-FOR-2026-00125',
+        firNumber: 'FIR-892/2026/CYBER',
+        title: 'High-Profile Cyber Financial Embezzlement & Exfiltration',
+        priority: 'HIGH',
+        status: 'IN_ANALYSIS',
+        category: 'Digital Evidence & Cyber Intrusion',
+      }
+    );
   }, [cases, activeCaseId]);
 
-  // Build Connected Graph Nodes and Edges based on Real Data
+  // Construct High-Fidelity Graph Entities
   const { nodes, edges } = useMemo(() => {
     const rawNodes: CanvasNode[] = [];
     const rawEdges: CanvasEdge[] = [];
 
-    // 1. Central Core Node = Primary Selected Case
+    // 1. Central Core Node: Radiant Gold Reactor (Active Inquest)
     const centerCaseNode: CanvasNode = {
       id: `case-${currentCase.id}`,
-      label: currentCase.title || 'Central Inquest Dossier',
+      label: currentCase.title || 'Central Inquest Core',
       category: 'case',
       status: currentCase.status,
       priority: currentCase.priority,
@@ -125,16 +132,17 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       department: currentCase.category || 'Central Forensic Directorate',
       officerName: currentCase.assignedOfficer?.name || 'Dr. Abhiraj Singh',
       officerBadge: currentCase.assignedOfficer?.badgeId || 'FEX-1024',
-      description: `Primary forensic inquiry registered under ${currentCase.firNumber}. All chain-of-custody handovers, hash checksums, and laboratory reports are locked into the ledger.`,
+      description: `Primary sovereign forensic inquest registered under ${currentCase.firNumber}. All evidence chains and reports cryptographically hashed under BSA 2023.`,
       sha256: '3e01dd021ec3e68eb2a373b5bfddbf4c40b8a4f9aa1dc7bebf186b53915bc5c9',
       timestamp: currentCase.createdAt,
       x: 500,
       y: 380,
-      radius: 46,
-      glowColor: '#06b6d4',
-      borderColor: '#22d3ee',
-      bgColor: '#083344',
-      iconSymbol: '💼',
+      radius: 48,
+      gradId: 'jewelGoldGrad',
+      glowColor: '#f59e0b',
+      borderColor: '#fbbf24',
+      iconSymbol: '⚖️',
+      metricBadge: { label: '99.4% INTEGRITY', pct: 99.4, color: '#f59e0b' },
       connectedNodeIds: [
         `fir-${currentCase.firNumber}`,
         `officer-abhiraj`,
@@ -147,7 +155,7 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     };
     rawNodes.push(centerCaseNode);
 
-    // 2. North-West: FIR Police Inquest Node
+    // 2. North-West: FIR Police Inquest (Cyan Pearl)
     const firNode: CanvasNode = {
       id: `fir-${currentCase.firNumber}`,
       label: currentCase.firNumber || 'Police FIR Registration',
@@ -160,12 +168,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       description: `First Information Report lodged at Delhi Cyber Police Station under Section 66 IT Act & BNS 2023.`,
       timestamp: currentCase.createdAt,
       x: 290,
-      y: 200,
-      radius: 34,
-      glowColor: '#3b82f6',
-      borderColor: '#60a5fa',
-      bgColor: '#172554',
+      y: 210,
+      radius: 35,
+      gradId: 'jewelCyanGrad',
+      glowColor: '#06b6d4',
+      borderColor: '#38bdf8',
       iconSymbol: '📜',
+      metricBadge: { label: 'BNS 2023 BASIS', pct: 100, color: '#06b6d4' },
       connectedNodeIds: [`case-${currentCase.id}`],
     };
     rawNodes.push(firNode);
@@ -175,10 +184,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       to: firNode.id,
       label: 'INQUEST BASIS',
       category: 'fir',
+      curveX: 380,
+      curveY: 280,
       animated: true,
     });
 
-    // 3. West: Lead Forensic Scientist Node (Dr. Abhiraj Singh)
+    // 3. West: Lead Forensic Scientist (Amber Pearl)
     const officerNode: CanvasNode = {
       id: `officer-abhiraj`,
       label: 'Dr. Abhiraj Singh (Lead)',
@@ -191,10 +202,11 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       x: 180,
       y: 380,
       radius: 38,
+      gradId: 'jewelAmberGrad',
       glowColor: '#f59e0b',
-      borderColor: '#fbbf24',
-      bgColor: '#451a03',
+      borderColor: '#fcd34d',
       iconSymbol: '👤',
+      metricBadge: { label: 'CHIEF EXAMINER', pct: 100, color: '#f59e0b' },
       connectedNodeIds: [`case-${currentCase.id}`, `report-${currentCase.id}`],
     };
     rawNodes.push(officerNode);
@@ -204,10 +216,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       to: `case-${currentCase.id}`,
       label: 'EXAMINER',
       category: 'officer',
+      curveX: 340,
+      curveY: 410,
       animated: true,
     });
 
-    // 4. North: Evidence Artifact 1 (Primary Bitstream / Seized Exhibit)
+    // 4. North: Evidence Artifact 1 (Emerald Pearl)
     const ev1Node: CanvasNode = {
       id: `ev-ssd-${currentCase.id}`,
       label: 'Encrypted SSD Clone (1TB RAW)',
@@ -217,13 +231,14 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       caseId: currentCase.id,
       sha256: '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
       description: 'Forensic bitstream physical disk clone acquired write-blocked under Section 65B IEA protocols. SHA-256 verified at intake.',
-      x: 420,
+      x: 430,
       y: 160,
       radius: 36,
+      gradId: 'jewelEmeraldGrad',
       glowColor: '#10b981',
       borderColor: '#34d399',
-      bgColor: '#064e3b',
       iconSymbol: '💾',
+      metricBadge: { label: '100% SEALED', pct: 100, color: '#10b981' },
       connectedNodeIds: [`case-${currentCase.id}`, `custody-${currentCase.id}`],
       custodyHistory: [
         { stage: 'Crime Scene Seizure', holder: 'Insp. Rajiv Mehra', timestamp: '14 Sep 2026 22:15', verified: true },
@@ -239,10 +254,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       to: ev1Node.id,
       label: 'EXHIBIT A',
       category: 'evidence',
+      curveX: 480,
+      curveY: 260,
       animated: true,
     });
 
-    // 5. North-East: Evidence Artifact 2 (Network Packet Dump / Striation Exhibit)
+    // 5. North-East: Evidence Artifact 2 (Emerald Pearl)
     const ev2Node: CanvasNode = {
       id: `ev-pcap-${currentCase.id}`,
       label: 'Packet Telemetry (PCAP / Log)',
@@ -252,13 +269,14 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       caseId: currentCase.id,
       sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       description: 'Deep network packet telemetry captured during unauthorized egress connection. Contains DNS exfiltration payloads.',
-      x: 610,
+      x: 630,
       y: 170,
-      radius: 34,
+      radius: 35,
+      gradId: 'jewelEmeraldGrad',
       glowColor: '#10b981',
       borderColor: '#34d399',
-      bgColor: '#064e3b',
       iconSymbol: '📡',
+      metricBadge: { label: 'PCAP EXTRACTED', pct: 100, color: '#10b981' },
       connectedNodeIds: [`case-${currentCase.id}`],
     };
     rawNodes.push(ev2Node);
@@ -268,10 +286,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       to: ev2Node.id,
       label: 'EXHIBIT B',
       category: 'evidence',
+      curveX: 580,
+      curveY: 260,
       animated: true,
     });
 
-    // 6. East: Forensic Report Node (REP-2026-00125 V2 Finalized)
+    // 6. East: Forensic Report Node (Fuchsia / Magenta Pearl)
     const reportNode: CanvasNode = {
       id: `report-${currentCase.id}`,
       label: `REP-${currentCase.id.slice(-5)} (V2 Finalized)`,
@@ -285,11 +305,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       description: 'Final Laboratory Examination Dossier. Attests forensic findings, RAM volatility dumps, and hardware keystroke analysis.',
       x: 770,
       y: 350,
-      radius: 38,
-      glowColor: '#a855f7',
-      borderColor: '#c084fc',
-      bgColor: '#581c87',
+      radius: 39,
+      gradId: 'jewelMagentaGrad',
+      glowColor: '#f43f5e',
+      borderColor: '#fb7185',
       iconSymbol: '📑',
+      metricBadge: { label: 'V2 FINALIZED', pct: 100, color: '#f43f5e' },
       connectedNodeIds: [`case-${currentCase.id}`, `court-cbi`, `officer-abhiraj`],
     };
     rawNodes.push(reportNode);
@@ -297,12 +318,14 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       id: `edge-case-report`,
       from: `case-${currentCase.id}`,
       to: reportNode.id,
-      label: 'ANALYSIS REPORT',
+      label: 'ATTESTED DOSSIER',
       category: 'report',
+      curveX: 650,
+      curveY: 340,
       animated: true,
     });
 
-    // 7. South-East: Judicial Court Complex Node
+    // 7. South-East: Judicial Court Authority (Teal / Jade Pearl)
     const courtNode: CanvasNode = {
       id: `court-cbi`,
       label: 'Special Sessions Court (Room 04)',
@@ -311,12 +334,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       department: 'Special CBI & Economic Offences Court Complex',
       description: 'Presiding bench for Case MP-FOR-2026-00125. All electronic reports submitted via Section 65B electronic attestation.',
       x: 710,
-      y: 530,
-      radius: 36,
-      glowColor: '#059669',
-      borderColor: '#10b981',
-      bgColor: '#064e3b',
-      iconSymbol: '⚖️',
+      y: 540,
+      radius: 37,
+      gradId: 'jewelTurquoiseGrad',
+      glowColor: '#14b8a6',
+      borderColor: '#2dd4bf',
+      iconSymbol: '🏛️',
+      metricBadge: { label: 'COURT ADMISSIBLE', pct: 100, color: '#14b8a6' },
       connectedNodeIds: [`report-${currentCase.id}`, `custody-${currentCase.id}`],
     };
     rawNodes.push(courtNode);
@@ -324,12 +348,14 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       id: `edge-report-court`,
       from: reportNode.id,
       to: courtNode.id,
-      label: 'JUDICIAL PRODUCTION',
+      label: 'EVIDENCE TENDERED',
       category: 'court',
+      curveX: 750,
+      curveY: 450,
       animated: false,
     });
 
-    // 8. South: Chain of Custody Protocol Event
+    // 8. South: Chain of Custody (Amethyst Violet Pearl)
     const custodyNode: CanvasNode = {
       id: `custody-${currentCase.id}`,
       label: 'Chain of Custody (4 Transfers)',
@@ -338,12 +364,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       caseId: currentCase.id,
       description: 'Physical & digital custody history verified without anomaly. All custodial receipts signed with HMAC & biometric attestation.',
       x: 480,
-      y: 570,
-      radius: 35,
-      glowColor: '#0d9488',
-      borderColor: '#14b8a6',
-      bgColor: '#134e4a',
+      y: 580,
+      radius: 36,
+      gradId: 'jewelPurpleGrad',
+      glowColor: '#a855f7',
+      borderColor: '#c084fc',
       iconSymbol: '⏱️',
+      metricBadge: { label: '4 CHECKPOINTS', pct: 100, color: '#a855f7' },
       connectedNodeIds: [`case-${currentCase.id}`, ev1Node.id, courtNode.id],
       custodyHistory: [
         { stage: 'Seized by Crime Branch', holder: 'ACP Vikram Rathore', timestamp: '14/09/2026 21:00', verified: true },
@@ -359,25 +386,29 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       to: custodyNode.id,
       label: 'CUSTODIAL CHAIN',
       category: 'custody',
+      curveX: 470,
+      curveY: 480,
       animated: true,
     });
     rawEdges.push({
       id: `edge-custody-court`,
       from: custodyNode.id,
       to: courtNode.id,
-      label: 'SUBMITTED',
+      label: 'SAFE CUSTODY',
       category: 'custody',
+      curveX: 600,
+      curveY: 570,
       animated: false,
     });
 
     // 9. Surrounding Satellite Cases in Constellation
     const otherCases = cases.filter((c) => c.id !== currentCase.id);
-    const satelliteAngles = [20, 65, 140, 205, 250, 310];
+    const satelliteAngles = [25, 70, 135, 205, 255, 310];
 
     otherCases.slice(0, 6).forEach((c, idx) => {
       const angleDeg = satelliteAngles[idx % satelliteAngles.length];
       const rad = (angleDeg * Math.PI) / 180;
-      const dist = 320;
+      const dist = 325;
       const cx = 500 + Math.cos(rad) * dist;
       const cy = 380 + Math.sin(rad) * (dist * 0.72);
 
@@ -393,27 +424,29 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
         department: c.category || 'Specialized Investigation',
         officerName: c.assignedOfficer?.name || 'Dr. Abhiraj Singh',
         officerBadge: c.assignedOfficer?.badgeId || 'FEX-1024',
-        description: `${c.title} • FIR: ${c.firNumber}. Priority: ${c.priority}. Click to center this case dossier.`,
+        description: `${c.title} • FIR: ${c.firNumber}. Click to center this case in the command graph.`,
         sha256: '9a84b12f45c81de01489a5ef2817dc9184ba73ec903d8b2e11894a73ec903d8b',
         timestamp: c.createdAt,
         x: Math.round(cx),
         y: Math.round(cy),
-        radius: 28,
+        radius: 29,
+        gradId: 'jewelCyanGrad',
         glowColor: '#0ea5e9',
         borderColor: '#38bdf8',
-        bgColor: '#0c4a6e',
         iconSymbol: '📂',
+        metricBadge: { label: c.priority || 'NORMAL', pct: 85, color: '#0ea5e9' },
         connectedNodeIds: [`case-${currentCase.id}`],
       };
       rawNodes.push(satNode);
 
-      // Faint orbital filament connection
       rawEdges.push({
         id: `edge-sat-${c.id}`,
         from: `case-${currentCase.id}`,
         to: satNode.id,
-        label: 'RELATED INQUEST',
+        label: 'NETWORK INQUEST',
         category: 'case',
+        curveX: Math.round((500 + cx) / 2 + 20),
+        curveY: Math.round((380 + cy) / 2 - 15),
         animated: false,
       });
     });
@@ -421,7 +454,7 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     return { nodes: rawNodes, edges: rawEdges };
   }, [currentCase, cases]);
 
-  // Handle Dragging / Panning Canvas
+  // Pan Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.interactive-node')) return;
     setIsDragging(true);
@@ -451,7 +484,6 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     onSelectNode(null);
   };
 
-  // Node Click: Selects node or shifts case
   const handleNodeClick = (node: CanvasNode) => {
     if (node.category === 'case' && node.caseId && node.caseId !== currentCase.id) {
       onChangeActiveCase(node.caseId);
@@ -482,13 +514,11 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     });
   }, [nodes, activeCategory, searchQuery]);
 
-  // Is node dimmed?
   const isNodeDimmed = (nodeId: string) => {
     if (!selectedNodeId && !hoveredNodeId) return false;
     const targetId = hoveredNodeId || selectedNodeId;
     if (nodeId === targetId) return false;
 
-    // Check if connected
     const activeNode = nodes.find((n) => n.id === targetId);
     if (activeNode && activeNode.connectedNodeIds?.includes(nodeId)) {
       return false;
@@ -496,7 +526,7 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
     return true;
   };
 
-  // Submit AI Prompt in Bottom Query Bar
+  // AI Prompt in Bottom Query Bar
   const handleAskAI = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiPrompt.trim() || isAiThinking) return;
@@ -508,7 +538,7 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
         onNavigateTab: setActiveTab,
       });
       setAiResponse({
-        title: `AI Intelligence: "${aiPrompt}"`,
+        title: `Forensic AI Synthesis: "${aiPrompt}"`,
         text: res.answer,
       });
     } catch {
@@ -529,29 +559,78 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      className="relative flex-1 h-full min-h-[640px] bg-gradient-to-b from-[#060912] via-[#090d18] to-[#04060d] overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans"
+      className="relative flex-1 h-full min-h-[640px] overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans"
+      style={{
+        background:
+          'radial-gradient(ellipse 75% 60% at 50% 45%, rgba(6, 78, 86, 0.42) 0%, rgba(3, 38, 48, 0.55) 35%, rgba(4, 15, 24, 0.88) 70%, #020409 100%)',
+      }}
     >
-      {/* 1. Fine Constellation Grid Background */}
+      {/* 1. Subtle Fine Stardust Field */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-30"
+        className="absolute inset-0 pointer-events-none opacity-40"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(6, 182, 212, 0.25) 1px, transparent 0)',
-          backgroundSize: '24px 24px',
+            'radial-gradient(circle at 1px 1px, rgba(45, 212, 191, 0.3) 1px, transparent 0)',
+          backgroundSize: '32px 32px',
         }}
       />
 
-      {/* 2. TOP CANVAS CONTROL & HUD BAR */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-        {/* Left: Forensic Entity Category Filter Pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-slate-800/90 shadow-xl pointer-events-auto">
+      {/* 2. LEFT TOPOGRAPHIC WAVEFORM CONTOUR & TIMELINE (Matching Reference Image 1) */}
+      <div className="absolute left-0 top-0 bottom-0 w-28 pointer-events-none z-10 hidden md:block">
+        {/* Jagged Seismic / Topographic Elevation Line SVG */}
+        <svg className="w-full h-full opacity-35" viewBox="0 0 100 800" preserveAspectRatio="none">
+          <path
+            d="M 12 0 L 15 40 L 8 80 L 22 130 L 14 180 L 28 220 L 10 270 L 32 320 L 16 380 L 36 430 L 14 490 L 30 540 L 12 600 L 26 660 L 10 720 L 22 770 L 15 800"
+            fill="none"
+            stroke="#14b8a6"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+          />
+          <path
+            d="M 6 0 L 9 50 L 4 100 L 15 150 L 9 200 L 20 250 L 6 300 L 24 360 L 10 420 L 26 480 L 8 550 L 22 620 L 7 690 L 16 750 L 10 800"
+            fill="none"
+            stroke="#06b6d4"
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        </svg>
+
+        {/* Year Scrubber Pills */}
+        <div className="absolute left-3 top-28 bottom-28 flex flex-col justify-around pointer-events-auto">
+          {[2020, 2021, 2022, 2023, 2024, 2026].map((yr) => {
+            const isSelected = selectedYear === yr;
+            return (
+              <button
+                key={yr}
+                onClick={() => setSelectedYear(yr)}
+                className={`flex items-center gap-2 px-2 py-1 rounded-full transition-all text-[11px] font-mono ${
+                  isSelected
+                    ? 'bg-slate-900/90 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.4)] scale-110'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isSelected ? 'bg-cyan-400 animate-ping' : 'bg-slate-600'
+                  }`}
+                />
+                <span>{yr}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. TOP TACTICAL CATEGORY FILTER PILLS */}
+      <div className="absolute top-4 left-6 right-6 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
+        <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl pointer-events-auto">
           {['ALL', 'CASES', 'EVIDENCE', 'REPORTS', 'OFFICERS', 'CUSTODY', 'COURTS'].map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1 rounded-xl text-[11px] font-mono font-bold tracking-wider transition-all ${
+              className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider transition-all ${
                 activeCategory === cat
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-md shadow-cyan-950'
+                  ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/60 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
                   : 'text-slate-400 hover:text-white border border-transparent'
               }`}
             >
@@ -560,106 +639,95 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
           ))}
         </div>
 
-        {/* Right: Zoom & Reset Controls */}
+        {/* Zoom & Reset View Controls */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          <div className="flex items-center bg-slate-950/85 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-1 shadow-xl">
+          <div className="flex items-center bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-2xl">
             <button
               onClick={() => handleZoom(0.15)}
-              className="p-1.5 text-slate-400 hover:text-cyan-300 hover:bg-slate-800/80 rounded-xl transition-all"
+              className="p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
               title="Zoom In (+)"
             >
-              <ZoomIn className="w-4 h-4" />
+              <ZoomIn className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2 font-mono text-[11px] text-slate-300 font-bold">
+            <span className="px-2 font-mono text-[10px] text-slate-300 font-bold">
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={() => handleZoom(-0.15)}
-              className="p-1.5 text-slate-400 hover:text-cyan-300 hover:bg-slate-800/80 rounded-xl transition-all"
+              className="p-1.5 text-slate-400 hover:text-cyan-300 rounded-full transition-all"
               title="Zoom Out (-)"
             >
-              <ZoomOut className="w-4 h-4" />
+              <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <div className="w-[1px] h-4 bg-slate-800 mx-1" />
+            <div className="w-[1px] h-3.5 bg-slate-800 mx-1" />
             <button
               onClick={handleResetView}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all"
+              className="p-1.5 text-slate-400 hover:text-white rounded-full transition-all"
               title="Reset View (⟲)"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* 3. VERTICAL TIMELINE SCRUBBER (Left Edge - Matching Image 1 Reference) */}
-      <div className="absolute left-4 top-24 bottom-24 z-20 hidden md:flex flex-col items-center justify-center gap-6 pointer-events-auto">
-        <div className="relative py-4 px-2 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-slate-800/90 shadow-2xl flex flex-col items-center gap-5">
-          <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest writing-mode-vertical">
-            TIMELINE
-          </span>
-          {[2023, 2024, 2025, 2026].map((yr) => {
-            const isSelected = selectedYear === yr;
-            return (
-              <button
-                key={yr}
-                onClick={() => setSelectedYear(yr)}
-                className={`flex items-center gap-2 transition-all ${
-                  isSelected
-                    ? 'scale-110 font-bold text-cyan-300'
-                    : 'text-slate-500 hover:text-slate-300 font-mono'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    isSelected
-                      ? 'bg-cyan-400 ring-4 ring-cyan-500/20'
-                      : 'bg-slate-700'
-                  }`}
-                />
-                <span className="text-[11px] font-mono">{yr}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* 4. HIGH-TECH 3D OPTICAL RADAR LOUPE (Upper Right - Matching Reference Image 1) */}
+      <div className="absolute top-20 right-6 z-20 hidden lg:block pointer-events-auto">
+        <div
+          className="relative w-48 h-48 rounded-full border border-teal-500/40 shadow-[0_0_35px_rgba(20,184,166,0.2)] overflow-hidden flex items-center justify-center group"
+          style={{
+            background:
+              'radial-gradient(circle at 40% 40%, rgba(4, 30, 36, 0.9) 0%, rgba(2, 12, 16, 0.96) 100%)',
+          }}
+        >
+          {/* Rotating Sonar Sweep Cone */}
+          <div
+            className="absolute inset-0 rounded-full animate-sonar-sweep origin-center pointer-events-none"
+            style={{
+              background:
+                'conic-gradient(from 0deg, transparent 0deg, transparent 280deg, rgba(20, 184, 166, 0.15) 320deg, rgba(45, 212, 191, 0.5) 360deg)',
+            }}
+          />
 
-      {/* 4. OPTICAL RADAR / INSPECTION LOUPE (Top-Right Canvas - Matching Image 1 Reference) */}
-      <div className="absolute top-20 right-4 z-20 hidden lg:block pointer-events-auto">
-        <div className="relative w-44 h-44 rounded-full border border-cyan-500/30 bg-slate-950/85 backdrop-blur-xl shadow-2xl overflow-hidden flex items-center justify-center group">
-          {/* Radar Sweep Animation */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-cyan-500/10 to-transparent rounded-full animate-spin-slow origin-center" />
-
-          {/* Radar Crosshairs */}
+          {/* Stepped Metallic Reticle Rings & Crosshairs */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-full h-[1px] bg-cyan-500/20" />
-            <div className="h-full w-[1px] bg-cyan-500/20 absolute" />
-            <div className="w-24 h-24 rounded-full border border-cyan-500/20" />
-            <div className="w-12 h-12 rounded-full border border-cyan-500/30" />
+            <div className="w-full h-[1px] bg-teal-500/25" />
+            <div className="h-full w-[1px] bg-teal-500/25 absolute" />
+            <div className="w-36 h-36 rounded-full border border-teal-500/20 border-dashed" />
+            <div className="w-24 h-24 rounded-full border border-teal-500/35" />
+            <div className="w-12 h-12 rounded-full border border-teal-400/40" />
+            {/* Center target cursor */}
+            <div className="w-3 h-3 border border-teal-300 rounded-sm" />
           </div>
 
-          {/* Loupe Details Text */}
-          <div className="relative z-10 text-center pointer-events-none space-y-0.5">
-            <span className="text-[9px] font-mono text-cyan-400 font-bold uppercase tracking-wider block">
-              TARGET ACQUIRED
-            </span>
-            <span className="text-xs font-mono font-black text-white block">
+          {/* Radar Telemetry Information */}
+          <div className="relative z-10 text-center pointer-events-none space-y-1">
+            <div className="flex items-center justify-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping" />
+              <span className="text-[9px] font-mono text-teal-300 font-extrabold uppercase tracking-widest">
+                TARGET LOCKED
+              </span>
+            </div>
+            <span className="text-xs font-mono font-black text-white block drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
               {currentCase.id}
             </span>
-            <span className="text-[9px] font-mono text-emerald-400 block">
-              ● 100% INTEGRITY
+            <span className="text-[8px] font-mono text-slate-400 block">
+              LAT: 28.7041° N • 77.1025° E
+            </span>
+            <span className="text-[9px] font-mono text-emerald-400 font-semibold block">
+              100% SHA-256 MATCH
             </span>
           </div>
 
-          {/* Compass Degrees */}
-          <span className="absolute top-1 text-[8px] font-mono text-slate-500">N</span>
-          <span className="absolute bottom-1 text-[8px] font-mono text-slate-500">S</span>
-          <span className="absolute right-1.5 text-[8px] font-mono text-slate-500">E</span>
-          <span className="absolute left-1.5 text-[8px] font-mono text-slate-500">W</span>
+          {/* Compass Markings */}
+          <span className="absolute top-1.5 text-[8px] font-mono text-teal-400 font-bold">N</span>
+          <span className="absolute bottom-1.5 text-[8px] font-mono text-teal-400 font-bold">S</span>
+          <span className="absolute right-2 text-[8px] font-mono text-teal-400 font-bold">E</span>
+          <span className="absolute left-2 text-[8px] font-mono text-teal-400 font-bold">W</span>
         </div>
       </div>
 
-      {/* 5. MAIN SVG INTERACTIVE GRAPH CANVAS */}
+      {/* 5. MAIN SVG GRAPH WITH 3D GLASS JEWEL NODES & BEZIER CONNECTIONS */}
       <div
         className="w-full h-full transform-gpu transition-transform duration-75 ease-out"
         style={{
@@ -667,27 +735,75 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
           transformOrigin: 'center center',
         }}
       >
-        <svg
-          viewBox="0 0 1000 800"
-          className="w-full h-full min-w-[1000px] min-h-[800px] pointer-events-auto"
-        >
+        <svg viewBox="0 0 1000 800" className="w-full h-full min-w-[1000px] min-h-[800px] pointer-events-auto">
           <defs>
-            {/* Edge Gradients */}
-            <linearGradient id="edge-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.3" />
-            </linearGradient>
-            <linearGradient id="edge-purple-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#c084fc" stopOpacity="0.3" />
-            </linearGradient>
-            <linearGradient id="edge-emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#34d399" stopOpacity="0.3" />
-            </linearGradient>
+            {/* 3D Glass Jewel Radial Gradients (Hot Specular Top-Left Highlight) */}
+            {/* 1. Core Gold Reactor Gradient */}
+            <radialGradient id="jewelGoldGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#fffbeb" />
+              <stop offset="15%" stopColor="#fef08a" />
+              <stop offset="45%" stopColor="#f59e0b" />
+              <stop offset="75%" stopColor="#b45309" />
+              <stop offset="100%" stopColor="#78350f" />
+            </radialGradient>
+
+            {/* 2. Pearlescent Magenta / Fuchsia (Reports) */}
+            <radialGradient id="jewelMagentaGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#fff1f2" />
+              <stop offset="18%" stopColor="#fbcfe8" />
+              <stop offset="48%" stopColor="#ec4899" />
+              <stop offset="78%" stopColor="#be185d" />
+              <stop offset="100%" stopColor="#700735" />
+            </radialGradient>
+
+            {/* 3. Electric Cyan Glass (Cases) */}
+            <radialGradient id="jewelCyanGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#ecfeff" />
+              <stop offset="18%" stopColor="#bae6fd" />
+              <stop offset="48%" stopColor="#0ea5e9" />
+              <stop offset="78%" stopColor="#0369a1" />
+              <stop offset="100%" stopColor="#082f49" />
+            </radialGradient>
+
+            {/* 4. Cyber Jade Emerald (Evidence) */}
+            <radialGradient id="jewelEmeraldGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#f0fdf4" />
+              <stop offset="18%" stopColor="#a7f3d0" />
+              <stop offset="48%" stopColor="#10b981" />
+              <stop offset="78%" stopColor="#047857" />
+              <stop offset="100%" stopColor="#064e3b" />
+            </radialGradient>
+
+            {/* 5. Radiant Amber (Officers) */}
+            <radialGradient id="jewelAmberGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#fffbeb" />
+              <stop offset="18%" stopColor="#fde68a" />
+              <stop offset="48%" stopColor="#f59e0b" />
+              <stop offset="78%" stopColor="#b45309" />
+              <stop offset="100%" stopColor="#451a03" />
+            </radialGradient>
+
+            {/* 6. Deep Turquoise (Custody) */}
+            <radialGradient id="jewelTurquoiseGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#f0fdfa" />
+              <stop offset="18%" stopColor="#99f6e4" />
+              <stop offset="48%" stopColor="#14b8a6" />
+              <stop offset="78%" stopColor="#0f766e" />
+              <stop offset="100%" stopColor="#134e4a" />
+            </radialGradient>
+
+            {/* 7. Amethyst Purple (Custody Transits) */}
+            <radialGradient id="jewelPurpleGrad" cx="35%" cy="32%" r="65%" fx="28%" fy="25%">
+              <stop offset="0%" stopColor="#faf5ff" />
+              <stop offset="18%" stopColor="#e9d5ff" />
+              <stop offset="48%" stopColor="#a855f7" />
+              <stop offset="78%" stopColor="#7e22ce" />
+              <stop offset="100%" stopColor="#3b0764" />
+            </radialGradient>
+
             {/* Glow Filter */}
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <filter id="cinematicGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -695,7 +811,7 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
             </filter>
           </defs>
 
-          {/* Render All Edges */}
+          {/* Organic Bezier Neural Connections */}
           <g className="edges-group">
             {edges.map((edge) => {
               const sourceNode = nodes.find((n) => n.id === edge.from);
@@ -711,54 +827,60 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
               const isDimmed =
                 (selectedNodeId || hoveredNodeId) && !isConnectedToSelected;
 
+              // Quadratic Bezier Curve Path
+              const pathD = `M ${sourceNode.x} ${sourceNode.y} Q ${edge.curveX} ${edge.curveY} ${targetNode.x} ${targetNode.y}`;
+
               return (
                 <g key={edge.id} className="transition-opacity duration-200">
-                  {/* Outer Glow Line when active */}
+                  {/* Outer Wide Glow Beam */}
                   {isConnectedToSelected && (
-                    <line
-                      x1={sourceNode.x}
-                      y1={sourceNode.y}
-                      x2={targetNode.x}
-                      y2={targetNode.y}
-                      stroke="#06b6d4"
-                      strokeWidth="5"
+                    <path
+                      d={pathD}
+                      fill="none"
+                      stroke="#22d3ee"
+                      strokeWidth="6"
                       strokeOpacity="0.4"
-                      filter="url(#glow)"
+                      filter="url(#cinematicGlow)"
                     />
                   )}
 
-                  {/* Primary Connection Line */}
-                  <line
-                    x1={sourceNode.x}
-                    y1={sourceNode.y}
-                    x2={targetNode.x}
-                    y2={targetNode.y}
+                  {/* Primary Laser Fiber Path */}
+                  <path
+                    d={pathD}
+                    fill="none"
                     stroke={
                       edge.category === 'report'
-                        ? '#a855f7'
+                        ? '#f43f5e'
                         : edge.category === 'evidence'
-                        ? '#10b981'
+                        ? '#34d399'
                         : edge.category === 'officer'
                         ? '#f59e0b'
-                        : '#06b6d4'
+                        : '#38bdf8'
                     }
                     strokeWidth={isConnectedToSelected ? '2.5' : '1.5'}
-                    strokeDasharray={edge.animated ? '6,4' : 'none'}
-                    strokeOpacity={isDimmed ? 0.15 : isConnectedToSelected ? 0.95 : 0.45}
-                    className={edge.animated ? 'animate-dash' : ''}
+                    strokeDasharray={edge.animated ? '8 6' : 'none'}
+                    strokeOpacity={isDimmed ? 0.12 : isConnectedToSelected ? 0.95 : 0.45}
+                    className={edge.animated ? 'animate-dash-travel' : ''}
                   />
 
-                  {/* Edge Midpoint Label (Only when connected) */}
+                  {/* Traveling Energy Photon (Only when active / animated) */}
+                  {edge.animated && !isDimmed && (
+                    <circle r="3.5" fill="#ffffff" filter="url(#cinematicGlow)">
+                      <animateMotion path={pathD} dur="2.8s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+
+                  {/* Edge Midpoint Pill Label */}
                   {isConnectedToSelected && edge.label && (
                     <text
-                      x={(sourceNode.x + targetNode.x) / 2}
-                      y={(sourceNode.y + targetNode.y) / 2 - 6}
+                      x={edge.curveX}
+                      y={edge.curveY - 6}
                       fill="#67e8f9"
                       fontSize="9"
                       fontWeight="bold"
                       fontFamily="monospace"
                       textAnchor="middle"
-                      className="select-none pointer-events-none drop-shadow"
+                      className="select-none pointer-events-none drop-shadow-[0_0_6px_rgba(0,0,0,0.8)]"
                     >
                       {edge.label}
                     </text>
@@ -768,12 +890,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
             })}
           </g>
 
-          {/* Render All Nodes */}
+          {/* 3D Glass Jewel Nodes */}
           <g className="nodes-group">
             {filteredNodes.map((node) => {
               const isSelected = selectedNodeId === node.id;
               const isHovered = hoveredNodeId === node.id;
               const dimmed = isNodeDimmed(node.id);
+              const isCenterCore = node.id === `case-${currentCase.id}`;
 
               return (
                 <g
@@ -787,7 +910,33 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
                   className="interactive-node cursor-pointer transition-all duration-200"
                   style={{ opacity: dimmed ? 0.22 : 1 }}
                 >
-                  {/* Outer Pulsing Glow on Selected / Hovered Node */}
+                  {/* Concentric Radiating Rings for Center Core */}
+                  {isCenterCore && (
+                    <>
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={node.radius + 32}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="1"
+                        strokeOpacity="0.18"
+                        strokeDasharray="4 6"
+                        className="animate-beacon-ring"
+                      />
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={node.radius + 18}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="1.5"
+                        strokeOpacity="0.35"
+                      />
+                    </>
+                  )}
+
+                  {/* Pulsing Selection Ring */}
                   {(isSelected || isHovered) && (
                     <circle
                       cx={node.x}
@@ -796,69 +945,129 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
                       fill="none"
                       stroke={node.borderColor}
                       strokeWidth="2"
-                      strokeOpacity="0.5"
-                      strokeDasharray="4,4"
+                      strokeOpacity="0.6"
+                      strokeDasharray="4 4"
                       className="animate-spin-slow"
                     />
                   )}
 
-                  {/* Node Outer Halo Ring */}
+                  {/* Stepped Metallic Collar / Outer Ring (Reference Image 2) */}
                   <circle
                     cx={node.x}
                     cy={node.y}
-                    r={node.radius + (isSelected ? 6 : 2)}
+                    r={node.radius + 4}
+                    fill="none"
+                    stroke="#334155"
+                    strokeWidth="2.5"
+                    strokeOpacity="0.8"
+                  />
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={node.radius + 2}
                     fill="none"
                     stroke={node.borderColor}
-                    strokeWidth={isSelected ? '3' : '1.5'}
+                    strokeWidth="1"
                     strokeOpacity={isSelected ? 1 : 0.6}
                   />
 
-                  {/* Node Background Body */}
+                  {/* 3D Spherical Jewel Marble Body */}
                   <circle
                     cx={node.x}
                     cy={node.y}
                     r={node.radius}
-                    fill={node.bgColor}
-                    stroke={node.borderColor}
-                    strokeWidth="1.5"
-                    filter={isSelected ? 'url(#glow)' : undefined}
+                    fill={`url(#${node.gradId})`}
+                    filter={isSelected || isCenterCore ? 'url(#cinematicGlow)' : undefined}
+                    className="glass-orb-specular"
                   />
 
-                  {/* Node Center Icon / Emoji */}
+                  {/* Specular White Gloss Glare Top-Left */}
+                  <ellipse
+                    cx={node.x - node.radius * 0.28}
+                    cy={node.y - node.radius * 0.3}
+                    rx={node.radius * 0.32}
+                    ry={node.radius * 0.18}
+                    fill="#ffffff"
+                    fillOpacity="0.65"
+                    transform={`rotate(-25 ${node.x - node.radius * 0.28} ${node.y - node.radius * 0.3})`}
+                  />
+
+                  {/* Center Node Icon Symbol */}
                   <text
                     x={node.x}
                     y={node.y + 6}
-                    fontSize={node.radius > 40 ? '22' : '16'}
+                    fontSize={node.radius > 40 ? '20' : '15'}
                     textAnchor="middle"
-                    className="select-none pointer-events-none"
+                    className="select-none pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
                   >
                     {node.iconSymbol}
                   </text>
 
-                  {/* Node Label Card Below */}
+                  {/* Attached Sleek Metric Slider Pill (Reference Image 2) */}
+                  {node.metricBadge && (
+                    <g transform={`translate(${node.x + node.radius - 8}, ${node.y - 12})`}>
+                      <rect
+                        x="0"
+                        y="0"
+                        width="72"
+                        height="18"
+                        rx="9"
+                        fill="#090d16"
+                        stroke={node.metricBadge.color}
+                        strokeWidth="1"
+                        strokeOpacity="0.75"
+                        filter="drop-shadow(0 2px 6px rgba(0,0,0,0.8))"
+                      />
+                      <rect
+                        x="2"
+                        y="2"
+                        width={Math.round((node.metricBadge.pct / 100) * 68)}
+                        height="14"
+                        rx="7"
+                        fill={node.metricBadge.color}
+                        fillOpacity="0.25"
+                      />
+                      <text
+                        x="36"
+                        y="12"
+                        fill="#ffffff"
+                        fontSize="8"
+                        fontWeight="900"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                        className="select-none pointer-events-none"
+                      >
+                        {node.metricBadge.label}
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Primary Node Label Below */}
                   <g transform={`translate(${node.x}, ${node.y + node.radius + 14})`}>
                     <rect
-                      x="-70"
+                      x="-75"
                       y="-11"
-                      width="140"
+                      width="150"
                       height="22"
-                      rx="6"
-                      fill="#090d18"
+                      rx="11"
+                      fill="#030712"
+                      fillOpacity="0.9"
                       stroke={node.borderColor}
                       strokeWidth="1"
-                      strokeOpacity={isSelected ? 0.9 : 0.4}
+                      strokeOpacity={isSelected ? 1 : 0.45}
+                      filter="drop-shadow(0 4px 8px rgba(0,0,0,0.9))"
                     />
                     <text
                       x="0"
                       y="4"
-                      fill={isSelected ? '#ffffff' : '#cbd5e1'}
-                      fontSize="10"
+                      fill={isSelected ? '#ffffff' : '#e2e8f0'}
+                      fontSize="9.5"
                       fontWeight="bold"
                       fontFamily="monospace"
                       textAnchor="middle"
                       className="select-none pointer-events-none truncate"
                     >
-                      {node.label.length > 20 ? `${node.label.slice(0, 18)}...` : node.label}
+                      {node.label.length > 22 ? `${node.label.slice(0, 20)}...` : node.label}
                     </text>
                   </g>
                 </g>
@@ -868,35 +1077,35 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
         </svg>
       </div>
 
-      {/* 6. BOTTOM TELEMETRY COUNTERS & GYAAN GURU AI PROMPT BAR */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 pointer-events-auto">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-slate-950/85 backdrop-blur-xl border border-slate-800/90 shadow-2xl p-3 space-y-2.5">
-          {/* Telemetry Row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-2 border-b border-slate-800/70 pb-2 text-[11px] font-mono">
+      {/* 6. BOTTOM FROSTED CAPSULE DOCK & AI INQUIRY BAR (Matching Reference Image 1) */}
+      <div className="absolute bottom-4 left-6 right-6 z-20 pointer-events-auto">
+        <div className="max-w-4xl mx-auto rounded-3xl bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] p-3 space-y-2.5">
+          {/* Telemetry Metric Pills Row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-2 border-b border-white/5 pb-2 text-[11px] font-mono">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="flex items-center gap-1.5 text-emerald-400 font-extrabold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 COMPLIANCE: 99.4%
               </span>
               <span className="hidden sm:inline text-slate-400">
-                EXHIBITS: <strong className="text-white">{evidence.length || 42}</strong>
+                EXHIBITS: <strong className="text-cyan-300">{evidence.length || 42}</strong>
               </span>
               <span className="hidden sm:inline text-slate-400">
-                HASHES VERIFIED: <strong className="text-cyan-400">100%</strong>
+                CHAINED BLOCKS: <strong className="text-purple-300">1,135</strong>
               </span>
               <span className="hidden md:inline text-slate-400">
-                ACTIVE INQUESTS: <strong className="text-white">{cases.length}</strong>
+                ACTIVE INQUESTS: <strong className="text-amber-300">{cases.length}</strong>
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-                ACTIVE: {currentCase.id}
+              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/40 font-bold shadow-sm">
+                PRIMARY: {currentCase.id}
               </span>
             </div>
           </div>
 
-          {/* AI Response Display (if any) */}
+          {/* AI Response Box (if active) */}
           {aiResponse && (
             <div className="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-slate-200 flex items-start justify-between gap-3 animate-fadeIn">
               <div>
@@ -905,16 +1114,13 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
                 </span>
                 <p className="text-slate-300 text-xs leading-relaxed">{aiResponse.text}</p>
               </div>
-              <button
-                onClick={() => setAiResponse(null)}
-                className="text-slate-400 hover:text-white p-1"
-              >
+              <button onClick={() => setAiResponse(null)} className="text-slate-400 hover:text-white p-1">
                 ✕
               </button>
             </div>
           )}
 
-          {/* AI Inquiry Input Form */}
+          {/* Frosted Input Capsule */}
           <form onSubmit={handleAskAI} className="relative flex items-center gap-2">
             <div className="relative flex-1">
               <input
@@ -922,12 +1128,12 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
                 placeholder={`Ask GYAAN GURU AI about ${currentCase.id}, ballistic striations, custody, or BSA statutes...`}
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-800 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/40 rounded-2xl pl-4 pr-10 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition-all"
+                className="w-full bg-slate-900/80 border border-slate-700/80 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/30 rounded-full pl-5 pr-10 py-2.5 text-xs text-white placeholder-slate-400 outline-none transition-all shadow-inner"
               />
               <button
                 type="button"
                 onClick={() => setActiveTab('samadhaan')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-cyan-300"
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-300"
                 title="Launch Voice Samadhaan"
               >
                 <Mic className="w-4 h-4" />
@@ -937,21 +1143,54 @@ export const ForensicIntelligenceCanvas: React.FC<ForensicIntelligenceCanvasProp
             <button
               type="submit"
               disabled={isAiThinking || !aiPrompt.trim()}
-              className="px-4 py-2 rounded-2xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-xs font-mono transition-all flex items-center gap-1.5 shadow-md shadow-cyan-950 active:scale-95 shrink-0"
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs font-mono transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] active:scale-95 shrink-0"
             >
               {isAiThinking ? (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                  <span>ANALYZING...</span>
+                  <Sparkles className="w-4 h-4 animate-spin" />
+                  <span>SYNTHESIZING...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>INQUIRE</span>
+                  <span>AI INQUIRE</span>
                 </>
               )}
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* 7. LEGEND CAPSULE (Bottom Left - Matching Reference Image 1) */}
+      <div className="absolute bottom-24 left-6 z-20 hidden xl:block pointer-events-auto">
+        <div className="p-3 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl text-[10px] font-mono space-y-1.5">
+          <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider mb-1">
+            NETWORK ENTITIES
+          </span>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+            <span>Active Case Core</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#06b6d4]" />
+            <span>FIR Police Inquest</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+            <span>Evidence Exhibits</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-[0_0_6px_#f43f5e]" />
+            <span>Forensic Reports</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_6px_#a855f7]" />
+            <span>Custody Transfers</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-[0_0_6px_#14b8a6]" />
+            <span>Judicial Court Bench</span>
+          </div>
         </div>
       </div>
     </div>
