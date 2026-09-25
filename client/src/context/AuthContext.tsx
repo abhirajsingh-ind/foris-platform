@@ -28,23 +28,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [faceVerified, setFaceVerified] = useState<boolean>(false);
   const [phoneOtpVerified, setPhoneOtpVerified] = useState<boolean>(true);
 
-  // Restore session upon opening/refreshing if valid session exists
+  // High-Security Sovereign Protocol:
+  // Whenever the website is opened or launched, always begin at the Login Page (Zero persistent auto-login).
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem('foris_token');
-      const savedUser = localStorage.getItem('foris_user');
-      const savedFaceVerified = sessionStorage.getItem('foris_face_verified') === 'true';
-
-      if (savedToken && savedUser) {
-        const parsed = JSON.parse(savedUser);
-        setUser(parsed);
-        setToken(savedToken);
-        setFaceVerified(savedFaceVerified);
-      }
-    } catch {
-      localStorage.removeItem('foris_token');
-      localStorage.removeItem('foris_user');
-    }
+    localStorage.removeItem('foris_token');
+    localStorage.removeItem('foris_user');
+    sessionStorage.removeItem('foris_face_verified');
+    setUser(null);
+    setToken(null);
+    setFaceVerified(false);
     setPhoneOtpVerified(true);
     setIsLoading(false);
   }, []);

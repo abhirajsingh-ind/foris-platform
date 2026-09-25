@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, AccentColor } from '../context/ThemeContext';
-import { ThreeForensicCanvas } from '../components/ThreeForensicCanvas';
 import { ThreeDCard } from '../components/ThreeDCard';
+import cyberLoginBg from '../assets/cyber_login_bg.jpg';
 import {
   Shield,
   Lock,
@@ -113,26 +113,35 @@ export const Login: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen flex flex-col justify-center items-center p-4 lg:p-8 relative overflow-hidden transition-colors duration-300 ${
+      className={`min-h-[100dvh] w-full flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 relative overflow-hidden transition-colors duration-300 font-sans ${
         isLight
           ? 'bg-slate-100 text-slate-900'
-          : 'bg-slate-950 text-slate-100 bg-cyber-grid selection:bg-cyan-500/30 selection:text-cyan-200'
+          : 'bg-slate-950 text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200'
       }`}
+      style={
+        isLight
+          ? undefined
+          : {
+              backgroundImage: `url(${cyberLoginBg})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center left',
+              backgroundRepeat: 'no-repeat',
+            }
+      }
     >
-      {/* 3D WebGL Futuristic Quantum Forensic Canvas Background */}
-      <ThreeForensicCanvas intensity={isLight ? 0.35 : 1.25} accent={accent} />
-
-      {/* Radial Glow Overlay */}
-      <div className="absolute inset-0 bg-radial-vignette pointer-events-none"></div>
+      {/* Cinematic Right-Side Vignette for Login Card Readability in Dark Mode */}
+      {!isLight && (
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-slate-950/50 to-slate-950/90 pointer-events-none" />
+      )}
 
       {/* TOP-LEFT HOLOGRAPHIC TELEMETRY HUD */}
       <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 hidden md:flex flex-col gap-1 pointer-events-none animate-fadeIn">
         <div className="flex items-center gap-2 text-[11px] font-mono font-bold tracking-wider text-cyan-400">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-          <span>SFSL // SECURE GATEWAY v3.2</span>
+          <span>SFSL // SECURE GATEWAY v7.1</span>
         </div>
         <div className="text-[9px] font-mono text-slate-400">
-          QUANTUM EVIDENCE VAULT • 256-BIT ENCRYPTION
+          QUANTUM EVIDENCE VAULT • 256-BIT ENCRYPTION • SEC 65B BSA
         </div>
       </div>
 
@@ -146,13 +155,13 @@ export const Login: React.FC = () => {
 
       {/* BOTTOM-RIGHT SENSOR TELEMETRY */}
       <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 hidden md:flex items-center gap-2 text-[10px] font-mono text-slate-400 pointer-events-none">
-        <span>FRAME CADENCE: 45 FPS</span>
+        <span>FRAME CADENCE: 60 FPS</span>
         <span className="text-slate-600">|</span>
-        <span className="text-cyan-400 font-semibold">LATENCY: &lt;2MS</span>
+        <span className="text-cyan-400 font-semibold">LATENCY: &lt;1MS</span>
       </div>
 
       {/* TOP FLOATING THEME BAR ON LOGIN SCREEN */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-slate-800 shadow-xl">
         <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1 mr-1 hidden sm:inline-flex">
           <Palette className="w-3.5 h-3.5 text-emerald-400" />
           <span>Theme:</span>
@@ -196,37 +205,76 @@ export const Login: React.FC = () => {
         </button>
       </div>
 
-      {/* Login Container */}
-      <div className="w-full max-w-md z-10 space-y-6 animate-fadeIn">
-        {/* FORIS Header Branding */}
-        <div className="text-center space-y-2">
-          <div
-            className={`inline-flex p-3.5 rounded-2xl bg-gradient-to-tr ${getBrandGradient()} text-white shadow-2xl ring-2 glow-cyan`}
-          >
-            <Shield className="w-9 h-9 animate-pulseGlow" />
-          </div>
-          <div>
-            <h1 className={`text-3xl font-black tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              FORIS
+      {/* Main Split-Screen Container */}
+      <div className="w-full max-w-7xl mx-auto z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6">
+        {/* Left Side (Desktop Only): Futuristic Cyber Shield Overlay Content */}
+        <div className="hidden lg:flex lg:col-span-7 flex-col justify-between h-full min-h-[500px] pr-8 text-left pointer-events-none space-y-8 animate-fadeIn">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold tracking-wider backdrop-blur-md shadow-lg shadow-cyan-950/50">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span>SECURE PROTOCOL v7.1 // SOVEREIGN GATEWAY</span>
+            </div>
+
+            <h1 className="text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
+              FORIS <span className="text-cyan-400">PORTAL</span>
             </h1>
-            <p
-              className={`text-xs font-mono tracking-widest uppercase font-semibold mt-0.5 ${
-                accent === 'cobalt'
-                  ? 'text-blue-500'
-                  : accent === 'amber'
-                  ? 'text-amber-500'
-                  : accent === 'violet'
-                  ? 'text-purple-500'
-                  : 'text-emerald-500'
-              }`}
-            >
-              Forensic Integrity & Evidence Management System
+            <p className="text-sm font-mono text-cyan-200/90 max-w-lg leading-relaxed drop-shadow-md">
+              Forensic Integrity & Evidence Management System. Cryptographically preserving chain of custody and forensic lab inquests under BSA 2023.
             </p>
+          </div>
+
+          {/* Futuristic Floating Telemetry Cards */}
+          <div className="grid grid-cols-2 gap-3.5 max-w-lg">
+            <div className="p-4 rounded-2xl bg-slate-950/75 backdrop-blur-xl border border-cyan-500/30 shadow-2xl space-y-1">
+              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span>SHA-256 HASH CHAIN</span>
+              </div>
+              <p className="text-[11px] text-slate-300 font-mono">1,135 Blocks Verified Immutability</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/75 backdrop-blur-xl border border-emerald-500/30 shadow-2xl space-y-1">
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold">
+                <Lock className="w-4 h-4 text-emerald-400" />
+                <span>JUDICIAL IMMUTABILITY</span>
+              </div>
+              <p className="text-[11px] text-slate-300 font-mono">Tier-1 Strict RBAC Enforcement</p>
+            </div>
+          </div>
+
+          {/* Bottom Legal / Compliance Badge */}
+          <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400">
+            <span className="flex items-center gap-1.5 text-cyan-300 font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              FIPS 140-3 COMPLIANT
+            </span>
+            <span className="text-slate-600">|</span>
+            <span>DIRECTORATE OF FORENSIC SCIENCES • SFSL-GOV-IN</span>
           </div>
         </div>
 
-        {/* 3D Tilt Login Card */}
-        <ThreeDCard maxTilt={6} glowColor={getGlowColor()}>
+        {/* Right Side: Login Form Interface */}
+        <div className="w-full lg:col-span-5 flex flex-col items-center lg:items-end z-20">
+          <div className="w-full max-w-md space-y-4 animate-fadeIn">
+            {/* Mobile Header Branding (visible only on mobile/tablet) */}
+            <div className="text-center space-y-1.5 lg:hidden mb-2">
+              <div
+                className={`inline-flex p-3 rounded-2xl bg-gradient-to-tr ${getBrandGradient()} text-white shadow-2xl ring-2 glow-cyan`}
+              >
+                <Shield className="w-7 h-7 animate-pulseGlow" />
+              </div>
+              <div>
+                <h1 className={`text-2xl font-black tracking-wider ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  FORIS PORTAL
+                </h1>
+                <p className="text-[10px] font-mono tracking-widest uppercase text-cyan-400">
+                  Forensic Integrity Gateway
+                </p>
+              </div>
+            </div>
+
+            {/* 3D Tilt Login Card */}
+            <ThreeDCard maxTilt={6} glowColor={getGlowColor()}>
           <div
             className={`rounded-3xl p-6 sm:p-8 shadow-2xl border backdrop-blur-2xl space-y-5 transition-colors relative overflow-hidden ${
               isLight
@@ -482,6 +530,8 @@ export const Login: React.FC = () => {
         </ThreeDCard>
       </div>
     </div>
+  </div>
+</div>
   );
 };
 
