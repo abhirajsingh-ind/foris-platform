@@ -85,54 +85,54 @@ export const Login: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col lg:flex-row bg-[#030712] text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
+    <div
+      className="min-h-[100dvh] w-full flex flex-col lg:flex-row relative text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden bg-[#030712]"
+      style={{
+        backgroundImage: `url(${cyberLoginBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Subtle Ambient Vignette */}
+      <div className="absolute inset-0 bg-slate-950/20 pointer-events-none" />
+
       {/* ======================================================== */}
       {/* 1. LEFT HALF: 3D CYBER SECURITY SHIELD HERO STAGE */}
       {/* ======================================================== */}
-      <div
-        className="w-full lg:w-1/2 xl:w-7/12 h-72 sm:h-96 lg:h-auto min-h-[300px] lg:min-h-[100dvh] relative overflow-hidden bg-slate-950 flex flex-col justify-between p-6 sm:p-10 shrink-0"
-        style={{
-          backgroundImage: `url(${cyberLoginBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        {/* Subtle holographic scanline layer */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-[#030712] pointer-events-none" />
-
+      <div className="w-full lg:w-1/2 xl:w-7/12 min-h-[260px] sm:min-h-[340px] lg:min-h-[100dvh] relative flex flex-col justify-between p-6 sm:p-10 shrink-0 pointer-events-none z-10">
         {/* Top Floating Badge on Shield Stage */}
-        <div className="relative z-10 flex items-center justify-between pointer-events-none">
-          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-950/80 backdrop-blur-xl border border-cyan-500/40 shadow-xl shadow-cyan-950/50">
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-950/70 backdrop-blur-xl border border-cyan-500/40 shadow-xl shadow-cyan-950/50">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
             <span className="text-[11px] font-mono font-bold tracking-wider text-cyan-300">
               SFSL // SECURE PROTOCOL v7.1
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-slate-400">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/60 backdrop-blur-md border border-white/10 text-[10px] font-mono text-slate-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>SHIELD ACTIVE • 8K RENDER</span>
           </div>
         </div>
 
         {/* Bottom Floating Telemetry Bar on Shield Stage */}
-        <div className="relative z-10 hidden sm:flex items-center justify-between text-[11px] font-mono pointer-events-none pt-4">
-          <div className="flex items-center gap-2 text-slate-300 bg-slate-950/80 backdrop-blur-xl border border-cyan-500/30 px-3.5 py-2 rounded-2xl shadow-xl">
+        <div className="relative z-10 hidden sm:flex items-center justify-between text-[11px] font-mono pt-4">
+          <div className="flex items-center gap-2 text-slate-200 bg-slate-950/70 backdrop-blur-xl border border-cyan-500/30 px-3.5 py-2 rounded-2xl shadow-xl">
             <ShieldCheck className="w-4 h-4 text-cyan-400" />
             <span>256-BIT CRYPTOGRAPHIC TAMPER PROTECTION</span>
           </div>
 
-          <span className="text-[10px] text-slate-400 font-mono hidden md:inline">
+          <span className="text-[10px] text-slate-300 font-mono hidden md:inline px-3 py-1 rounded-full bg-slate-950/60 backdrop-blur-md border border-white/10">
             FIPS 140-3 COMPLIANT • SEC 65B BSA 2023
           </span>
         </div>
       </div>
 
       {/* ======================================================== */}
-      {/* 2. RIGHT HALF: HIGH-TECH CYBER LOGIN FORM CONSOLE */}
+      {/* 2. RIGHT HALF: SEMI-TRANSPARENT FROSTED GLASS CONSOLE */}
       {/* ======================================================== */}
-      <div className="w-full lg:w-1/2 xl:w-5/12 flex-1 flex flex-col justify-between p-6 sm:p-10 xl:p-12 bg-[#050914] border-t lg:border-t-0 lg:border-l border-cyan-500/20 relative z-20 overflow-y-auto">
+      <div className="w-full lg:w-1/2 xl:w-5/12 min-h-[100dvh] flex-1 flex flex-col justify-between p-6 sm:p-10 xl:p-12 bg-slate-950/45 backdrop-blur-2xl border-t lg:border-t-0 lg:border-l border-cyan-500/25 relative z-20 shadow-[-25px_0_60px_rgba(0,0,0,0.65)] overflow-y-auto">
         {/* Top Control Bar: Theme & Palette Switcher */}
         <div className="flex items-center justify-between pb-4 border-b border-white/5">
           <div className="flex items-center gap-2">
