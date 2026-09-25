@@ -53,21 +53,21 @@ export const Login: React.FC = () => {
     <div
       className="min-h-[100dvh] w-full relative flex items-center justify-center lg:justify-end font-sans selection:bg-blue-500/30 selection:text-blue-200 overflow-x-hidden"
       style={{
-        backgroundImage: `url(${cyberLoginBg})`,
+        backgroundImage: `url(${cyberLoginBg}?v=3)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* 100% Fully Transparent Floating Login Box (Zero Background Tint) */}
+      {/* 100% Pure Transparent Floating Form (Zero Card Border, Zero Tint, Completely Seamless) */}
       <div className="relative z-10 w-full max-w-[390px] mx-4 sm:mx-8 lg:mr-16 xl:mr-28 my-auto">
-        <div className="w-full bg-transparent border border-white/15 rounded-2xl p-7 sm:p-9 text-slate-100 transition-all">
+        <div className="w-full bg-transparent border-0 p-4 sm:p-6 text-slate-100 transition-all">
           {/* Header */}
           <div className="text-center mb-7">
-            <h1 className="text-2xl sm:text-[26px] font-semibold text-white tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            <h1 className="text-2xl sm:text-[26px] font-semibold text-white tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
               User Login
             </h1>
-            <p className="text-xs text-slate-300 mt-1.5 font-normal tracking-wide drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+            <p className="text-xs text-slate-300 mt-1.5 font-normal tracking-wide drop-shadow-[0_1px_5px_rgba(0,0,0,0.9)]">
               SFSL Security & Anti-Fraud Center
             </p>
           </div>
@@ -164,8 +164,8 @@ export const Login: React.FC = () => {
                 onClick={() => handleQuickLogin('FORIS-CFO-001', 'Forensic#Secure2026')}
                 className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'FORIS-CFO-001'
-                    ? 'bg-blue-600/25 border-[#1890ff] text-white'
-                    : 'bg-transparent border-white/15 text-slate-200 hover:border-[#1890ff] hover:bg-white/5'
+                    ? 'bg-blue-600/30 border-[#1890ff] text-white'
+                    : 'bg-transparent border-white/10 text-slate-200 hover:border-[#1890ff] hover:bg-white/5'
                 }`}
               >
                 <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
@@ -180,8 +180,8 @@ export const Login: React.FC = () => {
                 onClick={() => handleQuickLogin('FORIS-CYBER-002', 'Cyber#Forensic2026')}
                 className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'FORIS-CYBER-002'
-                    ? 'bg-purple-600/25 border-purple-400 text-white'
-                    : 'bg-transparent border-white/15 text-slate-200 hover:border-purple-400 hover:bg-white/5'
+                    ? 'bg-purple-600/30 border-purple-400 text-white'
+                    : 'bg-transparent border-white/10 text-slate-200 hover:border-purple-400 hover:bg-white/5'
                 }`}
               >
                 <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
@@ -196,8 +196,8 @@ export const Login: React.FC = () => {
                 onClick={() => handleQuickLogin('POLICE-INV-101', 'Police#Shield2026')}
                 className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'POLICE-INV-101'
-                    ? 'bg-blue-600/25 border-blue-400 text-white'
-                    : 'bg-transparent border-white/15 text-slate-200 hover:border-blue-400 hover:bg-white/5'
+                    ? 'bg-blue-600/30 border-blue-400 text-white'
+                    : 'bg-transparent border-white/10 text-slate-200 hover:border-blue-400 hover:bg-white/5'
                 }`}
               >
                 <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
@@ -212,8 +212,8 @@ export const Login: React.FC = () => {
                 onClick={() => handleQuickLogin('JUDGE-SESS-901', 'Justice#Docket2026')}
                 className={`p-2 rounded-lg border text-left transition-all text-xs flex flex-col justify-between ${
                   badgeId === 'JUDGE-SESS-901'
-                    ? 'bg-amber-600/25 border-amber-400 text-white'
-                    : 'bg-transparent border-white/15 text-slate-200 hover:border-amber-400 hover:bg-white/5'
+                    ? 'bg-amber-600/30 border-amber-400 text-white'
+                    : 'bg-transparent border-white/10 text-slate-200 hover:border-amber-400 hover:bg-white/5'
                 }`}
               >
                 <span className="font-semibold text-white flex items-center gap-1 truncate text-[11px] drop-shadow-sm">
